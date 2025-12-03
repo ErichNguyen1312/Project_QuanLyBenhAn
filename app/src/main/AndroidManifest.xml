@@ -12,6 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectQLBenhAn">
         <activity
+            android:name=".UpdatePatient"
+            android:exported="false" />
+        <activity
+            android:name=".CreatePatient"
+            android:exported="false" />
+        <activity
+            android:name=".Patients"
+            android:exported="true" />
+        <activity
             android:name=".ListBenhNhan"
             android:exported="true" />
         <activity
@@ -21,7 +30,7 @@
             android:name=".ThemBenhNhan"
             android:exported="true" />
         <activity
-            android:name=".ProfileBenhNhan"
+            android:name=".ProfilePatient"
             android:exported="true" />
         <activity
             android:name=".MainActivity"

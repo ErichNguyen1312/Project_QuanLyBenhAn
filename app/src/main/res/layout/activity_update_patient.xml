@@ -17,6 +17,7 @@
         android:paddingEnd="16dp">
 
         <ImageView
+            android:id="@+id/btnBack"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@android:drawable/ic_menu_revert"
@@ -59,6 +60,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <EditText
+                android:id="@+id/etName"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:background="#F0F2F5"
@@ -67,7 +69,7 @@
                 android:paddingEnd="12dp"
                 android:textSize="14sp"
                 android:layout_marginBottom="16dp"
-               />
+                />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -79,6 +81,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <EditText
+                android:id="@+id/etAge"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:background="#F0F2F5"
@@ -99,6 +102,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <EditText
+                android:id="@+id/etRecordId"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:background="#F0F2F5"
@@ -119,6 +123,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <EditText
+                android:id="@+id/etAddress"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:background="#F0F2F5"
@@ -139,6 +144,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <EditText
+                android:id="@+id/etPhone"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:background="#F0F2F5"
@@ -150,13 +156,14 @@
                 android:inputType="phone"/>
 
             <RadioGroup
+                android:id="@+id/rgGender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginBottom="24dp">
 
-<!--              mac dinh-->
                 <RadioButton
+                    android:id="@+id/rbMale"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Nam"
@@ -168,6 +175,7 @@
                     android:buttonTint="#000000"/>
 
                 <RadioButton
+                    android:id="@+id/rbFemale"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Nữ"
@@ -178,6 +186,7 @@
             </RadioGroup>
 
             <Button
+                android:id="@+id/btnUpdate"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:text="Cập nhật thông tin"
@@ -190,108 +199,5 @@
         </LinearLayout>
     </ScrollView>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#E0E0E0"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:orientation="horizontal"
-        android:background="#FFFFFF"
-        android:paddingTop="8dp"
-        android:paddingBottom="4dp">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_dialog_dialer"
-                app:tint="#757575"
-                tools:ignore="ContentDescription" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Home"
-                android:textSize="12sp"
-                android:textColor="#757575"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_myplaces"
-                app:tint="#000000"
-                tools:ignore="ContentDescription" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Patients"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:textColor="#000000"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_agenda"
-                app:tint="#757575"
-                tools:ignore="ContentDescription" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Record"
-                android:textSize="12sp"
-                android:textColor="#757575"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_sort_by_size"
-                app:tint="#757575"
-                tools:ignore="ContentDescription" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="More"
-                android:textSize="12sp"
-                android:textColor="#757575"/>
-        </LinearLayout>
-
-    </LinearLayout>
 
 </LinearLayout>

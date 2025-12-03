@@ -4,23 +4,25 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:paddingTop="12dp"
-    android:paddingBottom="12dp">
+    android:paddingBottom="12dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
 
     <TextView
         android:id="@+id/tvName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Tên"
-        android:textSize="16sp"
-        android:textColor="#000"
-        android:textStyle="bold" />
+        android:text="Nguyễn Văn A"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:textSize="16sp" />
 
     <TextView
         android:id="@+id/tvInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Thông tin"
-        android:layout_marginTop="4dp"
+        android:text="34 tuổi • Nam • Mã HS: BN001"
+        android:textColor="#757575"
         android:textSize="14sp"
-        android:textColor="#757575" />
+        android:layout_marginTop="4dp" />
 </LinearLayout>

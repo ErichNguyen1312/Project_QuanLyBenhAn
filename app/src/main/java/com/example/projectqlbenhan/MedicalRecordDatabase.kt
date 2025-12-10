@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.projectqlbenhan.dao.MedicalRecordDao
 import com.example.projectqlbenhan.dao.PatientDao
 import com.example.projectqlbenhan.entity.MedicalRecord
 import com.example.projectqlbenhan.entity.Patient
@@ -20,7 +21,7 @@ import com.example.projectqlbenhan.entity.Patient
 )
 abstract class MedicalRecordDatabase: RoomDatabase() {
     abstract fun patientDao(): PatientDao
-    abstract fun medicalRecordDao(): MedicalRecord
+    abstract fun medicalRecordDao(): MedicalRecordDao
     companion object {
         private var INSTANCE: MedicalRecordDatabase? = null
 
@@ -30,7 +31,9 @@ abstract class MedicalRecordDatabase: RoomDatabase() {
                     context.applicationContext,
                     MedicalRecordDatabase::class.java,
                     "simple_db"
-                ).allowMainThreadQueries()   // ⚠️ Run trên main thread cho đơn giản
+                )
+
+                    .allowMainThreadQueries()   // ⚠️ Run trên main thread cho đơn giản
                     .build()
             }
             return INSTANCE!!

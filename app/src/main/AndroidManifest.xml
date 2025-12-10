@@ -12,25 +12,28 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectQLBenhAn">
         <activity
-            android:name=".UpdatePatient"
+            android:name=".ui.medicalRecord.PatientRecord"
             android:exported="false" />
         <activity
-            android:name=".CreatePatient"
-            android:exported="false" />
-        <activity
-            android:name=".Patients"
+            android:name=".ui.medicalRecord.ProfileMedicalRecord"
             android:exported="true" />
         <activity
-            android:name=".ListBenhNhan"
+            android:name=".ui.medicalRecord.UpdateMedicalRecord"
             android:exported="true" />
         <activity
-            android:name=".UpdateBenhNhan"
+            android:name=".ui.medicalRecord.CreateMedicalRecord"
             android:exported="true" />
         <activity
-            android:name=".ThemBenhNhan"
+            android:name=".ui.patient.UpdatePatient"
             android:exported="true" />
         <activity
-            android:name=".ProfilePatient"
+            android:name=".ui.patient.CreatePatient"
+            android:exported="true" />
+        <activity
+            android:name=".ui.patient.Patients"
+            android:exported="true" />
+        <activity
+            android:name=".ui.patient.ProfilePatient"
             android:exported="true" />
         <activity
             android:name=".MainActivity"

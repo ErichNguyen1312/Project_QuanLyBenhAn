@@ -1,17 +1,22 @@
-package com.example.projectqlbenhan
+package com.example.projectqlbenhan.ui.patient
 
-import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import com.example.projectqlbenhan.MedicalRecordDatabase
+import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.entity.Patient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Calendar
 
 class CreatePatient : AppCompatActivity() {
 
@@ -25,7 +30,9 @@ class CreatePatient : AppCompatActivity() {
     private lateinit var rbMale: RadioButton
     private lateinit var rbFemale: RadioButton
     private lateinit var btnSave: Button
-
+    private val dao by lazy {
+        MedicalRecordDatabase.getDatabase(this).patientDao()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +50,7 @@ class CreatePatient : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             savePatient()
+
         }
     }
 
@@ -63,68 +71,70 @@ class CreatePatient : AppCompatActivity() {
     }
 
     //cac ham xu ly
-
     private fun savePatient() {
 
         val name = etName.text.toString().trim()
-        val ageText = etAge.text.toString().trim()
-        val recordId = etRecordId.text.toString().trim()
+        val ageStr = etAge.text.toString().trim()
+        val recordNumber = etRecordId.text.toString().trim()
         val address = etAddress.text.toString().trim()
         val phone = etPhone.text.toString().trim()
 
         // Validate
-        if (name.isEmpty()) {
-            toast("Vui lòng nhập họ tên")
-            return
-        }
-        if (ageText.isEmpty()) {
-            toast("Vui lòng nhập tuổi")
-            return
-        }
+        if (name.isEmpty()) return toast("Vui lòng nhập họ tên")
+        if (ageStr.isEmpty()) return toast("Vui lòng nhập tuổi")
 
-        val age = ageText.toIntOrNull()
-        if (age == null || age <= 0) {
-            toast("Tuổi không hợp lệ")
-            return
-        }
+        val age = ageStr.toIntOrNull()
+        if (age == null || age <= 0) return toast("Tuổi không hợp lệ")
 
-        if (recordId.isEmpty()) {
-            toast("Vui lòng nhập mã hồ sơ")
-            return
-        }
+        if (recordNumber.isEmpty()) return toast("Vui lòng nhập mã hồ sơ")
 
         val gender = when (rgGender.checkedRadioButtonId) {
             R.id.rbMale -> "Nam"
             R.id.rbFemale -> "Nữ"
-            else -> {
-                toast("Vui lòng chọn giới tính")
-                return
-            }
+            else -> return toast("Vui lòng chọn giới tính")
         }
 
-        // Tạo object Patient
+        val dateOfBirthTimestamp = convertAgeToDob(age)
+
+
+
+        // Tạo  Patient
         val newPatient = Patient(
-            name = name,
-            age = age,
+            fullName = name,
+            dateOfBirth = dateOfBirthTimestamp,
             gender = gender,
-            recordId = recordId,
+            phoneNumber = phone,
             address = address,
-            phone = phone
+            medicalRecordNumber = recordNumber
         )
 
-        // TRẢ DỮ LIỆU LẠI CHO MÀN PATIENT LIST
-        val resultIntent = intent
-        resultIntent.putExtra("newPatient_name", newPatient.name)
-        resultIntent.putExtra("newPatient_age", newPatient.age)
-        resultIntent.putExtra("newPatient_gender", newPatient.gender)
-        resultIntent.putExtra("newPatient_recordId", newPatient.recordId)
-        resultIntent.putExtra("newPatient_address", newPatient.address)
-        resultIntent.putExtra("newPatient_phone", newPatient.phone)
+        //luu xuong database
+        CoroutineScope(Dispatchers.IO).launch {
+            val id = dao.insertPatient(newPatient)
 
-        setResult(Activity.RESULT_OK, resultIntent)
+            withContext(Dispatchers.Main) {
+                if (id > 0) {
+                    toast("Thêm bệnh nhân thành công!")
+                    setResult(RESULT_OK)
+                    finish()
+                } else {
+                    toast("Thêm thất bại!")
+                }
+            }
+        }
         finish()
+
+        //log test
+        Log.d("new_patient", "patient: $newPatient")
+
     }
 
+    //convert tuoi sang date of birth
+    fun convertAgeToDob(age: Int): Long {
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.YEAR, -age)
+        return cal.timeInMillis
+    }
     //xu ly toast thong bao
     private fun toast(msg: String){
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()

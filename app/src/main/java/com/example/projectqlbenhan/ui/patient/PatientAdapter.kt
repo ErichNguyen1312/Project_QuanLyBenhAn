@@ -1,4 +1,4 @@
-package com.example.projectqlbenhan
+package com.example.projectqlbenhan.ui.patient
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -6,7 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
-
+import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.entity.Patient
 
 class PatientAdapter(
     context: Context,
@@ -22,8 +23,8 @@ class PatientAdapter(
 
         val p = patients[position]
 
-        tvName.text = p.name
-        tvInfo.text = "${p.age} Tuổi - ${p.gender} - ${p.recordId}"
+        tvName.text = p.fullName
+        tvInfo.text = "${p.calculateAge(p.dateOfBirth).toString()} Tuổi - ${p.gender} - ${p.medicalRecordNumber}"
 
         return view
     }

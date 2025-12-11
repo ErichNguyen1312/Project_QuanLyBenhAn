@@ -5,9 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F7FA"> <!-- Nền xám nhạt tổng thể -->
+    android:background="#F5F7FA">
 
-    <!-- 1. HEADER -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
@@ -18,7 +17,6 @@
         android:paddingEnd="16dp"
         android:elevation="1dp">
 
-        <!-- Nút Back (Icon chevron trái) -->
         <ImageView
             android:id="@+id/btnBack"
             android:layout_width="24dp"
@@ -30,7 +28,6 @@
             app:tint="#FFFFFF"
             tools:ignore="ContentDescription" />
 
-        <!-- Tiêu đề -->
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -41,13 +38,11 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <!-- View rỗng để cân đối tiêu đề vào giữa -->
         <View
             android:layout_width="24dp"
             android:layout_height="24dp"/>
     </LinearLayout>
 
-    <!-- 2. NỘI DUNG FORM (Cuộn được) -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -60,7 +55,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Field 1: Chẩn đoán -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -81,9 +75,7 @@
                 android:textSize="14sp"
                 android:textColorHint="#999999"
                 android:layout_marginBottom="16dp"/>
-            <!-- Mẹo: Muốn bo góc thì cần file drawable bg_rounded.xml -->
 
-            <!-- Field 2: Triệu chứng (Nhiều dòng) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -106,7 +98,6 @@
                 android:layout_marginBottom="16dp"
                 android:inputType="textMultiLine"/>
 
-            <!-- Field 3: Loại bệnh -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -128,7 +119,6 @@
                 android:textColorHint="#999999"
                 android:layout_marginBottom="16dp"/>
 
-            <!-- Field 4: Ngày khám (Input + Icon Lịch) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -165,7 +155,6 @@
                     app:tint="#888888"/>
             </LinearLayout>
 
-            <!-- Field 5: Bác sĩ khám -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -187,7 +176,6 @@
                 android:textColorHint="#999999"
                 android:layout_marginBottom="16dp"/>
 
-            <!-- Field 6: Ghi chú (Nhiều dòng) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -213,7 +201,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- 3. BUTTON LƯU (Cố định ở đáy) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

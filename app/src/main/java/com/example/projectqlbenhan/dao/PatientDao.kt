@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.example.projectqlbenhan.entity.MedicalRecord
 import com.example.projectqlbenhan.entity.Patient
 //import com.example.projectqlbenhan.entity.PatientWithRecords
 import kotlinx.coroutines.flow.Flow
@@ -24,8 +25,24 @@ interface PatientDao {
     @Update
     suspend fun updatePatient(patient: Patient)
 
+
+    @Query(
+        """
+    SELECT * FROM medical_records
+    WHERE patient_id = :patientId
+    ORDER BY examination_date DESC
+    LIMIT 5
+"""
+    )
+    suspend fun getRecentMedicalRecords(patientId: Long): List<MedicalRecord>
+
+
     @Delete
     suspend fun deletePatient(patient: Patient)
+
+
+    @Query("DELETE FROM patients WHERE patientId = :id")
+    suspend fun deletePatientById(id: Long)
 
     @Query("SELECT * FROM patients WHERE patientId = :id")
     suspend fun getPatientById(id: Long): Patient?
@@ -35,7 +52,7 @@ interface PatientDao {
 
     @Query("SELECT * FROM patients WHERE full_name LIKE '%' || :searchQuery || '%' OR medical_record_number LIKE '%' || :searchQuery || '%'")
     fun searchPatients(searchQuery: String): Flow<List<Patient>>
-
+//
 //    @Transaction
 //    @Query("SELECT * FROM patients WHERE patientId = :patientId")
 //    suspend fun getPatientWithRecords(patientId: Long): PatientWithRecords?

@@ -20,8 +20,14 @@ import com.example.projectqlbenhan.entity.Patient
     exportSchema = false
 )
 abstract class MedicalRecordDatabase: RoomDatabase() {
+
+    //khai bao cac dao
     abstract fun patientDao(): PatientDao
     abstract fun medicalRecordDao(): MedicalRecordDao
+
+//    abstract fun prescriptionDao(): PrescriptionDao
+//    abstract fun appointmentDao(): AppointmentDao
+
     companion object {
         private var INSTANCE: MedicalRecordDatabase? = null
 

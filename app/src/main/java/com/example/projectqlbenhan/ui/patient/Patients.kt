@@ -81,13 +81,7 @@ class Patients : AppCompatActivity() {
         val adapter = PatientAdapter(this, patients)
         lvPatients.adapter = adapter
         lifecycleScope.launch(Dispatchers.IO) {
-//            val list = dao.getAll()  // Lấy dữ liệu từ Room
-//
-//            withContext(Dispatchers.Main) {
-//                patients.clear()
-//                patients.addAll(list)
-//                adapter.notifyDataSetChanged()
-//            }
+
         }
     }
 
@@ -172,5 +166,6 @@ class Patients : AppCompatActivity() {
 
         return age
     }
+
 
 }

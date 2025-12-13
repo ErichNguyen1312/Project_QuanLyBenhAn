@@ -12,10 +12,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectQLBenhAn">
         <activity
-            android:name=".ui.medicalRecord.PatientRecord"
+            android:name=".ui.medicalRecord.ProfilePatientMedicalRecord"
             android:exported="true" />
         <activity
-            android:name=".ui.medicalRecord.ProfileMedicalRecord"
+            android:name=".ui.medicalRecord.PatientMedicalRecordDetail"
             android:exported="true" />
         <activity
             android:name=".ui.medicalRecord.UpdateMedicalRecord"

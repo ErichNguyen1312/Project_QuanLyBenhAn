@@ -1,0 +1,45 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_card_white"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+
+    <TextView
+        android:id="@+id/tvDiagnosis"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Gãy xương cẳng tay"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvDiseaseType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:drawableStart="@android:drawable/ic_menu_sort_by_size"
+        android:drawablePadding="8dp"
+        android:drawableTint="#3B65F6"
+        android:gravity="center_vertical"
+        android:text="Loại bệnh: Chấn thương"
+        android:textColor="#555555"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:drawableStart="@android:drawable/ic_menu_my_calendar"
+        android:drawablePadding="8dp"
+        android:drawableTint="#3B65F6"
+        android:gravity="center_vertical"
+        android:text="Ngày khám: 03/05/2023"
+        android:textColor="#555555"
+        android:textSize="15sp" />
+
+</LinearLayout>

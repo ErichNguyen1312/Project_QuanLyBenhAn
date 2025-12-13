@@ -68,6 +68,7 @@
                 android:textSize="16sp" />
 
             <EditText
+                android:id="@+id/edtDiagnosis"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_input_white"
@@ -87,6 +88,7 @@
                 android:textSize="16sp" />
 
             <EditText
+                android:id="@+id/edtSymptoms"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_input_white"
@@ -108,6 +110,7 @@
                 android:textSize="16sp" />
 
             <EditText
+                android:id="@+id/edtDiseaseType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_input_white"
@@ -126,6 +129,7 @@
                 android:textSize="16sp" />
 
             <EditText
+                android:id="@+id/edtDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_input_white"
@@ -148,6 +152,7 @@
                 android:textSize="16sp" />
 
             <EditText
+                android:id="@+id/edtDoctor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_input_white"
@@ -166,6 +171,7 @@
                 android:textSize="16sp" />
 
             <EditText
+                android:id="@+id/edtNotes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_input_white"
@@ -178,6 +184,7 @@
                 android:textSize="16sp" />
 
             <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnUpdate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
@@ -193,6 +200,7 @@
 
 
             <TextView
+                android:id="@+id/btnDelete"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"

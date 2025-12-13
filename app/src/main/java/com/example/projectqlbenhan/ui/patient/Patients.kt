@@ -81,13 +81,7 @@ class Patients : AppCompatActivity() {
         val adapter = PatientAdapter(this, patients)
         lvPatients.adapter = adapter
         lifecycleScope.launch(Dispatchers.IO) {
-//            val list = dao.getAll()  // Lấy dữ liệu từ Room
-//
-//            withContext(Dispatchers.Main) {
-//                patients.clear()
-//                patients.addAll(list)
-//                adapter.notifyDataSetChanged()
-//            }
+
         }
     }
 
@@ -157,7 +151,6 @@ class Patients : AppCompatActivity() {
     }
 
 
-    //cac ham xu ly data
 
     fun calculateAge(dob: Long): Int {
         val dobCalendar = Calendar.getInstance().apply { timeInMillis = dob }
@@ -165,12 +158,12 @@ class Patients : AppCompatActivity() {
 
         var age = today.get(Calendar.YEAR) - dobCalendar.get(Calendar.YEAR)
 
-        // Nếu chưa tới sinh nhật năm nay thì -1 tuổi
         if (today.get(Calendar.DAY_OF_YEAR) < dobCalendar.get(Calendar.DAY_OF_YEAR)) {
             age--
         }
 
         return age
     }
+
 
 }

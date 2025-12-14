@@ -1,14 +1,12 @@
-package com.example.projectqlbenhan.dao
+package com.example.projectqlbenhan.dao.medicalRecord
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Update
-import com.example.projectqlbenhan.entity.MedicalRecord
-import com.example.projectqlbenhan.entity.MedicalRecordWithDetails
+import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 
 @Dao
 interface MedicalRecordDao {

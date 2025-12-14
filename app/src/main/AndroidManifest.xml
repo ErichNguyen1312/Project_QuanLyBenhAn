@@ -18,6 +18,22 @@
             android:name=".ui.medicalRecord.PatientMedicalRecordDetail"
             android:exported="true" />
         <activity
+            android:name=".ui.DonThuocUI.SuaDonThuoc"
+            android:exported="true" />
+        <activity
+            android:name=".ui.DonThuocUI.ThemDonThuoc"
+            android:exported="true" />
+        <activity
+            android:name=".ui.DonThuocUI.DonThuoc"
+            android:exported="true" />
+        <activity
+            android:name=".ui.DonThuocUI.DanhSachDonThuoc"
+            android:exported="true" />
+        <activity
+            android:name=".ui.DonThuocUI.ChiTietDonThuoc"
+            android:exported="true" />
+
+        <activity
             android:name=".ui.medicalRecord.UpdateMedicalRecord"
             android:exported="true" />
         <activity

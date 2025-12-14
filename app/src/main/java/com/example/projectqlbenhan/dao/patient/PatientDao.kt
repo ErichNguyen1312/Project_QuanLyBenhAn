@@ -1,15 +1,14 @@
-package com.example.projectqlbenhan.dao
+package com.example.projectqlbenhan.dao.patient
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Update
-import com.example.projectqlbenhan.entity.MedicalRecord
-import com.example.projectqlbenhan.entity.Patient
-//import com.example.projectqlbenhan.entity.PatientWithRecords
+import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
+import com.example.projectqlbenhan.entity.patient.Patient
+//import com.example.projectqlbenhan.entity.patient.PatientWithRecords
 import kotlinx.coroutines.flow.Flow
 
 @Dao

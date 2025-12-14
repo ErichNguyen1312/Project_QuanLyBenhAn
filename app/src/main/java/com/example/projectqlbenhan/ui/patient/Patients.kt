@@ -11,8 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.dao.PatientDao
-import com.example.projectqlbenhan.entity.Patient
+import com.example.projectqlbenhan.dao.patient.PatientDao
+import com.example.projectqlbenhan.entity.patient.Patient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,7 +24,7 @@ class Patients : AppCompatActivity() {
     lateinit var etSearch: EditText
     lateinit var lvPatients: ListView
     lateinit var dao: PatientDao
-    private val patients = mutableListOf<com.example.projectqlbenhan.entity.Patient>()
+    private val patients = mutableListOf<Patient>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

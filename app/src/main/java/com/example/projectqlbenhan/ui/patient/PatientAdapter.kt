@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.entity.Patient
+import com.example.projectqlbenhan.entity.patient.Patient
 
 class PatientAdapter(
     context: Context,

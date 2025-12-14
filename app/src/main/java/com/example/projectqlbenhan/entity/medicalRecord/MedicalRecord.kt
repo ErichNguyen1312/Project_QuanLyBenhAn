@@ -1,10 +1,11 @@
-package com.example.projectqlbenhan.entity
+package com.example.projectqlbenhan.entity.medicalRecord
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.projectqlbenhan.entity.patient.Patient
 
 @Entity(
     tableName = "medical_records",

@@ -1,4 +1,4 @@
-package com.example.projectqlbenhan.entity
+package com.example.projectqlbenhan.entity.patient
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

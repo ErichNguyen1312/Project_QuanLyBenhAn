@@ -46,7 +46,7 @@ dependencies {
 
     // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
     // See Add the KSP plugin to your project
-
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6")
     // If this project only uses Java source, use the Java annotationProcessor
     // No additional plugins are necessary
     annotationProcessor("androidx.room:room-compiler:$room_version")

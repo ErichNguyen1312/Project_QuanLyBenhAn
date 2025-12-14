@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.dao.PatientDao
-import com.example.projectqlbenhan.entity.MedicalRecord
+import com.example.projectqlbenhan.dao.patient.PatientDao
+import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.ui.medicalRecord.ProfilePatientMedicalRecord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

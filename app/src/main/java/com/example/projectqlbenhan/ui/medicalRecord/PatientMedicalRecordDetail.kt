@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -15,6 +16,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.ui.DonThuocUI.DanhSachDonThuoc
+import com.example.projectqlbenhan.ui.DonThuocUI.DonThuoc
+import com.example.projectqlbenhan.ui.DonThuocUI.ThemDonThuoc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,6 +38,7 @@ class PatientMedicalRecordDetail : AppCompatActivity() {
     private lateinit var btnBack: ImageView
     private lateinit var btnUpdate: TextView
     private lateinit var btnDelete: ImageButton
+    private lateinit var btnPatientPrescription : Button
 
     private var recordId: Long = -1
     private val dao by lazy {
@@ -63,6 +68,12 @@ class PatientMedicalRecordDetail : AppCompatActivity() {
             showDeleteConfirm()
         }
 
+        btnPatientPrescription.setOnClickListener {
+            val intent = Intent(this, DanhSachDonThuoc::class.java)
+            intent.putExtra("record_id", recordId)
+            startActivity(intent)
+        }
+
     }
 
     private fun setControl() {
@@ -76,6 +87,7 @@ class PatientMedicalRecordDetail : AppCompatActivity() {
         btnBack = findViewById(R.id.btnBack)
         btnUpdate = findViewById(R.id.btnUpdate)
         btnDelete = findViewById(R.id.btnDelete)
+        btnPatientPrescription= findViewById(R.id.btnPatientPrescription)
     }
 
     //cac ham xu ly

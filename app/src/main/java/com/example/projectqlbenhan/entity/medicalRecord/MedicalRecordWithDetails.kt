@@ -1,7 +1,9 @@
-package com.example.projectqlbenhan.entity
+package com.example.projectqlbenhan.entity.medicalRecord
 
 import androidx.room.Embedded
 import androidx.room.Relation
+import com.example.projectqlbenhan.entity.Appointment
+import com.example.projectqlbenhan.entity.Prescription
 
 data class MedicalRecordWithDetails(
     @Embedded val medicalRecord: MedicalRecord,

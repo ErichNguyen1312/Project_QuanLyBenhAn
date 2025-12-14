@@ -1,9 +1,9 @@
-package com.example.projectqlbenhan.dao
+package com.example.projectqlbenhan.dao.patient
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
-import com.example.projectqlbenhan.entity.PatientWithRecords
+import com.example.projectqlbenhan.entity.patient.PatientWithRecords
 
 @Dao
 interface PatientWithRecordsDao {

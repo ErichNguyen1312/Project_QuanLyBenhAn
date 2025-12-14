@@ -11,16 +11,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.dao.PatientDao
-import com.example.projectqlbenhan.entity.Patient
+import com.example.projectqlbenhan.entity.patient.Patient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.Instant
-import java.time.LocalDate
-import java.time.Period
-import java.time.ZoneId
 import java.util.Calendar
 
 class UpdatePatient : AppCompatActivity() {

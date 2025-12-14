@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.entity.MedicalRecord
+import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

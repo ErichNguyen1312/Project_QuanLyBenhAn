@@ -74,12 +74,12 @@ class PatientMedicalRecordDetail : AppCompatActivity() {
             showDeleteConfirm()
         }
 
+        // ⭐ FIX: Thay đổi Activity đích từ DanhSachDonThuoc sang ThemDonThuoc
         btnPatientPrescription.setOnClickListener {
-            val intent = Intent(this, DanhSachDonThuoc::class.java)
-            intent.putExtra("record_id", recordId)
+            val intent = Intent(this, ThemDonThuoc::class.java) // Đã sửa
+            intent.putExtra("record_id", recordId) // Vẫn truyền ID Hồ sơ Bệnh án
             startActivity(intent)
         }
-
     }
 
     private fun setControl() {

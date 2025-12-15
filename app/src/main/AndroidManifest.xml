@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectQLBenhAn">
         <activity
+            android:name=".ui.loginService.Login"
+            android:exported="true" />
+        <activity
             android:name=".ui.medicalRecord.ProfilePatientMedicalRecord"
             android:exported="true" />
         <activity
@@ -32,7 +35,6 @@
         <activity
             android:name=".ui.DonThuocUI.ChiTietDonThuoc"
             android:exported="true" />
-
         <activity
             android:name=".ui.medicalRecord.UpdateMedicalRecord"
             android:exported="true" />
@@ -50,22 +52,13 @@
             android:exported="true" />
         <activity
             android:name=".ui.patient.ProfilePatient"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-<!--        <activity-->
-<!--            android:name=".MainActivity"-->
-<!--            android:exported="true">-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.MAIN" />-->
-
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-<!--            </intent-filter>-->
-<!--        </activity>-->
     </application>
 
 </manifest>

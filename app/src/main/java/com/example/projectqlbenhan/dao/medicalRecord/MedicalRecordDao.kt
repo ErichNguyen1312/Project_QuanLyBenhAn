@@ -35,26 +35,42 @@ interface MedicalRecordDao {
     @Query("DELETE FROM medical_records WHERE recordId = :id")
     suspend fun deleteRecord(id: Long)
 
-    @Query("""
+//    @Query("""
+//    UPDATE medical_records SET
+//        diagnosis = :diagnosis,
+//        symptoms = :symptoms,
+//        disease_type = :type,
+//        examination_date = :examinationDate,
+//        doctor_name = :doctor,
+//        notes = :notes
+//    WHERE recordId = :id
+//""")
+//    fun updateRecord(
+//        id: Long,
+//        diagnosis: String,
+//        symptoms: String,
+//        type: String,
+//        examinationDate: Long,
+//        doctor: String?,
+//        notes: String?
+//    )
+@Query("""
     UPDATE medical_records SET
         diagnosis = :diagnosis,
         symptoms = :symptoms,
         disease_type = :type,
         examination_date = :examinationDate,
-        doctor_name = :doctor,
         notes = :notes
     WHERE recordId = :id
 """)
-    fun updateRecord(
-        id: Long,
-        diagnosis: String,
-        symptoms: String,
-        type: String,
-        examinationDate: Long,
-        doctor: String?,
-        notes: String?
-    )
-
+fun updateRecord(
+    id: Long,
+    diagnosis: String,
+    symptoms: String,
+    type: String,
+    examinationDate: Long,
+    notes: String?
+)
 
 
     // lấy full details: đơn thuốc + lịch hẹn

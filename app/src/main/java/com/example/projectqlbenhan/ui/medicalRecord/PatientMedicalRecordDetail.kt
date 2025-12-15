@@ -19,6 +19,7 @@ import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.ui.DonThuocUI.DanhSachDonThuoc
 import com.example.projectqlbenhan.ui.DonThuocUI.DonThuoc
 import com.example.projectqlbenhan.ui.DonThuocUI.ThemDonThuoc
+import com.example.projectqlbenhan.utils.SessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,6 +45,11 @@ class PatientMedicalRecordDetail : AppCompatActivity() {
     private val dao by lazy {
         MedicalRecordDatabase.getDatabase(this).medicalRecordDao()
     }
+
+    private val doc by lazy {
+        MedicalRecordDatabase.getDatabase(this).doctorDao()
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,7 +119,7 @@ class PatientMedicalRecordDetail : AppCompatActivity() {
 
                 tvType.text = record.diseaseType
                 tvDate.text = formatDate(record.examinationDate)
-                tvDoctor.text = record.doctorName
+                tvDoctor.text = doc.getDoctorNameById(record.doctorId)
                 tvNotes.text = record.notes
             }
         }

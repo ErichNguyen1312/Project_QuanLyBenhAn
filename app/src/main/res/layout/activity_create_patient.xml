@@ -110,6 +110,7 @@
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:textSize="14sp"
+                android:enabled="false"
                 android:layout_marginBottom="16dp"
                 android:inputType="text"/>
 

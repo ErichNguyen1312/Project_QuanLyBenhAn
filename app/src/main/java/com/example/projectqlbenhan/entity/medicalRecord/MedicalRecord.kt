@@ -38,8 +38,14 @@ data class MedicalRecord(
     @ColumnInfo(name = "examination_date")
     val examinationDate: Long, // Ngày khám
 
-    @ColumnInfo(name = "doctor_name")
-    val doctorName: String?,
+//    @ColumnInfo(name = "doctor_name")
+//    val doctorName: String?,
+
+
+    @ColumnInfo(name = "doctor_id")
+    val doctorId: Long,
+
+
 
     @ColumnInfo(name = "notes")
     val notes: String?,

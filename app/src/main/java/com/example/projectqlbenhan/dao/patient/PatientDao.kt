@@ -35,7 +35,8 @@ interface PatientDao {
     )
     suspend fun getRecentMedicalRecords(patientId: Long): List<MedicalRecord>
 
-
+    @Query("SELECT COUNT(*) FROM patients WHERE medical_record_number = :mrn")
+    suspend fun countByMedicalRecordNumber(mrn: String): Int
     @Delete
     suspend fun deletePatient(patient: Patient)
 

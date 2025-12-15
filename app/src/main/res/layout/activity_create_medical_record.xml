@@ -170,6 +170,8 @@
                 android:layout_height="48dp"
                 android:background="#FFFFFF"
                 android:hint="Nhập tên bác sĩ"
+                android:enabled="false"
+                android:focusable="false"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:textSize="14sp"

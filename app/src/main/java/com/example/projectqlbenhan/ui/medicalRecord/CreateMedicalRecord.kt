@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
+import com.example.projectqlbenhan.utils.SessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,6 +35,9 @@ class CreateMedicalRecord : AppCompatActivity() {
 
     private val db by lazy { MedicalRecordDatabase.getDatabase(this) }
     private val dao by lazy { db.medicalRecordDao() }
+
+    private val doc by lazy { db.doctorDao() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_medical_record)
@@ -49,6 +53,7 @@ class CreateMedicalRecord : AppCompatActivity() {
     }
 
     private fun setEvent() {
+        loadDoctorInfo()
         btnBack.setOnClickListener { finish() }
 
         tvDate.setOnClickListener {
@@ -69,6 +74,7 @@ class CreateMedicalRecord : AppCompatActivity() {
         etDoctor = findViewById(R.id.etDoctor)
         etNote = findViewById(R.id.etNote)
         btnSave = findViewById(R.id.btnSave)
+
     }
 
     //cac ham xu ly
@@ -96,6 +102,13 @@ class CreateMedicalRecord : AppCompatActivity() {
         val type = etDiseaseType.text.toString().trim()
         val doctor = etDoctor.text.toString().trim()
         val note = etNote.text.toString().trim()
+        val doctorId = SessionManager.getDoctorId(this)
+
+        if (doctorId == -1L) {
+            toast("Vui lòng đăng nhập")
+            finish()
+            return
+        }
 
         // Validate
         if (diagnosis.isEmpty()) return toast("Vui lòng nhập chẩn đoán")
@@ -109,7 +122,8 @@ class CreateMedicalRecord : AppCompatActivity() {
             symptoms = symptoms,
             diseaseType = type,
             examinationDate = selectedDateMillis,
-            doctorName = doctor,
+//            doctorName = doctor,
+            doctorId = doctorId,
             notes = note
         )
 
@@ -123,6 +137,21 @@ class CreateMedicalRecord : AppCompatActivity() {
             }
         }
     }
+
+    private fun loadDoctorInfo() {
+        val doctorId = SessionManager.getDoctorId(this)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val doctor = doc.getDoctorById(doctorId)
+
+            withContext(Dispatchers.Main) {
+                etDoctor.setText(doctor.fullName)
+                etDoctor.isEnabled = false
+                etDoctor.isFocusable = false
+            }
+        }
+    }
+
 
     private fun toast(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()

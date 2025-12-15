@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.utils.SessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,14 +91,14 @@ class UpdateMedicalRecord : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             val record = dao.getRecordById(recordId)
-
+            val doctorUpdateRecord = SessionManager.getDoctorName(this@UpdateMedicalRecord)
             withContext(Dispatchers.Main) {
                 if (record != null) {
 
                     edtDiagnosis.setText(record.diagnosis)
                     edtSymptoms.setText(record.symptoms)
                     edtType.setText(record.diseaseType)
-                    edtDoctor.setText(record.doctorName ?: "")
+                    edtDoctor.setText(doctorUpdateRecord ?: "")
                     edtNotes.setText(record.notes)
 
                     selectedDateMillis = record.examinationDate
@@ -123,7 +124,7 @@ class UpdateMedicalRecord : AppCompatActivity() {
                 symptoms,
                 type,
                 selectedDateMillis,
-                doctor,
+//                doctor,
                 notes
             )
 

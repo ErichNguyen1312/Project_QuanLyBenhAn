@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.patient.Patient
+import com.example.projectqlbenhan.utils.MrnGenerator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,6 +40,7 @@ class CreatePatient : AppCompatActivity() {
         setContentView(R.layout.activity_create_patient)
 
         setControl()
+        autoFillMrn()
         setEvent()
     }
 
@@ -110,15 +112,29 @@ class CreatePatient : AppCompatActivity() {
 
         //luu xuong database
         CoroutineScope(Dispatchers.IO).launch {
-            val id = dao.insertPatient(newPatient)
-
-            withContext(Dispatchers.Main) {
-                if (id > 0) {
-                    toast("Thêm bệnh nhân thành công!")
-                    setResult(RESULT_OK)
+//            val id = dao.insertPatient(newPatient)
+//
+//            withContext(Dispatchers.Main) {
+//                if (id > 0) {
+//                    toast("Thêm bệnh nhân thành công!")
+//                    setResult(RESULT_OK)
+//                    finish()
+//                } else {
+//                    toast("Thêm thất bại!")
+//                }
+//            }
+            try {
+                dao.insertPatient(newPatient)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@CreatePatient, "Thêm bệnh nhân thành công!", Toast.LENGTH_SHORT).show()
                     finish()
-                } else {
-                    toast("Thêm thất bại!")
+                }
+            } catch (e: android.database.sqlite.SQLiteConstraintException) {
+                //kiem tra neu trung lan 1 thi generator lan 2
+                val newMrn = MrnGenerator.generateUnique(dao)
+                withContext(Dispatchers.Main) {
+                    etRecordId.setText(newMrn)
+                    Toast.makeText(this@CreatePatient, "Mã hồ sơ bị trùng, đã tạo mã mới. Vui lòng lưu lại.", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -135,6 +151,19 @@ class CreatePatient : AppCompatActivity() {
         cal.add(Calendar.YEAR, -age)
         return cal.timeInMillis
     }
+
+    //tao ma ho so
+    private fun autoFillMrn() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val mrn = MrnGenerator.generateUnique(dao)
+
+            withContext(Dispatchers.Main) {
+                etRecordId.setText(mrn)
+
+            }
+        }
+    }
+
     //xu ly toast thong bao
     private fun toast(msg: String){
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()

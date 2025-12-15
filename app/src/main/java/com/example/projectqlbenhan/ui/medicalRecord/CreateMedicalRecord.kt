@@ -80,12 +80,14 @@ class CreateMedicalRecord : AppCompatActivity() {
     //cac ham xu ly
     private fun openDatePicker() {
         val cal = Calendar.getInstance()
+
         val dp = DatePickerDialog(
             this,
             { _, year, month, day ->
-                val c = Calendar.getInstance()
-                c.set(year, month, day)
-                selectedDateMillis = c.timeInMillis
+                val selectedCal = Calendar.getInstance()
+                selectedCal.set(year, month, day, 0, 0, 0)
+
+                selectedDateMillis = selectedCal.timeInMillis
                 tvDate.text = "$day/${month + 1}/$year"
                 tvDate.setTextColor(0xFF000000.toInt())
             },
@@ -93,6 +95,9 @@ class CreateMedicalRecord : AppCompatActivity() {
             cal.get(Calendar.MONTH),
             cal.get(Calendar.DAY_OF_MONTH)
         )
+
+        dp.datePicker.maxDate = System.currentTimeMillis()
+
         dp.show()
     }
 
@@ -100,9 +105,9 @@ class CreateMedicalRecord : AppCompatActivity() {
         val diagnosis = etDiagnosis.text.toString().trim()
         val symptoms = etSymptoms.text.toString().trim()
         val type = etDiseaseType.text.toString().trim()
-        val doctor = etDoctor.text.toString().trim()
         val note = etNote.text.toString().trim()
         val doctorId = SessionManager.getDoctorId(this)
+        val todayMillis = System.currentTimeMillis()
 
         if (doctorId == -1L) {
             toast("Vui lòng đăng nhập")
@@ -115,6 +120,10 @@ class CreateMedicalRecord : AppCompatActivity() {
         if (symptoms.isEmpty()) return toast("Vui lòng nhập triệu chứng")
         if (type.isEmpty()) return toast("Vui lòng nhập loại bệnh")
         if (selectedDateMillis == 0L) return toast("Vui lòng chọn ngày khám")
+        if (selectedDateMillis > todayMillis) {
+            toast("Ngày khám không được lớn hơn ngày hiện tại")
+            return
+        }
 
         val record = MedicalRecord(
             patientId = patientId,
@@ -122,7 +131,6 @@ class CreateMedicalRecord : AppCompatActivity() {
             symptoms = symptoms,
             diseaseType = type,
             examinationDate = selectedDateMillis,
-//            doctorName = doctor,
             doctorId = doctorId,
             notes = note
         )

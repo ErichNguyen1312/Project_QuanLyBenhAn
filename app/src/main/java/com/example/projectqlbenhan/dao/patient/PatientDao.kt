@@ -56,5 +56,14 @@ interface PatientDao {
 //    @Transaction
 //    @Query("SELECT * FROM patients WHERE patientId = :patientId")
 //    suspend fun getPatientWithRecords(patientId: Long): PatientWithRecords?
+@Query("""
+    SELECT DISTINCT p.*
+    FROM patients p
+    INNER JOIN medical_records m
+        ON p.patientId = m.patient_id
+    WHERE m.doctor_id = :doctorId
+    ORDER BY p.full_name
+""")
+suspend fun getPatientsByDoctor(doctorId: Long): List<Patient>
 
 }

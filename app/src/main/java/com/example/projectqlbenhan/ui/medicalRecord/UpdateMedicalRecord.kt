@@ -156,16 +156,19 @@ class UpdateMedicalRecord : AppCompatActivity() {
             }
         }
     }
+
     private fun showDatePicker() {
 
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = selectedDateMillis
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = selectedDateMillis
+        }
+
 
         val dp = DatePickerDialog(
             this,
             { _, y, m, d ->
                 val cal = Calendar.getInstance()
-                cal.set(y, m, d)
+                cal.set(y, m, d, 0, 0, 0)
                 selectedDateMillis = cal.timeInMillis
                 edtDate.setText(formatDate(selectedDateMillis))
             },
@@ -174,6 +177,7 @@ class UpdateMedicalRecord : AppCompatActivity() {
             calendar.get(Calendar.DAY_OF_MONTH)
         )
 
+        dp.datePicker.maxDate = System.currentTimeMillis()
         dp.show()
     }
     private fun formatDate(millis: Long): String {

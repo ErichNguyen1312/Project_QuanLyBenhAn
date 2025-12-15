@@ -43,4 +43,10 @@ object SessionManager {
         val pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         pref.edit().clear().apply()
     }
+
+//    clear khi logout
+fun clear(context: Context) {
+    context.getSharedPreferences("doctor_session", Context.MODE_PRIVATE)
+        .edit().clear().apply()
+}
 }

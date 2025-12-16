@@ -112,17 +112,7 @@ class CreatePatient : AppCompatActivity() {
 
         //luu xuong database
         CoroutineScope(Dispatchers.IO).launch {
-//            val id = dao.insertPatient(newPatient)
-//
-//            withContext(Dispatchers.Main) {
-//                if (id > 0) {
-//                    toast("Thêm bệnh nhân thành công!")
-//                    setResult(RESULT_OK)
-//                    finish()
-//                } else {
-//                    toast("Thêm thất bại!")
-//                }
-//            }
+
             try {
                 dao.insertPatient(newPatient)
                 withContext(Dispatchers.Main) {

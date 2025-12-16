@@ -16,12 +16,14 @@ interface DoctorDao {
     suspend fun getDoctorNameById(id: Long): String
 
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM doctors
         WHERE username = :username
         AND passwordHash = :passwordHash
         LIMIT 1
-    """)
+    """
+    )
     suspend fun login(
         username: String,
         passwordHash: String

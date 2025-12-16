@@ -1,7 +1,6 @@
 package com.example.projectqlbenhan
 
 
-
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
@@ -18,23 +17,17 @@ import com.example.projectqlbenhan.entity.patient.Patient
         Patient::class,
         MedicalRecord::class,
         Doctor::class
-
-//        Prescription::class,
-//        Appointment::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
-abstract class MedicalRecordDatabase: RoomDatabase() {
+abstract class MedicalRecordDatabase : RoomDatabase() {
 
     //khai bao cac dao
     abstract fun patientDao(): PatientDao
     abstract fun medicalRecordDao(): MedicalRecordDao
 
     abstract fun doctorDao(): DoctorDao
-
-//    abstract fun prescriptionDao(): PrescriptionDao
-//    abstract fun appointmentDao(): AppointmentDao
 
     companion object {
         private var INSTANCE: MedicalRecordDatabase? = null
@@ -44,7 +37,7 @@ abstract class MedicalRecordDatabase: RoomDatabase() {
                 INSTANCE = Room.databaseBuilder(
                     context.applicationContext,
                     MedicalRecordDatabase::class.java,
-                    "simple_db"
+                    "qlbenhan_db"
                 )
 
                     .allowMainThreadQueries()

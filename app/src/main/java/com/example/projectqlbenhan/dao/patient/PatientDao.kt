@@ -45,9 +45,6 @@ interface PatientDao {
     @Query("SELECT COUNT(*) FROM patients WHERE medical_record_number = :mrn")
     suspend fun countByMedicalRecordNumber(mrn: String): Int
 
-    // -----------------------------------------------------
-    // TRUY VẤN FLOW VÀ TÌM KIẾM
-    // -----------------------------------------------------
 
     // Lấy tất cả bệnh nhân dưới dạng Flow (real-time list)
     @Query("SELECT * FROM patients ORDER BY created_at DESC")
@@ -57,9 +54,6 @@ interface PatientDao {
     @Query("SELECT * FROM patients WHERE full_name LIKE '%' || :searchQuery || '%' OR medical_record_number LIKE '%' || :searchQuery || '%'")
     fun searchPatients(searchQuery: String): Flow<List<Patient>>
 
-    // -----------------------------------------------------
-    // TRUY VẤN MỐI QUAN HỆ
-    // -----------------------------------------------------
 
     // Lấy 5 hồ sơ bệnh án gần đây nhất của một bệnh nhân
     @Query(
@@ -73,17 +67,16 @@ interface PatientDao {
     suspend fun getRecentMedicalRecords(patientId: Long): List<MedicalRecord>
 
     // Lấy danh sách bệnh nhân đã được một bác sĩ cụ thể khám
-    @Query("""
+    @Query(
+        """
     SELECT DISTINCT p.*
     FROM patients p
     INNER JOIN medical_records m
         ON p.patientId = m.patient_id
     WHERE m.doctor_id = :doctorId
     ORDER BY p.full_name
-""")
+"""
+    )
     suspend fun getPatientsByDoctor(doctorId: Long): List<Patient>
 
-//    @Transaction
-//    @Query("SELECT * FROM patients WHERE patientId = :patientId")
-//    suspend fun getPatientWithRecords(patientId: Long): PatientWithRecords? // Mối quan hệ 1-N
 }

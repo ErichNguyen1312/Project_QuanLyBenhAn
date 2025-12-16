@@ -7,18 +7,17 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.dao.thuoc.DonThuocRepository
 import com.example.projectqlbenhan.dao.thuoc.PhongKhamDatabase
 import com.example.projectqlbenhan.entity.DonThuoc.ChiTietDonThuocEntity
-import kotlinx.coroutines.CoroutineScope
+import com.example.projectqlbenhan.utils.SessionManager // ⭐ Cần import SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.NumberFormatException
 
 class ThemDonThuoc : AppCompatActivity() {
@@ -31,12 +30,15 @@ class ThemDonThuoc : AppCompatActivity() {
     private lateinit var edtSoLanDung: EditText
     private lateinit var edtGhiChu: EditText
     private lateinit var btnLuu: Button
-    private lateinit var btnHuy: Button // Giả định ID là btnXoa
+    private lateinit var btnHuy: Button
 
-    // ⭐️ FIX: Khai báo nút Quay lại
     private lateinit var iconBack: ImageView
 
     private lateinit var donThuocViewModel: DonThuocViewModel
+
+    // ⭐ Biến lưu Record ID (nếu được truyền)
+    private var currentRecordId: Long = -1L
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +46,8 @@ class ThemDonThuoc : AppCompatActivity() {
 
         khoiTaoMVVM()
         setControl()
-        setEvent() // ⭐️ FIX: Gọi hàm setup sự kiện
+        getIntentDataAndPrepopulate()
+        setEvent()
     }
 
     private fun khoiTaoMVVM() {
@@ -67,12 +70,38 @@ class ThemDonThuoc : AppCompatActivity() {
         btnLuu = findViewById(R.id.btnLuu)
         btnHuy = findViewById(R.id.btnXoa)
 
-        // ⭐️ FIX: Ánh xạ nút Quay lại
         iconBack = findViewById(R.id.iconBack)
     }
 
+    // ⭐ FIX: Lấy dữ liệu từ Intent và Session để điền sẵn
+    private fun getIntentDataAndPrepopulate() {
+        currentRecordId = intent.getLongExtra("RECORD_ID", -1L)
+
+        // Đọc thông tin Bệnh nhân từ Session Manager
+        val patientIdFromSession = SessionManager.getCurrentPatientId(this)
+        val patientNameFromSession = SessionManager.getCurrentPatientName(this)
+
+        // Tự động gán và khóa trường Bệnh nhân nếu dữ liệu có sẵn trong Session
+        if (patientIdFromSession != -1L && !patientNameFromSession.isNullOrEmpty()) {
+
+            // 1. Gán ID Bệnh nhân và KHÓA
+            edtMaBenhNhan.setText(patientIdFromSession.toString())
+            edtMaBenhNhan.isEnabled = false
+            edtMaBenhNhan.isFocusable = false
+
+            // 2. Gán Tên Bệnh nhân và KHÓA
+            edtTenBenhNhan.setText(patientNameFromSession)
+            edtTenBenhNhan.isEnabled = false
+            edtTenBenhNhan.isFocusable = false
+        } else {
+            // Nếu Session rỗng, cho phép người dùng nhập bình thường
+            edtMaBenhNhan.isEnabled = true
+            edtTenBenhNhan.isEnabled = true
+        }
+    }
+
+
     private fun setEvent() {
-        // ⭐️ FIX: Xử lý sự kiện click nút Quay lại
         iconBack.setOnClickListener {
             onBackPressed()
         }
@@ -82,18 +111,21 @@ class ThemDonThuoc : AppCompatActivity() {
         }
 
         btnHuy.setOnClickListener {
-            onBackPressed() // Sử dụng onBackPressed để đóng màn hình
+            onBackPressed()
         }
     }
 
     private fun luuDonThuocMoi() {
-        val tenBN = edtTenBenhNhan.text.toString().trim()
+
+        // 1. Lấy tên BN từ Session (nếu đã điền sẵn) hoặc từ EditText (nếu chưa điền sẵn)
+        val tenBN = SessionManager.getCurrentPatientName(this) ?: edtTenBenhNhan.text.toString().trim()
         val tenThuoc = edtTenThuoc.text.toString().trim()
         val dangThuoc = edtDangThuoc.text.toString().trim()
         val lieuDung = edtLieuDung.text.toString().trim()
         val soLanDungText = edtSoLanDung.text.toString().trim()
         val ghiChu = edtGhiChu.text.toString().trim()
 
+        // Validation
         if (tenBN.isEmpty() || tenThuoc.isEmpty() || dangThuoc.isEmpty() || lieuDung.isEmpty() || soLanDungText.isEmpty()) {
             Toast.makeText(this, "Vui lòng điền đủ các trường bắt buộc.", Toast.LENGTH_LONG).show()
             return
@@ -107,10 +139,12 @@ class ThemDonThuoc : AppCompatActivity() {
             return
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val donThuocMoi = ChiTietDonThuocEntity(
                     tenBenhNhan = tenBN,
+                    // ... (Thêm recordId nếu Entity Prescription của bạn có trường này) ...
+
                     tenThuoc = tenThuoc,
                     dangThuoc = dangThuoc,
                     lieuDung = lieuDung,
@@ -120,9 +154,12 @@ class ThemDonThuoc : AppCompatActivity() {
 
                 val newDonThuocId = donThuocViewModel.themDonThuocVaLayId(donThuocMoi)
 
-                launch(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
                     if (newDonThuocId > 0) {
                         Toast.makeText(this@ThemDonThuoc, "Đã lưu đơn thuốc thành công!", Toast.LENGTH_LONG).show()
+
+                        // ⭐ DỌN DẸP SESSION sau khi lưu thành công
+                        SessionManager.clearCurrentPatientInfo(this@ThemDonThuoc)
 
                         val intent = Intent(this@ThemDonThuoc, ChiTietDonThuoc::class.java).apply {
                             putExtra("DON_THUOC_ID", newDonThuocId)
@@ -134,7 +171,7 @@ class ThemDonThuoc : AppCompatActivity() {
                     }
                 }
             } catch (e: Exception) {
-                launch(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
                     Toast.makeText(this@ThemDonThuoc, "Lỗi hệ thống khi lưu: ${e.message}", Toast.LENGTH_LONG).show()
                     Log.e("ThemDonThuoc", "Lỗi khi lưu đơn thuốc", e)
                 }

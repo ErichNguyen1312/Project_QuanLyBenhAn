@@ -56,13 +56,18 @@ interface AppointmentDao {
     ): List<AppointmentWithPatient>
 
 
+//    @Query("""
+//    SELECT COUNT(*) FROM appointments
+//    WHERE appointment_date BETWEEN :start AND :end
+//""")
+//    suspend fun countTodayAppointments(
+//        start: Long,
+//        end: Long
+//    ): Int
+
     @Query("""
     SELECT COUNT(*) FROM appointments
-    WHERE appointment_date BETWEEN :start AND :end
 """)
     suspend fun countTodayAppointments(
-        start: Long,
-        end: Long
     ): Int
-
 }

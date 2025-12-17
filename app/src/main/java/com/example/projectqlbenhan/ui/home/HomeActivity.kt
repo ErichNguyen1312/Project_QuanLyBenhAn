@@ -5,18 +5,14 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.dao.appointment.AppointmentDao
 import com.example.projectqlbenhan.ui.BaseActivity
 import com.example.projectqlbenhan.utils.DatabaseSeeder
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,10 +31,10 @@ class HomeActivity : BaseActivity() {
     private lateinit var appointmentAdapter: AppointmentAdapter
     private lateinit var layoutEmptyAppointments: LinearLayout
 
+    private lateinit var btnAdd: FloatingActionButton
+
     private lateinit var btnMenu: ImageView
-    private val db by lazy {
-        MedicalRecordDatabase.getDatabase(this)
-    }
+
     private val appointmentDao by lazy {
         MedicalRecordDatabase.getDatabase(this).appointmentDao()
     }
@@ -47,6 +43,10 @@ class HomeActivity : BaseActivity() {
     }
     private val medicalRecordDao by lazy {
         MedicalRecordDatabase.getDatabase(this).medicalRecordDao()
+    }
+
+    private val prescriptionDao by lazy {
+        MedicalRecordDatabase.getDatabase(this).prescriptionDao()
     }
 
 
@@ -67,6 +67,7 @@ class HomeActivity : BaseActivity() {
     }
 
     private fun setControl() {
+        btnAdd = findViewById(R.id.btnAdd)
         tvTotalPatients = findViewById(R.id.tvTotalPatients)
         tvTotalRecords = findViewById(R.id.tvTotalRecords)
         tvTodayAppointments = findViewById(R.id.tvTodayAppointments)
@@ -85,9 +86,17 @@ class HomeActivity : BaseActivity() {
 
     private fun setEvent() {
         // hiện tại dashboard chỉ hiển thị, chưa cần click
+
         val btnMenu = findViewById<ImageView>(R.id.btnMenu)
         btnMenu.setOnClickListener {
             openDrawer()
+        }
+
+        //them lich hen
+        btnAdd.setOnClickListener {
+            AddQuickAppointmentBottomSheet {
+                reloadDashboard()
+            }.show(supportFragmentManager, "ADD_APPOINTMENT")
         }
     }
 
@@ -110,10 +119,10 @@ class HomeActivity : BaseActivity() {
                 medicalRecordDao.countMedicalRecords()
             }
             val appointmentsToday = withContext(Dispatchers.IO) {
-                appointmentDao.countTodayAppointments(startToday, endToday)
+                appointmentDao.countTodayAppointments()
             }
             val countPrescription = withContext(Dispatchers.IO) {
-                appointmentDao.countTodayAppointments(startToday, endToday)
+                prescriptionDao.countPrescriptions()
             }
 
             tvTotalPatients.text = countPatient.toString()
@@ -164,7 +173,10 @@ class HomeActivity : BaseActivity() {
         return cal.timeInMillis
     }
 
-    //init db
+    private fun reloadDashboard() {
+        loadStatistics()
+        loadAppointments()
+    }
 
 
 }

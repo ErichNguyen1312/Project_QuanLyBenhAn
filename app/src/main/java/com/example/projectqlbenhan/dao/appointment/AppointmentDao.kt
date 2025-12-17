@@ -65,9 +65,40 @@ interface AppointmentDao {
 //        end: Long
 //    ): Int
 
-    @Query("""
+    @Query(
+        """
     SELECT COUNT(*) FROM appointments
-""")
+"""
+    )
     suspend fun countTodayAppointments(
     ): Int
+
+    // Mới thêm - Trí
+    @Query(
+        """
+    SELECT * FROM appointments
+"""
+    )
+    suspend fun getAllAppointments(): List<Appointment>
+
+    @Insert
+    fun insertAppointments(appointments: Appointment
+    )
+    @Query("SELECT * FROM appointments WHERE patientId = :patientId ORDER BY appointment_date ASC")
+    fun getAppointmentsByPatient(patientId: Long): List<Appointment>
+    @Query("""
+    UPDATE appointments 
+    SET appointment_date = :date,
+        appointment_time = :time,
+        notes = :notes
+    WHERE appointmentId = :id
+""")
+    suspend fun updateAppointment(
+        id: Long,
+        date: Long,
+        time: String,
+        notes: String?
+    )
+
+
 }

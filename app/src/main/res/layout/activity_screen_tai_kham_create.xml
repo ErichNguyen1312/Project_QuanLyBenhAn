@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/main"
+    tools:context=".ui.TaiKham.screenTaiKham_Create">
+
+    <include layout="@layout/custom_toolbar"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mã bệnh án" />
+
+            <EditText
+                android:id="@+id/edtBenhAn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/border"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp"
+                android:hint="Nhập bệnh án" />
+
+            <!-- Ngày tái khám -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ngày tái khám"
+                android:layout_marginTop="30dp"/>
+
+            <TextView
+                android:id="@+id/tvNgayTaiKham"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/border"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp"
+                android:text="Chọn ngày"
+                android:textColor="#888888" />
+
+            <!-- Giờ tái khám -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="Giờ tái khám" />
+
+            <TextView
+                android:id="@+id/tvGioTaiKham"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/border"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="12dp"
+                android:text="Chọn giờ"
+                android:textColor="#888888" />
+
+            <!-- Bác sĩ -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="Bác sĩ" />
+
+            <TextView
+                android:id="@+id/tvBacSi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/border"
+                android:padding="12dp" />
+
+            <!-- Ghi chú -->
+            <EditText
+                android:id="@+id/edtGhiChu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/border"
+                android:gravity="top"
+                android:hint="Ghi chú"
+                android:minLines="3"
+                android:padding="12dp" />
+
+            <!-- Lưu -->
+            <Button
+                android:id="@+id/btnSave"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="Lưu lịch tái khám" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

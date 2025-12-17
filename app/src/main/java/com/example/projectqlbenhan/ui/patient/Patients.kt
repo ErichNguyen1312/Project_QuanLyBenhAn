@@ -7,23 +7,18 @@ import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.patient.Patient
-import com.example.projectqlbenhan.ui.loginService.Login
+import com.example.projectqlbenhan.ui.home.HomeActivity
 import com.example.projectqlbenhan.utils.SessionManager
-import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Calendar
 
 
 class Patients : AppCompatActivity() {
@@ -51,8 +46,8 @@ class Patients : AppCompatActivity() {
     private val doc by lazy {
         MedicalRecordDatabase.getDatabase(this).doctorDao()
     }
-    private lateinit var drawerLayout: DrawerLayout
-    private lateinit var navigationView: NavigationView
+//    private lateinit var drawerLayout: DrawerLayout
+//    private lateinit var navigationView: NavigationView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,8 +57,8 @@ class Patients : AppCompatActivity() {
 
         setControl()
         setupRecyclerView()
-        setupDrawer()
-        setupHeader()
+//        setupDrawer()
+//        setupHeader()
         setEvent()
 
     }
@@ -85,7 +80,7 @@ class Patients : AppCompatActivity() {
         }
 
         btnBack.setOnClickListener {
-            drawerLayout.openDrawer(GravityCompat.START)
+            startActivity(Intent(this, HomeActivity::class.java))
 
         }
 
@@ -109,8 +104,8 @@ class Patients : AppCompatActivity() {
         btnBack = findViewById(R.id.btnBack)
         btnAddHeader = findViewById(R.id.btnAdd)
         etSearch = findViewById(R.id.etSearch)
-        drawerLayout = findViewById(R.id.drawerLayout)
-        navigationView = findViewById(R.id.navigationView)
+//        drawerLayout = findViewById(R.id.drawerLayout)
+//        navigationView = findViewById(R.id.navigationView)
 
 
     }
@@ -118,60 +113,60 @@ class Patients : AppCompatActivity() {
 
     //cac ham xu ly du lieu
 
-    private fun setupDrawer() {
-        navigationView.setNavigationItemSelectedListener {
-            when (it.itemId) {
+//    private fun setupDrawer() {
+//        navigationView.setNavigationItemSelectedListener {
+//            when (it.itemId) {
+//
+//                R.id.menu_profile -> {
+////                    startActivity(Intent(this, DoctorProfile::class.java))
+//                    openPatientsScreen(Patients.MODE_MY)
+//                }
+//
+//                R.id.menu_logout -> {
+//                    showLogoutConfirm()
+//                }
+//            }
+//            drawerLayout.closeDrawers()
+//            true
+//        }
+//    }
 
-                R.id.menu_profile -> {
-//                    startActivity(Intent(this, DoctorProfile::class.java))
-                    openPatientsScreen(Patients.MODE_MY)
-                }
+//    private fun openPatientsScreen(mode: String) {
+//        val intent = Intent(this, Patients::class.java)
+//        intent.putExtra("MODE", mode)
+//        startActivity(intent)
+//        finish()
+//    }
 
-                R.id.menu_logout -> {
-                    showLogoutConfirm()
-                }
-            }
-            drawerLayout.closeDrawers()
-            true
-        }
-    }
+//    private fun setupHeader() {
+//        val header = navigationView.getHeaderView(0)
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val doctorInfo = doc.getDoctorById(SessionManager.getDoctorId(this@Patients))
+//
+//
+//            withContext(Dispatchers.Main) {
+//                header.findViewById<TextView>(R.id.tvDoctorName).text = doctorInfo.fullName
+//
+//                header.findViewById<TextView>(R.id.tvDoctorDept).text = doctorInfo.specialization
+//
+//            }
+//        }
+//
+//
+//    }
 
-    private fun openPatientsScreen(mode: String) {
-        val intent = Intent(this, Patients::class.java)
-        intent.putExtra("MODE", mode)
-        startActivity(intent)
-        finish()
-    }
-
-    private fun setupHeader() {
-        val header = navigationView.getHeaderView(0)
-        CoroutineScope(Dispatchers.IO).launch {
-            val doctorInfo = doc.getDoctorById(SessionManager.getDoctorId(this@Patients))
-
-
-            withContext(Dispatchers.Main) {
-                header.findViewById<TextView>(R.id.tvDoctorName).text = doctorInfo.fullName
-
-                header.findViewById<TextView>(R.id.tvDoctorDept).text = doctorInfo.specialization
-
-            }
-        }
-
-
-    }
-
-    private fun showLogoutConfirm() {
-        AlertDialog.Builder(this)
-            .setTitle("Đăng xuất")
-            .setMessage("Bạn có chắc chắn muốn đăng xuất?")
-            .setPositiveButton("Đăng xuất") { _, _ ->
-                SessionManager.clear(this)
-                startActivity(Intent(this, Login::class.java))
-                finishAffinity()
-            }
-            .setNegativeButton("Hủy", null)
-            .show()
-    }
+//    private fun showLogoutConfirm() {
+//        AlertDialog.Builder(this)
+//            .setTitle("Đăng xuất")
+//            .setMessage("Bạn có chắc chắn muốn đăng xuất?")
+//            .setPositiveButton("Đăng xuất") { _, _ ->
+//                SessionManager.clear(this)
+//                startActivity(Intent(this, Login::class.java))
+//                finishAffinity()
+//            }
+//            .setNegativeButton("Hủy", null)
+//            .show()
+//    }
 
 
     private fun filterPatients(keyword: String) {

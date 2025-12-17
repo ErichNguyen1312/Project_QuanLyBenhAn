@@ -2,7 +2,7 @@ package com.example.projectqlbenhan.entity.medicalRecord
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import com.example.projectqlbenhan.entity.Appointment
+import com.example.projectqlbenhan.entity.appointment.Appointment
 import com.example.projectqlbenhan.entity.Prescription
 
 data class MedicalRecordWithDetails(

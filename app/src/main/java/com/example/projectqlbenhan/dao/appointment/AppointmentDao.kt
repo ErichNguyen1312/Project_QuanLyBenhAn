@@ -1,0 +1,68 @@
+package com.example.projectqlbenhan.dao.appointment
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
+import com.example.projectqlbenhan.entity.appointment.Appointment
+import com.example.projectqlbenhan.entity.appointment.AppointmentWithPatient
+
+@Dao
+interface AppointmentDao {
+    @Query("SELECT * FROM appointments WHERE record_id = :recordId ORDER BY appointment_date ASC")
+    suspend fun getAppointments(recordId: Long): List<Appointment>
+
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    suspend fun insert(appointment: Appointment): Long
+
+    @Update
+    suspend fun update(appointment: Appointment)
+
+    @Delete
+    suspend fun delete(appointment: Appointment)
+
+    @Query("DELETE FROM appointments WHERE appointmentId = :id")
+    suspend fun deleteById(id: Long)
+
+    //list lich hen
+    @Query(
+        """
+        SELECT * FROM appointments
+        WHERE appointment_date >= :today
+          AND status = 'SCHEDULED'
+        ORDER BY appointment_date ASC, appointment_time ASC
+    """
+    )
+    fun getUpcomingAppointments(
+        today: Long
+    ): List<Appointment>
+
+
+    @Transaction
+    @Query(
+        """
+        SELECT * FROM appointments
+        WHERE appointment_date >= :today
+        ORDER BY appointment_date ASC, appointment_time ASC
+       
+    """
+    )
+    fun getUpcomingAppointmentsWithPatient(
+        today: Long
+
+    ): List<AppointmentWithPatient>
+
+
+    @Query("""
+    SELECT COUNT(*) FROM appointments
+    WHERE appointment_date BETWEEN :start AND :end
+""")
+    suspend fun countTodayAppointments(
+        start: Long,
+        end: Long
+    ): Int
+
+}

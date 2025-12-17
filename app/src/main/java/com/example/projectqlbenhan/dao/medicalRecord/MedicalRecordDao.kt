@@ -57,4 +57,8 @@ interface MedicalRecordDao {
         notes: String?
     )
 
+    @Query("SELECT COUNT(*) FROM medical_records")
+    suspend fun countMedicalRecords(): Int
+    @Query("SELECT * FROM medical_records ORDER BY examination_date DESC")
+    suspend fun getAll(): List<MedicalRecord>
 }

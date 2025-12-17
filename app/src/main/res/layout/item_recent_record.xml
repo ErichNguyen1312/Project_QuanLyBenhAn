@@ -1,20 +1,50 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="8dp">
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#E0E0E0">
 
-    <TextView
-        android:id="@+id/tvDate"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="12/04/2025"
-        android:textStyle="bold"
-        android:layout_marginEnd="12dp"/>
+        android:orientation="vertical"
+        android:padding="12dp">
 
-    <TextView
-        android:id="@+id/tvDiagnosis"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Viêm họng cấp"/>
-</LinearLayout>
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="12/04/2025"
+            android:textSize="13sp"
+            android:textColor="#1976D2"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDiagnosis"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Viêm họng cấp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#212121" />
+
+        <TextView
+            android:id="@+id/tvDiseaseType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Tai mũi họng"
+            android:textSize="14sp"
+            android:textColor="#616161" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

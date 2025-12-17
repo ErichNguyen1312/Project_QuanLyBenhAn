@@ -1,4 +1,4 @@
-package com.example.projectqlbenhan.entity
+package com.example.projectqlbenhan.entity.appointment
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -14,7 +14,7 @@ import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
             entity = MedicalRecord::class,
             parentColumns = ["recordId"],
             childColumns = ["record_id"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.Companion.CASCADE
         )
     ],
     indices = [Index(value = ["record_id"])]
@@ -26,6 +26,8 @@ data class Appointment(
     @ColumnInfo(name = "record_id")
     val recordId: Long,
 
+
+    val patientId: Long,
     @ColumnInfo(name = "appointment_date")
     val appointmentDate: Long, // Ngày hẹn
 
@@ -35,8 +37,8 @@ data class Appointment(
     @ColumnInfo(name = "location")
     val location: String?, // Địa điểm khám
 
-    @ColumnInfo(name = "doctor_name")
-    val doctorName: String?,
+    @ColumnInfo(name = "doctor_id")
+    val doctorId: Long,
 
     @ColumnInfo(name = "notes")
     val notes: String?,

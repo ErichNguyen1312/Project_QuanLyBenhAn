@@ -12,6 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectQLBenhAn">
         <activity
+            android:name=".ui.home.Demo"
+            android:exported="true" />
+        <activity
+            android:name=".ui.BaseActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.home.HomeActivity"
+            android:exported="true" />
+        <activity
             android:name=".ui.loginService.Login"
             android:exported="true" />
         <activity

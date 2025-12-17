@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.ui.home.HomeActivity
 import com.example.projectqlbenhan.ui.patient.Patients
 import com.example.projectqlbenhan.utils.Doctor
 import com.example.projectqlbenhan.utils.PasswordUtils
@@ -70,7 +71,7 @@ class Login : AppCompatActivity() {
                     toast("Đăng nhập thành công")
 
                     startActivity(
-                        Intent(this@Login, Patients::class.java)
+                        Intent(this@Login, HomeActivity::class.java)
                     )
                     finish()
                 } else {

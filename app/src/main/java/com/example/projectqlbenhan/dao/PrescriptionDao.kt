@@ -21,4 +21,8 @@ interface PrescriptionDao {
 
     @Delete
     suspend fun delete(prescription: Prescription)
+
+    @Query("SELECT COUNT(*) FROM prescriptions")
+    suspend fun countPrescriptions(): Int
+
 }

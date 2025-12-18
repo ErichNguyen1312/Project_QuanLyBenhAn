@@ -16,6 +16,7 @@ import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.dao.patient.PatientDao
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
+import com.example.projectqlbenhan.ui.TaiKham.screenTaiKham_Main
 import com.example.projectqlbenhan.ui.medicalRecord.ProfilePatientMedicalRecord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,7 @@ class ProfilePatient : AppCompatActivity() {
     lateinit var tvInfo: TextView
     lateinit var btnBack: ImageView
     lateinit var btnUpdate: Button
+    lateinit var btnTaiKham: Button
 
     lateinit var btnPatientMedicalRecordDetail: Button
     lateinit var btnDelete: Button
@@ -65,6 +67,13 @@ class ProfilePatient : AppCompatActivity() {
             startActivity(intent)
         }
 
+        btnTaiKham.setOnClickListener {
+            val intent = Intent(this, screenTaiKham_Main::class.java)
+            intent.putExtra("patient_id", patientId)
+            startActivity(intent)
+        }
+
+
         btnBack.setOnClickListener { finish() }
     }
 
@@ -76,6 +85,7 @@ class ProfilePatient : AppCompatActivity() {
         btnBack = findViewById(R.id.btnBack)
         btnUpdate = findViewById(R.id.btnUpdate)
         btnDelete = findViewById(R.id.btnDelete)
+        btnTaiKham = findViewById(R.id.btnTaiKham)
         btnPatientMedicalRecordDetail = findViewById(R.id.btnPatientMedicalRecordDetail)
 
         rcRecentRecords = findViewById(R.id.rcRecentRecords)

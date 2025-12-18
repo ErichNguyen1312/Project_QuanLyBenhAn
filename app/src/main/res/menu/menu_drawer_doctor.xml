@@ -13,6 +13,10 @@
         android:id="@+id/menu_listPatient"
         android:title="Danh sách bệnh nhân"
         android:icon="@drawable/ic_patinet_menu_24"/>
+    <item
+        android:id="@+id/menu_ThongKeBenhAn"
+        android:title="Thống kê bệnh án"
+        android:icon="@drawable/ic_medical_records"/>
 
     <item
         android:id="@+id/menu_logout"

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/CustomToolbar"
+    android:layout_width="match_parent"
+    android:layout_height="40sp"
+    android:background="#3EAEF4"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp">
+
+    <ImageButton
+        android:id="@+id/ct_btnBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+
+        android:src="@drawable/outline_arrow_back_ios_24" />
+
+    <TextView
+        android:id="@+id/ct_tvTieuDe"
+        android:layout_width="0sp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@android:color/transparent"
+        android:padding="4dp"
+        android:text="Tiêu đề"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:textStyle="bold" />
+
+</LinearLayout>

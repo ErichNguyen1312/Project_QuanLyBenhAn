@@ -73,4 +73,28 @@ interface MedicalRecordDao {
 """
     )
     fun getDiseaseStats(): List<DiseaseStat>
+
+    //Cái mới - Trí
+    @Query("""
+    SELECT * FROM medical_records 
+    WHERE recordId = :recordId 
+    AND patient_id = :patientId
+""")
+    suspend fun getRecordOfPatient(
+        recordId: Long,
+        patientId: Long
+    ): MedicalRecord?
+
+    @Query("""
+        SELECT * FROM medical_records 
+        WHERE disease_type = :type 
+        ORDER BY examination_date DESC
+    """)
+    suspend fun getByDiseaseType(type: String): List<MedicalRecord>
+
+    @Query("""
+        SELECT DISTINCT disease_type 
+        FROM medical_records
+    """)
+    suspend fun getAllDiseaseTypes(): List<String>
 }

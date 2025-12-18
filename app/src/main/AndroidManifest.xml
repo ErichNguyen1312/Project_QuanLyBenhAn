@@ -12,6 +12,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectQLBenhAn">
         <activity
+            android:name=".ui.ThongKe.screenThongKe_BenhAn"
+            android:exported="false" />
+        <activity
+            android:name=".ui.TaiKham.screenTaiKham_Create"
+            android:exported="false" />
+        <activity
+            android:name=".ui.TaiKham.screenTaiKham_Edit"
+            android:exported="false" />
+        <activity
+            android:name=".ui.TaiKham.screenTaiKham_Main"
+            android:exported="false" />
+        <activity
             android:name=".ui.home.Demo"
             android:exported="true" />
         <activity

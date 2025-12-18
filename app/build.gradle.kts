@@ -70,7 +70,6 @@ dependencies {
     kapt ("androidx.room:room-compiler:$room_version")
 
 
-    // optional - Paging 3 Integration
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.room:room-paging:$room_version")
     implementation(libs.androidx.core.ktx)
@@ -81,4 +80,5 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.mpandroidchart)
 }

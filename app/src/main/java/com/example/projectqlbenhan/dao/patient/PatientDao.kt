@@ -82,4 +82,8 @@ interface PatientDao {
     @Query("SELECT COUNT(*) FROM patients")
     suspend fun countPatients(): Int
 
+
+    // kiem tra sdt benh nhan cu
+    @Query("SELECT * FROM patients WHERE phone_number = :phone LIMIT 1")
+    suspend fun getPatientByPhone(phone: String): Patient?
 }

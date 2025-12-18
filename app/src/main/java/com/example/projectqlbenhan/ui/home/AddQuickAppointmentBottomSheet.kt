@@ -26,7 +26,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 
-class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) : BottomSheetDialogFragment(){
+class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
+    BottomSheetDialogFragment() {
     private lateinit var patientDao: PatientDao
     private lateinit var appointmentDao: AppointmentDao
     private lateinit var medicalRecordDao: MedicalRecordDao
@@ -69,7 +70,7 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) : BottomSh
         return view
     }
 
-    // ---------------- DATE PICKER ----------------
+
     private fun pickDate() {
         val cal = Calendar.getInstance()
         DatePickerDialog(
@@ -87,7 +88,7 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) : BottomSh
         ).show()
     }
 
-    // ---------------- TIME PICKER ----------------
+
     private fun pickTime() {
         val cal = Calendar.getInstance()
         TimePickerDialog(
@@ -102,7 +103,7 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) : BottomSh
         ).show()
     }
 
-    // ---------------- SAVE LOGIC ----------------
+
     private fun saveAppointment() {
         val name = edtName.text.toString().trim()
         val phone = edtPhone.text.toString().trim()
@@ -113,33 +114,75 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) : BottomSh
         }
 
         lifecycleScope.launch {
-            val mrn = MrnGenerator.generateUnique(patientDao)
-            // 1️⃣ Tạo patient tối giản
-            val patientId = patientDao.insertPatient(
-                Patient(
-                    fullName = name,
-                    phoneNumber = phone,
-                    medicalRecordNumber = mrn,
-                    dateOfBirth = 0L,
-                    gender = "ĐẶT LỊCH",
-                    address = null
-                )
-            )
+            //kiem tra benh nhan cu
+            var patienId: Long
+            val existingPatient = patientDao.getPatientByPhone(phone)
+            if (existingPatient != null) {
+                patienId = existingPatient.patientId
+                if (existingPatient.fullName != name) {
+                    withContext(Dispatchers.Main) {
+                        showOptionExistingPatient(existingPatient)
+                    }
+
+                }
+            } else {
+                if (name.isEmpty()) {
+                    Toast.makeText(context, "Vui lòng nhập tên bệnh nhân", Toast.LENGTH_SHORT)
+                        .show()
+                    return@launch
+                }
+                val mrn = MrnGenerator.generateUnique(patientDao)
+                val newPatientId = withContext(Dispatchers.IO) {
+                    patientDao.insertPatient(
+                        Patient(
+                            fullName = name,
+                            phoneNumber = phone,
+                            medicalRecordNumber = mrn,
+                            dateOfBirth = 0L,
+                            gender = "ĐẶT LỊCH",
+                            address = null
+                        )
+                    )
+                }
+                createAppointment(newPatientId, name)
+            }
 
 
+        }
+    }
+
+    private fun showOptionExistingPatient(existPatient: Patient) {
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Số điện thoại đã tồn tại")
+            .setMessage("Tìm thấy bệnh nhân: ${existPatient.fullName}\nBạn có muốn dùng hồ sơ cũ này để đặt lịch không?")
+            .setPositiveButton("Dùng hồ sơ cũ") { _, _ ->
+                edtName.setText(existPatient.fullName)
+                edtName.isEnabled = false
+
+
+            }
+            .setNegativeButton("Kiểm tra lại SĐT") { dialog, _ ->
+                dialog.dismiss()
+                edtPhone.requestFocus()
+            }
+            .show()
+
+    }
+
+    private fun createAppointment(patientId: Long, patientName: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
             val recordId = medicalRecordDao.insert(
                 MedicalRecord(
                     patientId = patientId,
                     diagnosis = "ĐẶT LỊCH",
                     symptoms = "Chưa khám",
-                    diseaseType="Chưa khám",
+                    diseaseType = "Chưa khám",
                     examinationDate = selectedDateMillis,
                     doctorId = SessionManager.getDoctorId(requireContext()),
                     notes = "Hồ sơ tạo khi đặt lịch"
                 )
             )
 
-            // 3️⃣ Tạo appointment
             appointmentDao.insert(
                 Appointment(
                     recordId = recordId,
@@ -154,7 +197,11 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) : BottomSh
             )
 
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Đã thêm lịch hẹn", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Đã thêm lịch hẹn cho $patientName",
+                    Toast.LENGTH_SHORT
+                ).show()
                 onAdded.invoke()
                 dismiss()
             }

@@ -6,10 +6,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.ui.home.HomeActivity
 import com.example.projectqlbenhan.ui.patient.Patients
+import com.example.projectqlbenhan.utils.DatabaseSeeder
 import com.example.projectqlbenhan.utils.Doctor
 import com.example.projectqlbenhan.utils.PasswordUtils
 import com.example.projectqlbenhan.utils.SessionManager
@@ -70,6 +72,11 @@ class Login : AppCompatActivity() {
                     SessionManager.saveDoctorSession(context = this@Login, doctor.doctorId, doctor.fullName)
                     toast("Đăng nhập thành công")
 
+                    lifecycleScope.launch {
+                        DatabaseSeeder.seedIfNeeded(
+                            MedicalRecordDatabase.getDatabase(this@Login)
+                        )
+                    }
                     startActivity(
                         Intent(this@Login, HomeActivity::class.java)
                     )

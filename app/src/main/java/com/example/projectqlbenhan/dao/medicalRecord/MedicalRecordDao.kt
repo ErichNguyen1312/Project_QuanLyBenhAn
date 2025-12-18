@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.projectqlbenhan.entity.medicalRecord.DiseaseStat
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 
 @Dao
@@ -59,6 +60,17 @@ interface MedicalRecordDao {
 
     @Query("SELECT COUNT(*) FROM medical_records")
     suspend fun countMedicalRecords(): Int
+
     @Query("SELECT * FROM medical_records ORDER BY examination_date DESC")
     suspend fun getAll(): List<MedicalRecord>
+
+    @Query(
+        """
+    SELECT disease_type as diseaseType,
+    COUNT(*) as total
+    FROM medical_records
+    GROUP BY disease_type
+"""
+    )
+    fun getDiseaseStats(): List<DiseaseStat>
 }

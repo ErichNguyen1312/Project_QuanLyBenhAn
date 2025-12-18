@@ -70,4 +70,31 @@ interface AppointmentDao {
 """)
     suspend fun countTodayAppointments(
     ): Int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @Transaction
+    @Query("""
+    SELECT * FROM appointments 
+    WHERE appointment_date >= :today 
+    ORDER BY appointment_date ASC, appointment_time ASC
+""")
+    fun getUpcomingAppointmentsWithPatientSorting(today: Long): List<AppointmentWithPatient>
 }

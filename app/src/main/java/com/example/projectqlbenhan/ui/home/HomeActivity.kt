@@ -1,5 +1,6 @@
 package com.example.projectqlbenhan.ui.home
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -14,6 +15,7 @@ import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.appointment.AppointmentWithPatient
 import com.example.projectqlbenhan.entity.medicalRecord.DiseaseStat
 import com.example.projectqlbenhan.ui.BaseActivity
+import com.example.projectqlbenhan.ui.medicalRecord.UpdateMedicalRecord
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.PieData
@@ -81,7 +83,30 @@ class HomeActivity : BaseActivity() {
         chipGroupFilter = findViewById(R.id.chipGroupFilter)
         pieChart = findViewById(R.id.pieDiseaseChart)
 
-        appointmentAdapter = AppointmentAdapter(emptyList())
+
+        appointmentAdapter = AppointmentAdapter(
+            emptyList(),
+            onItemClick = { item ->
+                if (item.appointment.status == "SCHEDULED" || item.appointment.status == "MISSED") {
+                    val intent = Intent(
+                        this,
+                        UpdateMedicalRecord::class.java
+                    )
+                    // id lich hen de xu ly trang thai
+                    intent.putExtra("patient_id", item.patient.patientId)
+                    intent.putExtra(
+                        "appointment_id",
+                        item.appointment.appointmentId
+                    )
+                    startActivity(intent)
+                }
+            },
+            onItemLongClick = { item ->
+
+                showCancelDialog(item)
+            }
+        )
+
         rcAppointments.apply {
             layoutManager = LinearLayoutManager(this@HomeActivity)
             adapter = appointmentAdapter
@@ -102,29 +127,66 @@ class HomeActivity : BaseActivity() {
             }.show(supportFragmentManager, "ADD_APPOINTMENT")
         }
 
-        // Filter Logic
+        // Filter
         setupChipFilter()
     }
 
-
     private fun reloadDashboard() {
-        loadStatistics()
-        loadAppointments()
-        loadDiseaseChart()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val today = getStartOfToday()
+
+            //kiem benh nhan missed
+            appointmentDao.markPastAppointmentsAsMissed(today)
+
+            val upcomingList = appointmentDao.getUpcomingAppointments(today)
+
+
+            val calendar = Calendar.getInstance()
+            val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+            val currentMinute = calendar.get(Calendar.MINUTE)
+
+
+            val todayList = upcomingList.filter { isSameDay(it.appointmentDate, calendar) }
+
+            var hasChange = false
+            todayList.forEach { appointment ->
+                if (isTimePassed(appointment.appointmentTime, currentHour, currentMinute)) {
+                    appointmentDao.updateStatus(appointment.appointmentId, "MISSED")
+                    hasChange = true
+                }
+            }
+
+
+            withContext(Dispatchers.Main) {
+
+                if (hasChange) loadStatistics()
+
+                loadStatistics()
+                loadAppointments()
+                loadDiseaseChart()
+            }
+        }
     }
 
     private fun loadStatistics() {
         lifecycleScope.launch {
 
+            //tinh thoi gian trong ngay de hien thi
+            val startOfDay = getStartOfToday()
+            val endOfDay = startOfDay + (24 * 60 * 60 * 1000) - 1
+
             val countPatientDeferred = withContext(Dispatchers.IO) { patientDao.countPatients() }
             val countRecordDeferred =
                 withContext(Dispatchers.IO) { medicalRecordDao.countMedicalRecords() }
-            val appointmentsTodayDeferred =
-                withContext(Dispatchers.IO) { appointmentDao.countTodayAppointments() }
+
+            val appointmentsTodayDeferred = withContext(Dispatchers.IO) {
+                appointmentDao.countTodayAppointments(startOfDay, endOfDay)
+            }
+
             val countPrescriptionDeferred =
                 withContext(Dispatchers.IO) { prescriptionDao.countPrescriptions() }
 
-            // Update UI
+
             tvTotalPatients.text = countPatientDeferred.toString()
             tvTotalRecords.text = countRecordDeferred.toString()
             tvTodayAppointments.text = appointmentsTodayDeferred.toString()
@@ -133,43 +195,97 @@ class HomeActivity : BaseActivity() {
         }
     }
 
+    private fun isTimePassed(
+        appointmentTimeStr: String,
+        currentHour: Int,
+        currentMinute: Int
+    ): Boolean {
+        return try {
+            val parts = appointmentTimeStr.split(":")
+            val apptHour = parts[0].toInt()
+            val apptMinute = parts[1].toInt()
+
+            // Quy đổi ra phút
+            val apptTotalMinutes = apptHour * 60 + apptMinute
+            val currentTotalMinutes = currentHour * 60 + currentMinute
+
+            // Logic: Nếu phút hiện tại > (phút hẹn + 30) thì là MISSED
+            return currentTotalMinutes > (apptTotalMinutes + 30)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     private fun loadAppointments() {
         lifecycleScope.launch {
+            val checkedId = findViewById<ChipGroup>(R.id.chipGroupFilter).checkedChipId
             val today = getStartOfToday()
 
+            //chip status
+            val dataToShow = withContext(Dispatchers.IO) {
+                when (checkedId) {
+                    R.id.chipMissed -> {
+                        appointmentDao.getAppointmentsByStatus("MISSED")
+                    }
 
-            val rawData = withContext(Dispatchers.IO) {
-                appointmentDao.getUpcomingAppointmentsWithPatientSorting(today)
+                    R.id.chipCancelled -> {
+                        appointmentDao.getAppointmentsByStatus("CANCELLED")
+                    }
+
+                    else -> {
+                        //kiem tra lich hen hien tai
+                        val upcoming =
+                            appointmentDao.getUpcomingAppointmentsWithPatientSorting(today)
+
+                        // loc benh nha theo ngay
+                        when (checkedId) {
+                            R.id.chipToday -> {
+                                val todayCal = Calendar.getInstance()
+                                upcoming.filter {
+                                    isSameDay(
+                                        it.appointment.appointmentDate,
+                                        todayCal
+                                    )
+                                }
+                            }
+
+                            R.id.chipTomorrow -> {
+                                val tomorrowCal = Calendar.getInstance()
+                                tomorrowCal.add(Calendar.DAY_OF_YEAR, 1)
+                                upcoming.filter {
+                                    isSameDay(
+                                        it.appointment.appointmentDate,
+                                        tomorrowCal
+                                    )
+                                }
+                            }
+
+                            else -> upcoming
+                        }
+                    }
+                }
             }
 
 
-            fullList = rawData.sortedWith(
-                compareBy<AppointmentWithPatient> { it.appointment.appointmentDate }
-                    .thenBy { it.appointment.appointmentTime }
-            )
-
-
-            val currentCheckedId = chipGroupFilter.checkedChipId
-            when (currentCheckedId) {
-                R.id.chipToday -> filterList("TODAY")
-                R.id.chipTomorrow -> filterList("TOMORROW")
-                else -> filterList("ALL") // Mặc định hoặc R.id.chipAll
+            if (dataToShow.isEmpty()) {
+                layoutEmptyAppointments.visibility = View.VISIBLE
+                rcAppointments.visibility = View.GONE
+            } else {
+                layoutEmptyAppointments.visibility = View.GONE
+                rcAppointments.visibility = View.VISIBLE
+                appointmentAdapter.submitList(dataToShow)
             }
         }
     }
 
 
     private fun setupChipFilter() {
-        chipGroupFilter.setOnCheckedStateChangeListener { _, checkedIds ->
-            if (checkedIds.isNotEmpty()) {
-                when (checkedIds[0]) {
-                    R.id.chipAll -> filterList("ALL")
-                    R.id.chipToday -> filterList("TODAY")
-                    R.id.chipTomorrow -> filterList("TOMORROW")
-                }
-            }
+        val chipGroup = findViewById<ChipGroup>(R.id.chipGroupFilter)
+        chipGroup.setOnCheckedStateChangeListener { _, _ ->
+            loadAppointments()
         }
     }
+
 
     private fun filterList(type: String) {
         val filteredList = when (type) {
@@ -256,5 +372,32 @@ class HomeActivity : BaseActivity() {
         cal.set(Calendar.SECOND, 0)
         cal.set(Calendar.MILLISECOND, 0)
         return cal.timeInMillis
+    }
+
+    private fun showCancelDialog(item: AppointmentWithPatient) {
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Hủy lịch hẹn")
+            .setMessage("Bạn muốn hủy lịch hẹn với ${item.patient.fullName}?")
+            .setPositiveButton("Hủy lịch") { _, _ ->
+                cancelAppointment(item.appointment.appointmentId)
+            }
+            .setNegativeButton("Đóng", null)
+            .show()
+    }
+
+    private fun cancelAppointment(appointmentId: Long) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            // Update trạng thái thành CANCELLED
+            appointmentDao.updateStatus(appointmentId, "CANCELLED")
+
+            withContext(Dispatchers.Main) {
+                android.widget.Toast.makeText(
+                    this@HomeActivity,
+                    "Đã hủy lịch hẹn",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                loadAppointments() // Load lại danh sách ngay
+            }
+        }
     }
 }

@@ -37,6 +37,7 @@ class CreateMedicalRecord : AppCompatActivity() {
     private val dao by lazy { db.medicalRecordDao() }
 
     private val doc by lazy { db.doctorDao() }
+    private val appointmentDao by lazy { db.appointmentDao() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -137,7 +138,11 @@ class CreateMedicalRecord : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             dao.insert(record)
-
+            val appointmentId = intent.getLongExtra("appointment_id", -1)
+            if (appointmentId != -1L) {
+                //set status sau khi kham benh
+                appointmentDao.updateStatus(appointmentId, "COMPLETED")
+            }
             withContext(Dispatchers.Main) {
                 toast("Thêm bệnh án thành công!")
                 setResult(RESULT_OK)

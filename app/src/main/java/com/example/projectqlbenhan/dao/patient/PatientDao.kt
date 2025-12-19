@@ -13,11 +13,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PatientDao {
 
-    // ⭐ Hàm blocking (dùng cẩn thận, chỉ cho mục đích one-shot hoặc testing)
+
     @Query("SELECT * FROM patients ORDER BY full_Name ASC")
     fun getAll(): List<Patient>
 
-    // ⭐ Hàm lấy tất cả bệnh nhân bất đồng bộ (one-shot read)
+    // ⭐ Hàm lấy tất cả bệnh nhân bất đồng bộ
     @Query("SELECT * FROM patients ORDER BY full_Name ASC")
     suspend fun getAllOneShot(): List<Patient>
 
@@ -33,15 +33,15 @@ interface PatientDao {
     @Query("DELETE FROM patients WHERE patientId = :id")
     suspend fun deletePatientById(id: Long)
 
-    // Lấy thông tin bệnh nhân theo ID (one-shot read)
+    // Lấy thông tin bệnh nhân theo ID
     @Query("SELECT * FROM patients WHERE patientId = :id")
     suspend fun getPatientById(id: Long): Patient?
 
-    // ⭐ Hàm lấy thông tin bệnh nhân theo ID (real-time stream)
+    // Hàm lấy thông tin bệnh nhân theo ID
     @Query("SELECT * FROM patients WHERE patientId = :id")
     fun getPatientFlowById(id: Long): Flow<Patient?>
 
-    // Kiểm tra tính duy nhất của Mã số Hồ sơ Y tế (MRN)
+    // Kiểm tra tính duy nhất của Mã số Hồ sơ Y tế
     @Query("SELECT COUNT(*) FROM patients WHERE medical_record_number = :mrn")
     suspend fun countByMedicalRecordNumber(mrn: String): Int
 

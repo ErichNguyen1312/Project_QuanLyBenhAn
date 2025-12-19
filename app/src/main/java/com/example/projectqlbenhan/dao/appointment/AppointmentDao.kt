@@ -65,11 +65,8 @@ interface AppointmentDao {
 //        end: Long
 //    ): Int
 
-    @Query("""
-    SELECT COUNT(*) FROM appointments
-""")
-    suspend fun countTodayAppointments(
-    ): Int
+    @Query("SELECT COUNT(*) FROM appointments WHERE appointment_date BETWEEN :start AND :end")
+    suspend fun countTodayAppointments(start: Long, end: Long): Int
 
     @Transaction
     @Query("""
@@ -88,17 +85,22 @@ interface AppointmentDao {
     suspend fun getAllAppointments(): List<Appointment>
 
     @Insert
-    fun insertAppointments(appointments: Appointment
+    fun insertAppointments(
+        appointments: Appointment
     )
+
     @Query("SELECT * FROM appointments WHERE patientId = :patientId ORDER BY appointment_date ASC")
     fun getAppointmentsByPatient(patientId: Long): List<Appointment>
-    @Query("""
+
+    @Query(
+        """
     UPDATE appointments 
     SET appointment_date = :date,
         appointment_time = :time,
         notes = :notes
     WHERE appointmentId = :id
-""")
+"""
+    )
     suspend fun updateAppointment(
         id: Long,
         date: Long,
@@ -143,6 +145,25 @@ AND appointment_time = :appointmentTime
     ): Int
 
 
+    // xu ly appointmnet status
+    @Query("UPDATE appointments SET status = :status WHERE appointmentId = :id")
+    suspend fun updateStatus(id: Long, status: String)
 
+
+    @Query("UPDATE appointments SET status = 'MISSED' WHERE status = 'SCHEDULED' AND appointment_date < :now")
+    suspend fun markPastAppointmentsAsMissed(now: Long)
+
+
+    @Transaction
+    @Query(
+        """
+        SELECT * FROM appointments 
+        WHERE status = :status
+        ORDER BY appointment_date DESC, appointment_time DESC
+    """
+    )
+    fun getAppointmentsByStatus(status: String): List<AppointmentWithPatient>
+
+    @Query("SELECT * FROM appointments WHERE status = 'SCHEDULED' AND appointment_date = :today")
+    suspend fun getTodayScheduledAppointments(today: Long): List<Appointment>
 }
-

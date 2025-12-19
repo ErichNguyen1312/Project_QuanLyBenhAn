@@ -19,6 +19,9 @@ interface MedicalRecordDao {
     fun getRecordById(id: Long): MedicalRecord?
 
 
+    @Query("SELECT * FROM medical_records WHERE patient_id = :id LIMIT 1")
+    fun getRecordByPatientId(id: Long): MedicalRecord?
+
     @Query("SELECT * FROM medical_records WHERE patient_id = :patientId ORDER BY patient_id DESC")
     fun getRecordsByPatient(patientId: Long): List<MedicalRecord>
 

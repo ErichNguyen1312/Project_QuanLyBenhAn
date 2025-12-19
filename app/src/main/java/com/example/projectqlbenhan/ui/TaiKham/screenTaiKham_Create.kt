@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.dao.appointment.AppointmentDao
 import com.example.projectqlbenhan.entity.appointment.Appointment
 import com.example.projectqlbenhan.ui.ThongBaoTaiKham.AlarmScheduler
 import com.example.projectqlbenhan.ui.ThongBaoTaiKham.Helper_ThongBaoTaiKham
@@ -171,13 +172,7 @@ class screenTaiKham_Create : AppCompatActivity() {
 
         if (!validateInput()) return
 
-        val recordIdText = edtBenhAn.text.toString().trim()
-        if (recordIdText.isEmpty()) {
-            toast("Vui lòng nhập mã bệnh án")
-            return
-        }
-
-        val recordId = recordIdText.toLongOrNull()
+        val recordId = edtBenhAn.text.toString().trim().toLongOrNull()
         if (recordId == null) {
             toast("Mã bệnh án không hợp lệ")
             return
@@ -192,15 +187,61 @@ class screenTaiKham_Create : AppCompatActivity() {
         lifecycleScope.launch {
 
             val db = MedicalRecordDatabase.getDatabase(this@screenTaiKham_Create)
+            val appointmentDao = db.appointmentDao()
 
-            val record = db.medicalRecordDao()
-                .getRecordOfPatient( recordId, patientId)
+            //Tính startDay – endDay
+            val cal = Calendar.getInstance()
+            cal.timeInMillis = selectedDateMillis!!
+            cal.set(Calendar.HOUR_OF_DAY, 0)
+            cal.set(Calendar.MINUTE, 0)
+            cal.set(Calendar.SECOND, 0)
+            val startDay = cal.timeInMillis
 
-            if (record == null) {
-                toast("Mã bệnh án không thuộc bệnh nhân này")
+            cal.set(Calendar.HOUR_OF_DAY, 23)
+            cal.set(Calendar.MINUTE, 59)
+            cal.set(Calendar.SECOND, 59)
+            val endDay = cal.timeInMillis
+
+            // Check bệnh nhân đã có lịch trong ngày
+            val countPatient =
+                appointmentDao.countAppointmentOfPatientInDay(
+                    patientId,
+                    startDay,
+                    endDay
+                )
+
+            if (countPatient > 0) {
+                withContext(Dispatchers.Main) {
+                    toast("Bệnh nhân đã có lịch tái khám trong ngày")
+                }
                 return@launch
             }
 
+            // Check trùng khung giờ
+            val countTime =
+                appointmentDao.countAppointmentAtTime(
+                    selectedDateMillis!!,
+                    selectedTime!!
+                )
+
+            if (countTime > 0) {
+                withContext(Dispatchers.Main) {
+                    toast("Khung giờ này đã có người đăng ký")
+                }
+                return@launch
+            }
+
+            val record =
+                db.medicalRecordDao().getRecordOfPatient(recordId, patientId)
+
+            if (record == null) {
+                withContext(Dispatchers.Main) {
+                    toast("Mã bệnh án không thuộc bệnh nhân này")
+                }
+                return@launch
+            }
+
+            // ✅ 4. Insert
             val appointment = Appointment(
                 recordId = recordId,
                 patientId = patientId,
@@ -211,13 +252,12 @@ class screenTaiKham_Create : AppCompatActivity() {
                 notes = edtGhiChu.text.toString()
             )
 
-            val appointmentId = db.appointmentDao().insert(appointment)
+            val appointmentId = appointmentDao.insert(appointment)
 
-            val sdf = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
-            val dateStr = java.text.SimpleDateFormat(
-                "dd/MM/yyyy",
-                java.util.Locale.getDefault()
-            ).format(java.util.Date(selectedDateMillis!!))
+            // ✅ 5. Set Alarm
+            val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+            val dateStr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                .format(Date(selectedDateMillis!!))
 
             val triggerTime =
                 sdf.parse("$dateStr $selectedTime")!!.time
@@ -225,18 +265,16 @@ class screenTaiKham_Create : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 AlarmScheduler.schedule(
                     this@screenTaiKham_Create,
-                    appointmentId = appointmentId,
-                    triggerAtMillis = triggerTime,
-                    timeText = selectedTime!!
+                    appointmentId,
+                    triggerTime,
+                    selectedTime!!
                 )
+                toast("Lưu lịch tái khám thành công")
+                finish()
             }
-
-
-
-            toast("Lưu lịch tái khám thành công")
-            finish()
         }
     }
+
 
 
 

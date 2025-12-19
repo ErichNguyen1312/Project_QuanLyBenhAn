@@ -120,5 +120,29 @@ interface AppointmentDao {
         nowTime: String
     ): List<Appointment>
 
-    }
+    @Query("""
+SELECT COUNT(*) FROM appointments
+WHERE patientId = :patientId
+AND appointment_date BETWEEN :startDay AND :endDay
+""")
+    suspend fun countAppointmentOfPatientInDay(
+        patientId: Long,
+        startDay: Long,
+        endDay: Long
+    ): Int
+
+
+    @Query("""
+SELECT COUNT(*) FROM appointments
+WHERE appointment_date = :appointmentDate
+AND appointment_time = :appointmentTime
+""")
+    suspend fun countAppointmentAtTime(
+        appointmentDate: Long,
+        appointmentTime: String
+    ): Int
+
+
+
+}
 

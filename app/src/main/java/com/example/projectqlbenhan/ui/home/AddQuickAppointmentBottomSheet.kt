@@ -18,6 +18,7 @@ import com.example.projectqlbenhan.dao.patient.PatientDao
 import com.example.projectqlbenhan.entity.appointment.Appointment
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.entity.patient.Patient
+import com.example.projectqlbenhan.ui.ThongBaoTaiKham.Helper_ThongBaoTaiKham
 import com.example.projectqlbenhan.utils.MrnGenerator
 import com.example.projectqlbenhan.utils.SessionManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -195,6 +196,7 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
                     status = "SCHEDULED"
                 )
             )
+
 
             withContext(Dispatchers.Main) {
                 Toast.makeText(

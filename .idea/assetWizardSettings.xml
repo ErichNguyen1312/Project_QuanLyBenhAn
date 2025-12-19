@@ -23,7 +23,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$PROJECT_DIR$/../../../AndroidStudioSDK/icons/material/materialsymbolsoutlined/account_box/outline_account_box_24.xml" />
+                                      <entry key="url" value="file:/$PROJECT_DIR$/../../../../AndroidStudioSDK/icons/material/materialsymbolsoutlined/circle_notifications/outline_circle_notifications_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -33,7 +33,7 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="outputName" value="outline_account_box_24" />
+                            <entry key="outputName" value="outline_circle_notifications_24" />
                             <entry key="sourceFile" value="C:\Users\Admin\Pictures\icon\ic_group_intro_24.svg" />
                           </map>
                         </option>

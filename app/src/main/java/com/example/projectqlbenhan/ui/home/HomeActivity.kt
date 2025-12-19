@@ -1,19 +1,28 @@
 package com.example.projectqlbenhan.ui.home
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.appointment.AppointmentWithPatient
 import com.example.projectqlbenhan.entity.medicalRecord.DiseaseStat
 import com.example.projectqlbenhan.ui.BaseActivity
+import com.example.projectqlbenhan.ui.ThongBaoTaiKham.Helper_ThongBaoTaiKham
+import com.example.projectqlbenhan.ui.ThongBaoTaiKham.Worker_ThongBaoTaiKham
+import com.example.projectqlbenhan.utils.DateTimeUtils
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.PieData
@@ -25,7 +34,11 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class HomeActivity : BaseActivity() {
 
@@ -57,12 +70,26 @@ class HomeActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setControl()
         setEvent()
+
+        //Cáp quyền thông báo
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(
+                arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                1001
+            )
+        }
+
     }
 
     override fun onResume() {
         super.onResume()
         // Load lại dữ liệu khi quay lại màn hình này
         reloadDashboard()
+
+        //Chạy hàm thông báo - Trí
+        //LichThongBaoTaiKham()
+        startThongBaoTaiKhamWorker()
+        ThongBaoTaiKham_LichGanNhat()
     }
 
     private fun setControl() {
@@ -255,4 +282,83 @@ class HomeActivity : BaseActivity() {
         cal.set(Calendar.MILLISECOND, 0)
         return cal.timeInMillis
     }
+
+    //Các hàm cho chức năng thông báo tái khám - Trí
+
+    /*
+    private fun LichThongBaoTaiKham() {
+        val workRequest =
+            PeriodicWorkRequestBuilder<Worker_ThongBaoTaiKham>(
+                2, TimeUnit.HOURS
+            ).build()
+
+        WorkManager.getInstance(this)
+            .enqueueUniquePeriodicWork(
+                "ThongBaoTaiKham",
+                ExistingPeriodicWorkPolicy.KEEP,
+                workRequest
+            )
+    }
+    */
+
+    private fun startThongBaoTaiKhamWorker() {
+
+        val workRequest =
+            PeriodicWorkRequestBuilder<Worker_ThongBaoTaiKham>(
+                15, TimeUnit.MINUTES
+            ).build()
+
+        WorkManager.getInstance(this)
+            .enqueueUniquePeriodicWork(
+                "ThongBaoTaiKham",
+                ExistingPeriodicWorkPolicy.KEEP,
+                workRequest
+            )
+    }
+
+    private fun ThongBaoTaiKham_LichGanNhat() {
+        lifecycleScope.launch {
+
+
+            val startToday = DateTimeUtils.getStartOfDay()
+            val endToday = DateTimeUtils.getEndOfDay()
+
+            val nowTime = SimpleDateFormat("HH:mm", Locale.getDefault())
+                .format(Date())
+
+            val todayAppointments =
+                appointmentDao.getTodayUpcomingAppointments(
+                    startToday,
+                    endToday,
+                    nowTime
+                )
+
+            if (todayAppointments.isNotEmpty()) {
+                val nearest = todayAppointments.first()
+                if (ActivityCompat.checkSelfPermission(
+                        this@HomeActivity,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return@launch
+                }
+                Helper_ThongBaoTaiKham.notifyNearestIfNeeded(
+                    this@HomeActivity,
+                    nearest
+                )
+            }
+        }
+
+
+    }
+
+
+
 }

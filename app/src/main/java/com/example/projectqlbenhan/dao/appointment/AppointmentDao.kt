@@ -106,5 +106,19 @@ interface AppointmentDao {
         notes: String?
     )
 
+    // Mới thêm cho thông báo tái khám - Trí
+    @Query("""
+    SELECT * FROM appointments
+    WHERE appointment_date BETWEEN :startToday AND :endToday
+      AND appointment_time >= :nowTime
+      AND status = 'SCHEDULED'
+    ORDER BY appointment_time ASC
+""")
+    fun getTodayUpcomingAppointments(
+        startToday: Long,
+        endToday: Long,
+        nowTime: String
+    ): List<Appointment>
 
-}
+    }
+

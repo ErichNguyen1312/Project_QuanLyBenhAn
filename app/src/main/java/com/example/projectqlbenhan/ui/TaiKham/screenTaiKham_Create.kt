@@ -18,8 +18,12 @@ import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.appointment.Appointment
+import com.example.projectqlbenhan.ui.ThongBaoTaiKham.AlarmScheduler
+import com.example.projectqlbenhan.ui.ThongBaoTaiKham.Helper_ThongBaoTaiKham
 import com.example.projectqlbenhan.utils.SessionManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -207,7 +211,27 @@ class screenTaiKham_Create : AppCompatActivity() {
                 notes = edtGhiChu.text.toString()
             )
 
-            db.appointmentDao().insertAppointments(appointment)
+            val appointmentId = db.appointmentDao().insert(appointment)
+
+            val sdf = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
+            val dateStr = java.text.SimpleDateFormat(
+                "dd/MM/yyyy",
+                java.util.Locale.getDefault()
+            ).format(java.util.Date(selectedDateMillis!!))
+
+            val triggerTime =
+                sdf.parse("$dateStr $selectedTime")!!.time
+
+            withContext(Dispatchers.Main) {
+                AlarmScheduler.schedule(
+                    this@screenTaiKham_Create,
+                    appointmentId = appointmentId,
+                    triggerAtMillis = triggerTime,
+                    timeText = selectedTime!!
+                )
+            }
+
+
 
             toast("Lưu lịch tái khám thành công")
             finish()

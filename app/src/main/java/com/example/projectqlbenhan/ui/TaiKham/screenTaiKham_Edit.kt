@@ -3,6 +3,7 @@ package com.example.projectqlbenhan.ui.TaiKham
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Intent
 import android.graphics.Color
 import android.icu.util.Calendar
 import android.os.Bundle
@@ -15,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.appointment.Appointment
+import com.example.projectqlbenhan.ui.home.HomeActivity
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -95,7 +97,12 @@ class screenTaiKham_Edit : AppCompatActivity() {
     }
 
     private fun setEvent() {
-        ct_btnBack.setOnClickListener { finish() }
+        ct_btnBack.setOnClickListener {
+            val intent = Intent(
+                this, HomeActivity::class.java
+            )
+            startActivity(intent)
+        }
 
         tvNgayTaiKham.setOnClickListener { showDatePicker() }
         tvGioTaiKham.setOnClickListener { showTimePicker() }

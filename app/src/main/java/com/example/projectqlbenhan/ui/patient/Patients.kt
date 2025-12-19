@@ -15,6 +15,7 @@ import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.patient.Patient
 import com.example.projectqlbenhan.ui.home.HomeActivity
 import com.example.projectqlbenhan.utils.SessionManager
+import com.google.android.material.chip.ChipGroup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,6 +32,8 @@ class Patients : AppCompatActivity() {
     private val allPatients = mutableListOf<Patient>()
     private val displayPatients = mutableListOf<Patient>()
     private lateinit var adapter: PatientAdapterRecycler
+    private lateinit var chipGroupFilter: ChipGroup
+
 
     companion object {
         const val MODE_ALL = "MODE_ALL"
@@ -46,8 +49,6 @@ class Patients : AppCompatActivity() {
     private val doc by lazy {
         MedicalRecordDatabase.getDatabase(this).doctorDao()
     }
-//    private lateinit var drawerLayout: DrawerLayout
-//    private lateinit var navigationView: NavigationView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,8 +58,11 @@ class Patients : AppCompatActivity() {
 
         setControl()
         setupRecyclerView()
-//        setupDrawer()
-//        setupHeader()
+        if (mode == MODE_MY) {
+            chipGroupFilter.check(R.id.chipMyPatients)
+        } else {
+            chipGroupFilter.check(R.id.chipAll)
+        }
         setEvent()
 
     }
@@ -66,7 +70,7 @@ class Patients : AppCompatActivity() {
     //override resume de load danh sach
     override fun onResume() {
         super.onResume()
-        loadListPatient()   // Reload lại DB mỗi lần quay lại màn hình
+        loadListPatient()
     }
 
 
@@ -94,6 +98,21 @@ class Patients : AppCompatActivity() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
+        //filter
+        chipGroupFilter.setOnCheckedStateChangeListener { _, checkedIds ->
+            if (checkedIds.isNotEmpty()) {
+                when (checkedIds[0]) {
+                    R.id.chipAll -> {
+                        mode = MODE_ALL
+                        loadListPatient()
+                    }
+                    R.id.chipMyPatients -> {
+                        mode = MODE_MY
+                        loadListPatient()
+                    }
+                }
+            }
+        }
     }
 
 
@@ -104,71 +123,12 @@ class Patients : AppCompatActivity() {
         btnBack = findViewById(R.id.btnBack)
         btnAddHeader = findViewById(R.id.btnAdd)
         etSearch = findViewById(R.id.etSearch)
-//        drawerLayout = findViewById(R.id.drawerLayout)
-//        navigationView = findViewById(R.id.navigationView)
-
+        chipGroupFilter = findViewById(R.id.chipGroupFilter)
 
     }
 
 
     //cac ham xu ly du lieu
-
-//    private fun setupDrawer() {
-//        navigationView.setNavigationItemSelectedListener {
-//            when (it.itemId) {
-//
-//                R.id.menu_profile -> {
-////                    startActivity(Intent(this, DoctorProfile::class.java))
-//                    openPatientsScreen(Patients.MODE_MY)
-//                }
-//
-//                R.id.menu_logout -> {
-//                    showLogoutConfirm()
-//                }
-//            }
-//            drawerLayout.closeDrawers()
-//            true
-//        }
-//    }
-
-//    private fun openPatientsScreen(mode: String) {
-//        val intent = Intent(this, Patients::class.java)
-//        intent.putExtra("MODE", mode)
-//        startActivity(intent)
-//        finish()
-//    }
-
-//    private fun setupHeader() {
-//        val header = navigationView.getHeaderView(0)
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val doctorInfo = doc.getDoctorById(SessionManager.getDoctorId(this@Patients))
-//
-//
-//            withContext(Dispatchers.Main) {
-//                header.findViewById<TextView>(R.id.tvDoctorName).text = doctorInfo.fullName
-//
-//                header.findViewById<TextView>(R.id.tvDoctorDept).text = doctorInfo.specialization
-//
-//            }
-//        }
-//
-//
-//    }
-
-//    private fun showLogoutConfirm() {
-//        AlertDialog.Builder(this)
-//            .setTitle("Đăng xuất")
-//            .setMessage("Bạn có chắc chắn muốn đăng xuất?")
-//            .setPositiveButton("Đăng xuất") { _, _ ->
-//                SessionManager.clear(this)
-//                startActivity(Intent(this, Login::class.java))
-//                finishAffinity()
-//            }
-//            .setNegativeButton("Hủy", null)
-//            .show()
-//    }
-
-
     private fun filterPatients(keyword: String) {
         val key = keyword.trim().lowercase()
 

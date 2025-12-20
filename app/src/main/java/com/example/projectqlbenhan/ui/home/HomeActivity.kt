@@ -121,6 +121,7 @@ class HomeActivity : BaseActivity() {
                     )
                     // id lich hen de xu ly trang thai
                     intent.putExtra("patient_id", item.patient.patientId)
+                    intent.putExtra("record_id", item.appointment.recordId)
                     intent.putExtra(
                         "appointment_id",
                         item.appointment.appointmentId
@@ -315,24 +316,6 @@ class HomeActivity : BaseActivity() {
     }
 
 
-    private fun filterList(type: String) {
-        val filteredList = when (type) {
-            "TODAY" -> {
-                val todayCal = Calendar.getInstance()
-                fullList.filter { isSameDay(it.appointment.appointmentDate, todayCal) }
-            }
-
-            "TOMORROW" -> {
-                val tomorrowCal = Calendar.getInstance()
-                tomorrowCal.add(Calendar.DAY_OF_YEAR, 1)
-                fullList.filter { isSameDay(it.appointment.appointmentDate, tomorrowCal) }
-            }
-
-            else -> fullList // "ALL"
-        }
-
-        updateRecyclerUI(filteredList)
-    }
 
     private fun updateRecyclerUI(data: List<AppointmentWithPatient>) {
         if (data.isEmpty()) {

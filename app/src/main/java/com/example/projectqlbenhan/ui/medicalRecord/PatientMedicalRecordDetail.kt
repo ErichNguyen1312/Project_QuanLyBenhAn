@@ -69,6 +69,7 @@ class PatientMedicalRecordDetail : AppCompatActivity() {
         btnUpdate.setOnClickListener {
             val intent = Intent(this, UpdateMedicalRecord::class.java)
             intent.putExtra("record_id", recordId)
+
             updateLauncher.launch(intent)
         }
         btnDelete.setOnClickListener {

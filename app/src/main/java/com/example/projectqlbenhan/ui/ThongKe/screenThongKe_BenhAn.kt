@@ -1,5 +1,6 @@
 package com.example.projectqlbenhan.ui.ThongKe
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.ListView
 import android.widget.Spinner
@@ -13,6 +14,8 @@ import android.widget.ImageButton
 import android.widget.TextView
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.ui.home.HomeActivity
+import com.example.projectqlbenhan.ui.patient.ProfilePatient
 import kotlinx.coroutines.launch
 
 class screenThongKe_BenhAn : AppCompatActivity() {
@@ -81,7 +84,10 @@ class screenThongKe_BenhAn : AppCompatActivity() {
     }
 
     private fun setEvent() {
-        ct_btnBack.setOnClickListener { finish() }
+        ct_btnBack.setOnClickListener {
+            val intent = Intent(this, HomeActivity::class.java)
+            startActivity(intent)
+        }
         spDiseaseType.onItemSelectedListener =
             object : android.widget.AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(

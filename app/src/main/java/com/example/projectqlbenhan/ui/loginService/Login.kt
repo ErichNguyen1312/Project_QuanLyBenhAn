@@ -31,6 +31,14 @@ class Login : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+//seeder
+
+        val db = MedicalRecordDatabase.getDatabase(this)
+
+        lifecycleScope.launch {
+            DatabaseSeeder.seedIfNeeded(db)
+        }
+
 
         setControl()
         setEvent()

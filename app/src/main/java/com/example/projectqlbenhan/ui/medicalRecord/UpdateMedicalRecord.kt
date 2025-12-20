@@ -96,8 +96,8 @@ class UpdateMedicalRecord : AppCompatActivity() {
     private fun loadRecord() {
 
         CoroutineScope(Dispatchers.IO).launch {
-//            val record = dao.getRecordById(recordId)
-            val record = dao.getRecordByPatientId(patientId)
+            val record = dao.getRecordById(recordId)
+//            val record = dao.getRecordByPatientId(patientId)
             Log.d("record", record.toString())
             val doctorUpdateRecord = SessionManager.getDoctorName(this@UpdateMedicalRecord)
             withContext(Dispatchers.Main) {

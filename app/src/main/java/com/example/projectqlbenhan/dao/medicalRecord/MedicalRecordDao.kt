@@ -5,8 +5,10 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.example.projectqlbenhan.entity.medicalRecord.DiseaseStat
+import com.example.projectqlbenhan.entity.medicalRecord.FullMedicalRecord
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 
 @Dao
@@ -14,10 +16,13 @@ interface MedicalRecordDao {
     @Query("SELECT * FROM medical_records WHERE patient_id = :patientId ORDER BY examination_date DESC")
     suspend fun getRecordsOfPatient(patientId: Long): List<MedicalRecord>
 
+    // Lấy Full chi tiết (Bệnh án + Bác sĩ + Thuốc)
+    @Transaction
+    @Query("SELECT * FROM medical_records WHERE recordId = :recordId")
+    suspend fun getFullRecordDetails(recordId: Long): FullMedicalRecord?
 
     @Query("SELECT * FROM medical_records WHERE recordId = :id LIMIT 1")
     fun getRecordById(id: Long): MedicalRecord?
-
 
     @Query("SELECT * FROM medical_records WHERE patient_id = :id LIMIT 1")
     fun getRecordByPatientId(id: Long): MedicalRecord?
@@ -40,64 +45,39 @@ interface MedicalRecordDao {
     @Query("DELETE FROM medical_records WHERE recordId = :id")
     suspend fun deleteRecord(id: Long)
 
-
-    @Query(
-        """
-    UPDATE medical_records SET
-        diagnosis = :diagnosis,
-        symptoms = :symptoms,
-        disease_type = :type,
-        examination_date = :examinationDate,
-        notes = :notes
-    WHERE recordId = :id
-"""
-    )
-    fun updateRecord(
-        id: Long,
-        diagnosis: String,
-        symptoms: String,
-        type: String,
-        examinationDate: Long,
-        notes: String?
-    )
-
     @Query("SELECT COUNT(*) FROM medical_records")
     suspend fun countMedicalRecords(): Int
 
     @Query("SELECT * FROM medical_records ORDER BY examination_date DESC")
     suspend fun getAll(): List<MedicalRecord>
 
-    @Query(
-        """
-    SELECT disease_type as diseaseType,
-    COUNT(*) as total
-    FROM medical_records
-    GROUP BY disease_type
-"""
-    )
+    // Thống kê bệnh
+    @Query("""
+        SELECT diagnosis as diseaseType, COUNT(*) as total 
+        FROM medical_records 
+        GROUP BY diagnosis
+    """)
     fun getDiseaseStats(): List<DiseaseStat>
 
-    //Cái mới - Trí
+    // Lấy bệnh án cụ thể của bệnh nhân
     @Query("""
-    SELECT * FROM medical_records 
-    WHERE recordId = :recordId 
-    AND patient_id = :patientId
-""")
-    suspend fun getRecordOfPatient(
-        recordId: Long,
-        patientId: Long
-    ): MedicalRecord?
+        SELECT * FROM medical_records 
+        WHERE recordId = :recordId 
+        AND patient_id = :patientId
+    """)
+    suspend fun getRecordOfPatient(recordId: Long, patientId: Long): MedicalRecord?
 
     @Query("""
         SELECT * FROM medical_records 
-        WHERE disease_type = :type 
+        WHERE diagnosis LIKE '%' || :type || '%' 
         ORDER BY examination_date DESC
     """)
     suspend fun getByDiseaseType(type: String): List<MedicalRecord>
 
-    @Query("""
-        SELECT DISTINCT disease_type 
-        FROM medical_records
-    """)
+    @Query("SELECT DISTINCT diagnosis FROM medical_records")
     suspend fun getAllDiseaseTypes(): List<String>
+
+    // Tìm bệnh án theo lịch hẹn (để check xem lịch này khám chưa)
+    @Query("SELECT * FROM medical_records WHERE appointment_id = :apptId LIMIT 1")
+    suspend fun getRecordByAppointmentId(apptId: Long): MedicalRecord?
 }

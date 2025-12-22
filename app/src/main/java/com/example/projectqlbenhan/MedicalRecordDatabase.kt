@@ -4,6 +4,13 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.projectqlbenhan.dao.accountDao.AccountDao
+import com.example.projectqlbenhan.dao.appointment.AppointmentDao
+import com.example.projectqlbenhan.dao.doctor.DoctorDao
+import com.example.projectqlbenhan.dao.medicalRecord.MedicalRecordDao
+import com.example.projectqlbenhan.dao.patient.PatientDao
+import com.example.projectqlbenhan.dao.prescriptionItemDao.PrescriptionItemDao
+import com.example.projectqlbenhan.dao.reviewDao.ReviewDao
 import com.example.projectqlbenhan.entity.account.Account
 import com.example.projectqlbenhan.entity.appointment.Appointment
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord

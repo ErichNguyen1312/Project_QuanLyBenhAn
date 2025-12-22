@@ -3,24 +3,58 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#F5F5F5">
 
-    <!-- Toolbar -->
-    <include
-        layout="@layout/custom_toolbar" />
+    <include layout="@layout/custom_toolbar" />
 
-    <!-- Spinner lọc loại bệnh -->
-    <Spinner
-        android:id="@+id/spDiseaseType"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"/>
-
-    <!-- Danh sách bệnh án -->
-    <ListView
-        android:id="@+id/lvMedicalRecord"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="12dp" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lọc theo nhóm bệnh:"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/border"
+            android:padding="4dp">
+
+            <Spinner
+                android:id="@+id/spDiseaseType"
+                android:layout_width="match_parent"
+                android:layout_height="48dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTotalCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:text="Tìm thấy: 0 hồ sơ"
+            android:textColor="#00796B"
+            android:textStyle="italic"
+            android:gravity="end" />
+
+        <ListView
+            android:id="@+id/lvMedicalRecord"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:dividerHeight="8dp"
+            android:divider="@android:color/transparent"
+            android:clipToPadding="false"
+            android:scrollbarStyle="outsideOverlay" />
+
+    </LinearLayout>
 </LinearLayout>

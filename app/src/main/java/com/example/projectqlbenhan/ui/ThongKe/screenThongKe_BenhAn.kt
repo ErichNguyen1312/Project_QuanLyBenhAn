@@ -1,22 +1,20 @@
 package com.example.projectqlbenhan.ui.ThongKe
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.ListView
-import android.widget.Spinner
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ImageButton
+import android.widget.ListView
+import android.widget.Spinner
 import android.widget.TextView
-import com.example.projectqlbenhan.MedicalRecordDatabase
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.projectqlbenhan.database.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.ui.home.HomeActivity
-import com.example.projectqlbenhan.ui.patient.ProfilePatient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class screenThongKe_BenhAn : AppCompatActivity() {
 
@@ -24,91 +22,100 @@ class screenThongKe_BenhAn : AppCompatActivity() {
     private lateinit var ct_btnBack: ImageButton
     private lateinit var ct_tvTieuDe: TextView
     private lateinit var lvMedicalRecord: ListView
+    private lateinit var tvTotalCount: TextView // Text đếm số lượng
+
     private lateinit var adapter: Adapter_ThongKeBenhAn
     private lateinit var db: MedicalRecordDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_screen_thong_ke_benh_an)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        // Khởi tạo Database
+        db = MedicalRecordDatabase.getDatabase(this)
 
-        setControl()
-        loadSpinner()
-        loadAllRecords()
+        initView()
+        setupSpinnerData() // Load dữ liệu cho Spinner
         setEvent()
     }
 
-    private fun setControl() {
+    private fun initView() {
         spDiseaseType = findViewById(R.id.spDiseaseType)
         lvMedicalRecord = findViewById(R.id.lvMedicalRecord)
-        ct_btnBack = findViewById(R.id.ct_btnBack)
-        ct_tvTieuDe = findViewById(R.id.ct_tvTieuDe)
+        tvTotalCount = findViewById(R.id.tvTotalCount) // ID mới thêm trong XML
 
-        ct_tvTieuDe.text = "Thống kê bệnh án"
+        // Toolbar custom
+        ct_btnBack = findViewById(R.id.btnBack) // Kiểm tra lại ID trong custom_toolbar
+        ct_tvTieuDe = findViewById(R.id.tvTitle) // Kiểm tra lại ID trong custom_toolbar
+        ct_tvTieuDe.text = "Thống kê Bệnh án - Trần Thiện Trí"
 
-        db = MedicalRecordDatabase.getDatabase(this)
-
-        adapter = Adapter_ThongKeBenhAn(this, mutableListOf())
+        // Khởi tạo Adapter rỗng ban đầu
+        adapter = Adapter_ThongKeBenhAn(this, emptyList())
         lvMedicalRecord.adapter = adapter
     }
 
-    private fun loadSpinner() {
+    private fun setupSpinnerData() {
         lifecycleScope.launch {
-            val types = db.medicalRecordDao().getAllDiseaseTypes().toMutableList()
-            types.add(0, "Tất cả")
+            // Lấy danh sách các loại bệnh (Diagnosis) duy nhất từ DB để làm bộ lọc
+            val distinctTypes = withContext(Dispatchers.IO) {
+                // Gọi hàm DAO lấy danh sách bệnh duy nhất
+                // Nếu MedicalRecordDao chưa có hàm getAllDiseaseTypes, hãy thêm:
+                // @Query("SELECT DISTINCT diagnosis FROM medical_records")
+                db.medicalRecordDao().getAllDiseaseTypes()
+            }
+
+            // Tạo list cho Spinner, thêm mục "Tất cả" vào đầu
+            val spinnerItems = mutableListOf("Tất cả")
+            spinnerItems.addAll(distinctTypes)
 
             val spinnerAdapter = ArrayAdapter(
                 this@screenThongKe_BenhAn,
                 android.R.layout.simple_spinner_item,
-                types
+                spinnerItems
             )
-            spinnerAdapter.setDropDownViewResource(
-                android.R.layout.simple_spinner_dropdown_item
-            )
-
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spDiseaseType.adapter = spinnerAdapter
         }
     }
 
-    private fun loadAllRecords() {
-        lifecycleScope.launch {
-            val data = db.medicalRecordDao().getAll()
-            adapter.updateData(data)
+    private fun setEvent() {
+        // Nút Back
+        ct_btnBack.setOnClickListener {
+            finish() // Đóng Activity quay về màn hình trước
+        }
+
+        // Sự kiện chọn Spinner
+        spDiseaseType.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                val selectedType = parent?.getItemAtPosition(position).toString()
+                filterData(selectedType)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Không làm gì
+            }
         }
     }
 
-    private fun setEvent() {
-        ct_btnBack.setOnClickListener {
-            val intent = Intent(this, HomeActivity::class.java)
-            startActivity(intent)
-        }
-        spDiseaseType.onItemSelectedListener =
-            object : android.widget.AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: android.widget.AdapterView<*>,
-                    view: android.view.View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    val type = parent.getItemAtPosition(position).toString()
-
-                    lifecycleScope.launch {
-                        val list = if (type == "Tất cả") {
-                            db.medicalRecordDao().getAll()
-                        } else {
-                            db.medicalRecordDao().getByDiseaseType(type)
-                        }
-                        adapter.updateData(list)
-                    }
+    private fun filterData(type: String) {
+        lifecycleScope.launch {
+            val listRecord = withContext(Dispatchers.IO) {
+                if (type == "Tất cả") {
+                    db.medicalRecordDao().getAll()
+                } else {
+                    // Tìm kiếm gần đúng hoặc chính xác theo loại bệnh
+                    db.medicalRecordDao().getByDiseaseType(type)
                 }
-
-                override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
             }
+
+            // Cập nhật UI trên Main Thread
+            adapter.updateData(listRecord)
+            tvTotalCount.text = "Tìm thấy: ${listRecord.size} hồ sơ"
+        }
     }
 }

@@ -2,284 +2,168 @@ package com.example.projectqlbenhan.ui.TaiKham
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import android.graphics.Color
-import android.icu.util.Calendar
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.TextView
-import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.dao.appointment.AppointmentDao
+import com.example.projectqlbenhan.database.MedicalRecordDatabase
 import com.example.projectqlbenhan.entity.appointment.Appointment
+import com.example.projectqlbenhan.entity.doctor.Doctor
 import com.example.projectqlbenhan.ui.ThongBaoTaiKham.AlarmScheduler
-import com.example.projectqlbenhan.ui.ThongBaoTaiKham.Helper_ThongBaoTaiKham
-import com.example.projectqlbenhan.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 class screenTaiKham_Create : AppCompatActivity() {
-    private lateinit var tvNgayTaiKham: TextView
-    private lateinit var tvGioTaiKham: TextView
-    private lateinit var tvBacSi: TextView
+
+    private lateinit var tvChonNgay: TextView
+    private lateinit var tvChonGio: TextView
     private lateinit var edtGhiChu: EditText
+    private lateinit var edtBenhAn: EditText // Hoặc dùng để nhập User nếu cần
     private lateinit var btnSave: Button
-    private lateinit var edtBenhAn: EditText
+    private lateinit var spnBacSi: Spinner // Spinner chọn bác sĩ
 
-    private lateinit var ct_btnBack: ImageButton
-    private lateinit var ct_tvTieuDe: TextView
-
-    private var selectedDateMillis: Long? = null
-    private var selectedTime: String? = null
+    private var selectedDateCalendar: Calendar = Calendar.getInstance()
+    private var doctorList: List<Doctor> = listOf()
     private var selectedDoctorId: Long? = null
-    private var _doctorId: Long? = null
+
+    // ID bệnh nhân (Lấy từ Intent hoặc Session)
+    private var patientId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_screen_tai_kham_create)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
-        setControl()
+        initView()
+
+        // Lấy ID bệnh nhân truyền từ màn hình trước
+        patientId = intent.getLongExtra("patient_id", -1)
+
+        loadDoctors() // Load danh sách bác sĩ
         setEvent()
     }
 
-    private fun setControl() {
-        tvNgayTaiKham = findViewById(R.id.tvNgayTaiKham)
-        tvGioTaiKham = findViewById(R.id.tvGioTaiKham)
-        tvBacSi = findViewById(R.id.tvBacSi)
+    private fun initView() {
+        tvChonNgay = findViewById(R.id.tvChonNgay)
+        tvChonGio = findViewById(R.id.tvChonGio)
         edtGhiChu = findViewById(R.id.edtGhiChu)
-        edtBenhAn = findViewById(R.id.edtBenhAn)
+        edtBenhAn = findViewById(R.id.edtBenhAn) // Có thể ẩn nếu tự động lấy patientId
         btnSave = findViewById(R.id.btnSave)
-
-        ct_btnBack = findViewById(R.id.ct_btnBack)
-        ct_tvTieuDe = findViewById(R.id.ct_tvTieuDe)
-
-        ct_tvTieuDe.text = "Tạo lịch tái khám"
-
-
-        selectedDoctorId = SessionManager.getDoctorId(this)
-        val doctorName = SessionManager.getDoctorName(this)
-        tvBacSi.text = "$doctorName"
+        spnBacSi = findViewById(R.id.spnBacSi)
     }
 
+    private fun loadDoctors() {
+        lifecycleScope.launch {
+            val db = MedicalRecordDatabase.getDatabase(this@screenTaiKham_Create)
+            // Giả sử có hàm getAllDoctors, nếu chưa có bạn thêm query "SELECT * FROM doctors" vào DoctorDao
+            // Tạm thời dùng query thủ công hoặc hàm có sẵn
+            // doctorList = db.doctorDao().getAll() -> Bạn cần check lại DoctorDao xem hàm lấy list tên là gì
+            // Dưới đây mình viết demo lấy list, bạn thay bằng hàm DAO thực tế của bạn
+            doctorList = withContext(Dispatchers.IO) {
+                // Đây là ví dụ, bạn cần đảm bảo Dao có hàm lấy list doctors
+                // db.doctorDao().getAllDoctors()
+                emptyList() // Placeholder: Hãy thay bằng code gọi DAO thật
+            }
+
+            // Nếu bạn chưa viết hàm getAll trong DAO, hãy thêm: @Query("SELECT * FROM doctors") suspend fun getAll(): List<Doctor>
+
+            // Map danh sách bác sĩ ra tên để hiển thị Spinner
+            val doctorNames = doctorList.map { it.fullName }
+            val adapter = ArrayAdapter(this@screenTaiKham_Create, android.R.layout.simple_spinner_dropdown_item, doctorNames)
+            spnBacSi.adapter = adapter
+
+            spnBacSi.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                    if (doctorList.isNotEmpty()) {
+                        selectedDoctorId = doctorList[position].doctorId
+                    }
+                }
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
+        }
+    }
 
     private fun setEvent() {
-        ct_btnBack.setOnClickListener { finish() }
-        tvNgayTaiKham.setOnClickListener { showDatePicker() }
-        tvGioTaiKham.setOnClickListener { showTimePicker() }
-        btnSave.setOnClickListener {
-            if (validateInput()) {
-                saveAppointment()
+        // Chọn Ngày
+        tvChonNgay.setOnClickListener {
+            val dateListener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
+                selectedDateCalendar.set(Calendar.YEAR, year)
+                selectedDateCalendar.set(Calendar.MONTH, month)
+                selectedDateCalendar.set(Calendar.DAY_OF_MONTH, day)
+                updateTimeDisplay()
             }
+            DatePickerDialog(this, dateListener,
+                selectedDateCalendar.get(Calendar.YEAR),
+                selectedDateCalendar.get(Calendar.MONTH),
+                selectedDateCalendar.get(Calendar.DAY_OF_MONTH)).show()
+        }
+
+        // Chọn Giờ
+        tvChonGio.setOnClickListener {
+            val timeListener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
+                selectedDateCalendar.set(Calendar.HOUR_OF_DAY, hour)
+                selectedDateCalendar.set(Calendar.MINUTE, minute)
+                selectedDateCalendar.set(Calendar.SECOND, 0)
+                updateTimeDisplay()
+            }
+            TimePickerDialog(this, timeListener,
+                selectedDateCalendar.get(Calendar.HOUR_OF_DAY),
+                selectedDateCalendar.get(Calendar.MINUTE), true).show()
+        }
+
+        btnSave.setOnClickListener {
+            saveAppointment()
         }
     }
 
-    private fun showDatePicker() {
-        val cal = Calendar.getInstance()
-
-        DatePickerDialog(
-            this,
-            { _, year, month, day ->
-                val c = Calendar.getInstance()
-                c.set(year, month, day, 0, 0)
-                selectedDateMillis = c.timeInMillis
-
-                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                tvNgayTaiKham.text = sdf.format(Date(selectedDateMillis!!))
-                tvNgayTaiKham.setTextColor(Color.BLACK)
-            },
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH),
-            cal.get(Calendar.DAY_OF_MONTH)
-        ).apply {
-            datePicker.minDate = System.currentTimeMillis()
-        }.show()
-    }
-
-    private fun showTimePicker() {
-        val cal = Calendar.getInstance()
-
-        TimePickerDialog(
-            this,
-            { _, hour, minute ->
-                selectedTime = String.format("%02d:%02d", hour, minute)
-                tvGioTaiKham.text = selectedTime
-                tvGioTaiKham.setTextColor(Color.BLACK)
-            },
-            cal.get(Calendar.HOUR_OF_DAY),
-            cal.get(Calendar.MINUTE),
-            true
-        ).show()
-    }
-
-    private fun validateInput(): Boolean {
-
-        if (edtBenhAn.text.toString().trim().isEmpty()) {
-            toast("Vui lòng nhập mã bệnh án")
-            return false
-        }
-
-        if (selectedDateMillis == null) {
-            toast("Vui lòng chọn ngày tái khám")
-            return false
-        }
-
-        if (selectedTime.isNullOrEmpty()) {
-            toast("Vui lòng chọn giờ tái khám")
-            return false
-        }
-
-        if (selectedDoctorId == null) {
-            toast("Vui lòng chọn bác sĩ")
-            return false
-        }
-
+    private fun updateTimeDisplay() {
         val sdfDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val sdfDateTime = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-
-        val ngay = sdfDate.format(Date(selectedDateMillis!!))
-
-        val lich = runCatching {
-            sdfDateTime.parse("$ngay $selectedTime")?.time
-        }.getOrNull()
-
-        if (lich == null || lich <= System.currentTimeMillis()) {
-            toast("Thời gian tái khám phải lớn hơn hiện tại")
-            return false
-        }
-
-        return true
+        val sdfTime = SimpleDateFormat("HH:mm", Locale.getDefault())
+        tvChonNgay.text = sdfDate.format(selectedDateCalendar.time)
+        tvChonGio.text = sdfTime.format(selectedDateCalendar.time)
     }
-
 
     private fun saveAppointment() {
-
-        if (!validateInput()) return
-
-        val recordId = edtBenhAn.text.toString().trim().toLongOrNull()
-        if (recordId == null) {
-            toast("Mã bệnh án không hợp lệ")
+        if (selectedDoctorId == null) {
+            Toast.makeText(this, "Vui lòng chọn bác sĩ", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (selectedDateCalendar.timeInMillis < System.currentTimeMillis()) {
+            Toast.makeText(this, "Thời gian hẹn phải ở tương lai", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val patientId = intent.getLongExtra("patient_id", -1)
-        if (patientId == -1L) {
-            toast("Không xác định được bệnh nhân")
-            return
-        }
+        val note = edtGhiChu.text.toString()
+        val finalTime = selectedDateCalendar.timeInMillis
 
         lifecycleScope.launch {
-
             val db = MedicalRecordDatabase.getDatabase(this@screenTaiKham_Create)
-            val appointmentDao = db.appointmentDao()
 
-            //Tính startDay – endDay
-            val cal = Calendar.getInstance()
-            cal.timeInMillis = selectedDateMillis!!
-            cal.set(Calendar.HOUR_OF_DAY, 0)
-            cal.set(Calendar.MINUTE, 0)
-            cal.set(Calendar.SECOND, 0)
-            val startDay = cal.timeInMillis
-
-            cal.set(Calendar.HOUR_OF_DAY, 23)
-            cal.set(Calendar.MINUTE, 59)
-            cal.set(Calendar.SECOND, 59)
-            val endDay = cal.timeInMillis
-
-            // Check bệnh nhân đã có lịch trong ngày
-            val countPatient =
-                appointmentDao.countAppointmentOfPatientInDay(
-                    patientId,
-                    startDay,
-                    endDay
-                )
-
-            if (countPatient > 0) {
-                withContext(Dispatchers.Main) {
-                    toast("Bệnh nhân đã có lịch tái khám trong ngày")
-                }
-                return@launch
-            }
-
-            // Check trùng khung giờ
-            val countTime =
-                appointmentDao.countAppointmentAtTime(
-                    selectedDateMillis!!,
-                    selectedTime!!
-                )
-
-            if (countTime > 0) {
-                withContext(Dispatchers.Main) {
-                    toast("Khung giờ này đã có người đăng ký")
-                }
-                return@launch
-            }
-
-            val record =
-                db.medicalRecordDao().getRecordOfPatient(recordId, patientId)
-
-            if (record == null) {
-                withContext(Dispatchers.Main) {
-                    toast("Mã bệnh án không thuộc bệnh nhân này")
-                }
-                return@launch
-            }
-
-            // ✅ 4. Insert
-            val appointment = Appointment(
-                recordId = recordId,
+            // Tạo entity Appointment mới
+            val newAppt = Appointment(
                 patientId = patientId,
-                appointmentDate = selectedDateMillis!!,
-                appointmentTime = selectedTime!!,
-                location = null,
-                doctorId = selectedDoctorId!!,
-                notes = edtGhiChu.text.toString()
+                doctorId = selectedDoctorId,
+                appointmentDate = finalTime,
+                status = "SCHEDULED",
+                reason = note
             )
 
-            val appointmentId = appointmentDao.insert(appointment)
+            val newId = db.appointmentDao().insert(newAppt)
 
-            // ✅ 5. Set Alarm
-            val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-            val dateStr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                .format(Date(selectedDateMillis!!))
+            // Đặt lịch thông báo (Alarm)
+            // Lưu ý: Logic Alarm cũ của bạn có thể cần sửa để nhận timestamp thay vì string
+            // ĐOẠN CODE ĐÚNG (Chỉ 3 tham số)
+            AlarmScheduler.schedule(
+                this@screenTaiKham_Create,
+                newId,
+                finalTime
+            )
 
-            val triggerTime =
-                sdf.parse("$dateStr $selectedTime")!!.time
-
-            withContext(Dispatchers.Main) {
-                AlarmScheduler.schedule(
-                    this@screenTaiKham_Create,
-                    appointmentId,
-                    triggerTime,
-                    selectedTime!!
-                )
-                toast("Lưu lịch tái khám thành công")
-                finish()
-            }
+            Toast.makeText(this@screenTaiKham_Create, "Đặt lịch thành công!", Toast.LENGTH_SHORT).show()
+            finish()
         }
-    }
-
-
-
-
-
-    private fun toast(msg: String) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 }

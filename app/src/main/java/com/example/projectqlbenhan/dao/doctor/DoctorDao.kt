@@ -50,7 +50,3 @@ interface DoctorDao {
     @Query("SELECT * FROM doctors")
     suspend fun getAll(): List<Doctor>
 }
-
-
-
-}

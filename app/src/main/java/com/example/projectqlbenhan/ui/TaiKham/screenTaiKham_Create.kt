@@ -58,17 +58,10 @@ class screenTaiKham_Create : AppCompatActivity() {
     private fun loadDoctors() {
         lifecycleScope.launch {
             val db = MedicalRecordDatabase.getDatabase(this@screenTaiKham_Create)
-            // Giả sử có hàm getAllDoctors, nếu chưa có bạn thêm query "SELECT * FROM doctors" vào DoctorDao
-            // Tạm thời dùng query thủ công hoặc hàm có sẵn
-            // doctorList = db.doctorDao().getAll() -> Bạn cần check lại DoctorDao xem hàm lấy list tên là gì
-            // Dưới đây mình viết demo lấy list, bạn thay bằng hàm DAO thực tế của bạn
             doctorList = withContext(Dispatchers.IO) {
-                // Đây là ví dụ, bạn cần đảm bảo Dao có hàm lấy list doctors
-                // db.doctorDao().getAllDoctors()
-                emptyList() // Placeholder: Hãy thay bằng code gọi DAO thật
+                db.doctorDao().getAll()
             }
 
-            // Nếu bạn chưa viết hàm getAll trong DAO, hãy thêm: @Query("SELECT * FROM doctors") suspend fun getAll(): List<Doctor>
 
             // Map danh sách bác sĩ ra tên để hiển thị Spinner
             val doctorNames = doctorList.map { it.fullName }
@@ -153,9 +146,6 @@ class screenTaiKham_Create : AppCompatActivity() {
 
             val newId = db.appointmentDao().insert(newAppt)
 
-            // Đặt lịch thông báo (Alarm)
-            // Lưu ý: Logic Alarm cũ của bạn có thể cần sửa để nhận timestamp thay vì string
-            // ĐOẠN CODE ĐÚNG (Chỉ 3 tham số)
             AlarmScheduler.schedule(
                 this@screenTaiKham_Create,
                 newId,

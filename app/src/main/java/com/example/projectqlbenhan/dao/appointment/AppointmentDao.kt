@@ -122,4 +122,17 @@ interface AppointmentDao {
 
     @Query("SELECT * FROM appointments WHERE status = 'SCHEDULED' AND appointmentDate = :today")
     suspend fun getTodayScheduledAppointments(today: Long): List<Appointment>
+
+    // update Tái khám - Trí
+    @Query(
+        """
+    UPDATE appointments 
+    SET appointmentDate = :date,
+        reason = :notes,
+        doctor_id = :doctorId
+    WHERE appointmentId = :id
+"""
+    )
+    suspend fun updateAppointmentTri(id: Long, date: Long, notes: String?, doctorId: Long?)
+
 }

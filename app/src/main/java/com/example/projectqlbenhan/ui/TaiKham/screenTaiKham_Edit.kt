@@ -94,9 +94,29 @@ class screenTaiKham_Edit : AppCompatActivity() {
     }
 
     private fun setEvent() {
-        // ... (Logic DatePicker và TimePicker GIỐNG HỆT bên Create, bạn copy sang nhé) ...
-        tvNgayTaiKham.setOnClickListener { /* Copy logic DatePicker từ file Create */ }
-        tvChonGio.setOnClickListener { /* Copy logic TimePicker từ file Create */ }
+        tvNgayTaiKham.setOnClickListener {
+            val dateListener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
+                selectedDateCalendar.set(Calendar.YEAR, year)
+                selectedDateCalendar.set(Calendar.MONTH, month)
+                selectedDateCalendar.set(Calendar.DAY_OF_MONTH, day)
+                updateTimeDisplay()
+            }
+            DatePickerDialog(this, dateListener,
+                selectedDateCalendar.get(Calendar.YEAR),
+                selectedDateCalendar.get(Calendar.MONTH),
+                selectedDateCalendar.get(Calendar.DAY_OF_MONTH)).show()
+        }
+        tvChonGio.setOnClickListener {
+            val timeListener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
+                selectedDateCalendar.set(Calendar.HOUR_OF_DAY, hour)
+                selectedDateCalendar.set(Calendar.MINUTE, minute)
+                selectedDateCalendar.set(Calendar.SECOND, 0)
+                updateTimeDisplay()
+            }
+            TimePickerDialog(this, timeListener,
+                selectedDateCalendar.get(Calendar.HOUR_OF_DAY),
+                selectedDateCalendar.get(Calendar.MINUTE), true).show()
+        }
 
         btnSave.setOnClickListener {
             updateAppointment()
@@ -120,20 +140,12 @@ class screenTaiKham_Edit : AppCompatActivity() {
             val note = edtGhiChu.text.toString()
             val newTime = selectedDateCalendar.timeInMillis
 
-            // Vì AppointmentDao.updateAppointment(id, date, notes) của bạn chỉ update date và notes
-            // Bạn cần viết thêm Query update cả DoctorId hoặc dùng hàm @Update update(appointment: Appointment)
-
-            // Cách dùng update object (Recommended):
-            // 1. Lấy object cũ
-            // val oldAppt = db.appointmentDao().getById(appointmentId)
-            // 2. Tạo object mới với data thay đổi
-            // val newAppt = oldAppt.copy(appointmentDate = newTime, doctorId = newSelectedDoctorId, ...)
-            // 3. db.appointmentDao().update(newAppt)
-
-            // Tạm thời mình gọi hàm update custom (Bạn cần thêm param doctorId vào DAO nếu chưa có)
-            db.appointmentDao().updateAppointment(appointmentId, newTime, note)
-            // Lưu ý: Nếu muốn update cả bác sĩ, bạn phải sửa DAO:
-            // @Query("UPDATE appointments SET appointmentDate=:d, reason=:n, doctor_id=:doc WHERE appointmentId=:id")
+            db.appointmentDao().updateAppointmentTri(
+                id = appointmentId,
+                date = selectedDateCalendar.timeInMillis,
+                notes = edtGhiChu.text.toString(),
+                doctorId = newSelectedDoctorId
+            )
 
             Toast.makeText(this@screenTaiKham_Edit, "Cập nhật thành công", Toast.LENGTH_SHORT).show()
             setResult(RESULT_OK)

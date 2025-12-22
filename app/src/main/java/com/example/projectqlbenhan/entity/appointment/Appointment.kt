@@ -5,53 +5,39 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.projectqlbenhan.entity.doctor.Doctor
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
+import com.example.projectqlbenhan.entity.patient.Patient
 
 @Entity(
     tableName = "appointments",
     foreignKeys = [
         ForeignKey(
-            entity = MedicalRecord::class,
-            parentColumns = ["recordId"],
-            childColumns = ["record_id"],
-            onDelete = ForeignKey.Companion.CASCADE
+            entity = Patient::class,
+            parentColumns = ["patientId"],
+            childColumns = ["patient_id"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Doctor::class,
+            parentColumns = ["doctorId"],
+            childColumns = ["doctor_id"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index(value = ["record_id"])]
+    indices = [Index("patient_id"), Index("doctor_id")]
 )
 data class Appointment(
+
     @PrimaryKey(autoGenerate = true)
     val appointmentId: Long = 0,
-
-    @ColumnInfo(name = "record_id")
-    val recordId: Long,
-
-
+    @ColumnInfo(name = "patient_id")
     val patientId: Long,
-    @ColumnInfo(name = "appointment_date")
-    val appointmentDate: Long, // Ngày hẹn
-
-    @ColumnInfo(name = "appointment_time")
-    val appointmentTime: String, // Giờ hẹn
-
-    @ColumnInfo(name = "location")
-    val location: String?, // Địa điểm khám
-
     @ColumnInfo(name = "doctor_id")
-    val doctorId: Long,
+    val doctorId: Long?, // Có thể null lúc mới đặt chờ xếp lịch
 
-    @ColumnInfo(name = "notes")
-    val notes: String?,
-
-    @ColumnInfo(name = "reminder_enabled")
-    val reminderEnabled: Boolean = true,
-
-    @ColumnInfo(name = "reminder_time_before")
-    val reminderTimeBeforeHours: Int = 24, // Nhắc trước bao nhiêu giờ
-
-    @ColumnInfo(name = "status")
+    val appointmentDate: Long, // Timestamp gồm ngày + giờ
     val status: String = "SCHEDULED", // SCHEDULED, COMPLETED, CANCELLED
-
-    @ColumnInfo(name = "created_at")
+    val reason: String?, // Lý do khám
     val createdAt: Long = System.currentTimeMillis()
 )

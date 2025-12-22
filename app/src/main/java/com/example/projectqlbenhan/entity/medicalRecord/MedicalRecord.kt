@@ -5,6 +5,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.projectqlbenhan.entity.appointment.Appointment
+import com.example.projectqlbenhan.entity.doctor.Doctor
 import com.example.projectqlbenhan.entity.patient.Patient
 
 @Entity(
@@ -15,9 +17,21 @@ import com.example.projectqlbenhan.entity.patient.Patient
             parentColumns = ["patientId"],
             childColumns = ["patient_id"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Doctor::class,
+            parentColumns = ["doctorId"],
+            childColumns = ["doctor_id"],
+            onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = Appointment::class,
+            parentColumns = ["appointmentId"],
+            childColumns = ["appointment_id"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index(value = ["patient_id"])]
+    indices = [Index("patient_id"), Index("doctor_id"), Index("appointment_id")]
 )
 data class MedicalRecord(
     @PrimaryKey(autoGenerate = true)
@@ -26,30 +40,24 @@ data class MedicalRecord(
     @ColumnInfo(name = "patient_id")
     val patientId: Long,
 
+    @ColumnInfo(name = "doctor_id")
+    val doctorId: Long?,
+
+    @ColumnInfo(name = "appointment_id")
+    val appointmentId: Long? = null, // ⭐️ QUAN TRỌNG: Nullable để tạo bệnh án không cần lịch hẹn
+
     @ColumnInfo(name = "diagnosis")
-    val diagnosis: String, // Chuẩn đoán
+    val diagnosis: String,
 
     @ColumnInfo(name = "symptoms")
-    val symptoms: String, // Mô tả triệu chứng
+    val symptoms: String,
 
-    @ColumnInfo(name = "disease_type")
-    val diseaseType: String, // Loại bệnh (để lọc)
+    @ColumnInfo(name = "doctor_notes")
+    val doctorNotes: String?,
+
+    @ColumnInfo(name = "doctor_advice")
+    val doctorAdvice: String?, // ⭐️ MỚI: Lời dặn dò bệnh nhân (Ăn kiêng, uống nhiều nước...)
 
     @ColumnInfo(name = "examination_date")
-    val examinationDate: Long, // Ngày khám
-
-//    @ColumnInfo(name = "doctor_name")
-//    val doctorName: String?,
-
-
-    @ColumnInfo(name = "doctor_id")
-    val doctorId: Long,
-
-
-
-    @ColumnInfo(name = "notes")
-    val notes: String?,
-
-    @ColumnInfo(name = "created_at")
-    val createdAt: Long = System.currentTimeMillis()
+    val examinationDate: Long = System.currentTimeMillis()
 )

@@ -33,7 +33,17 @@
             android:layout_height="wrap_content"
             android:text="Liều dùng"
             android:textColor="#555555"
-            android:textSize="14sp"/>
+            android:textSize="14sp"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:id="@+id/tvSoLuong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Số lượng"
+            android:textColor="#316DF0"
+            android:textSize="14sp"
+            android:textStyle="italic"/>
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

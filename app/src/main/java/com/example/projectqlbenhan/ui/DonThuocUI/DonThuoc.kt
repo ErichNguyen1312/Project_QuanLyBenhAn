@@ -14,9 +14,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.dao.thuoc.DonThuocRepository
-import com.example.projectqlbenhan.dao.thuoc.PhongKhamDatabase
-import com.example.projectqlbenhan.entity.DonThuoc.ChiTietDonThuocEntity
+// Import đúng Database và Entity đã thống nhất
+import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -35,14 +35,14 @@ class DonThuoc : AppCompatActivity() {
     private lateinit var cardExpiring: CardView
     private lateinit var cardCompleted: CardView
 
-    // Khai báo TextViews trên thẻ đơn thuốc gần đây (từ activity_don_thuoc.xml)
+    // Khai báo TextViews hiển thị đơn thuốc
     private lateinit var tvRecentMaBenhNhan: TextView
     private lateinit var tvRecentTenBenhNhan: TextView
     private lateinit var tvRecentNgayKetThuc: TextView
 
-    // Khai báo ViewModel và biến lưu ID mới nhất
+    // Khai báo ViewModel quản lý dữ liệu
     private lateinit var donThuocViewModel: DonThuocViewModel
-    private var latestDonThuocId: Long = -1L
+    private var latestItemId: Long = -1L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,16 +60,16 @@ class DonThuoc : AppCompatActivity() {
         setEvent()
         applyColorFixes()
 
-        // Bắt đầu quan sát dữ liệu
-        observeRecentDonThuoc()
+        // Quan sát dữ liệu thuốc gần nhất
+        observeRecentPrescription()
     }
 
     private fun khoiTaoMVVM() {
-        val application = requireNotNull(this).application
-        val database = PhongKhamDatabase.layDatabase(application)
+        // Sử dụng lớp Database trung tâm thay cho PhongKhamDatabase cũ
+        val database = MedicalRecordDatabase.getDatabase(this)
 
-        val repository = DonThuocRepository(database.donThuocDao())
-        val factory = DonThuocViewModelFactory(repository)
+        // Factory khởi tạo trực tiếp từ DAO quản lý đơn thuốc
+        val factory = DonThuocViewModelFactory(database.prescriptionItemDao())
         donThuocViewModel = ViewModelProvider(this, factory).get(DonThuocViewModel::class.java)
     }
 
@@ -86,67 +86,59 @@ class DonThuoc : AppCompatActivity() {
 
         recentPrescriptionCard = findViewById(R.id.card_recent_rx)
 
-        // Ánh xạ các TextView (ID đã được fix trong XML)
         tvRecentMaBenhNhan = findViewById(R.id.tvRecentMaBenhNhan)
         tvRecentTenBenhNhan = findViewById(R.id.tvRecentTenBenhNhan)
         tvRecentNgayKetThuc = findViewById(R.id.tvRecentNgayKetThuc)
     }
 
-    private fun observeRecentDonThuoc() {
-        // Observer LiveData để lấy đơn thuốc mới nhất
-        donThuocViewModel.tatCaDonThuoc.observe(this) { donThuocList ->
-            val recentDonThuoc = donThuocList?.firstOrNull()
+    private fun observeRecentPrescription() {
+        // Quan sát LiveData chứa danh sách thuốc đã lọc
+        donThuocViewModel.filteredPrescriptionItems.observe(this) { itemList ->
+            val recentItem = itemList?.firstOrNull()
 
-            if (recentDonThuoc != null) {
-                latestDonThuocId = recentDonThuoc.donThuocId // Lưu ID
-                updateRecentCardUI(recentDonThuoc)
+            if (recentItem != null) {
+                latestItemId = recentItem.itemId // Lưu ID thuốc để xem chi tiết
+                updateRecentCardUI(recentItem)
                 recentPrescriptionCard.visibility = View.VISIBLE
             } else {
-                latestDonThuocId = -1L
-                // Hiển thị placeholder khi không có data
+                latestItemId = -1L
                 tvRecentMaBenhNhan.text = "N/A"
-                tvRecentTenBenhNhan.text = "Chưa có đơn thuốc"
+                tvRecentTenBenhNhan.text = "Chưa có thuốc kê"
                 tvRecentNgayKetThuc.text = "--/--/----"
                 recentPrescriptionCard.visibility = View.VISIBLE
             }
         }
     }
 
-    private fun updateRecentCardUI(donThuoc: ChiTietDonThuocEntity) {
+    private fun updateRecentCardUI(item: PrescriptionItem) {
+        // Hiển thị mã thuốc và tên thuốc vừa kê
+        tvRecentMaBenhNhan.text = "ID: ${item.itemId}"
+        tvRecentTenBenhNhan.text = item.medicineName
 
-        tvRecentMaBenhNhan.text = donThuoc.donThuocId.toString()
-        // Tên BN (trong XML) giờ là Tên bệnh nhân
-        tvRecentTenBenhNhan.text = donThuoc.tenBenhNhan
-
-        // Tính ngày kết thúc
-        val ngayKetThucMillis = donThuoc.ngayTao + (donThuoc.soLanDung * 24 * 60 * 60 * 1000L)
+        // Hiển thị ngày hệ thống hiện tại (vì bảng thuốc không lưu ngày)
         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        tvRecentNgayKetThuc.text = dateFormat.format(Date(ngayKetThucMillis))
+        tvRecentNgayKetThuc.text = dateFormat.format(Date())
     }
 
     private fun setEvent() {
         iconSearch.setOnClickListener {
-            openActivity(DanhSachDonThuoc::class.java, "Danh sách Đơn Thuốc")
+            openActivity(DanhSachDonThuoc::class.java, "Danh sách Thuốc")
         }
         iconAdd.setOnClickListener {
-            openActivity(ThemDonThuoc::class.java, "Thêm Đơn Thuốc")
+            openActivity(ThemDonThuoc::class.java, "Kê đơn thuốc")
         }
 
-        // ⭐️ FIX: Xử lý sự kiện click thẻ đơn thuốc gần đây
         recentPrescriptionCard.setOnClickListener {
-            if (latestDonThuocId != -1L) {
-                openChiTietDonThuoc(latestDonThuocId)
+            if (latestItemId != -1L) {
+                openChiTietDonThuoc(latestItemId)
             } else {
-                Toast.makeText(this, "Không có đơn thuốc gần đây để xem.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Không có dữ liệu thuốc để xem.", Toast.LENGTH_SHORT).show()
             }
         }
 
-        cardTotalPatients.setOnClickListener {
-            openActivity(DanhSachDonThuoc::class.java, "Quản lý Bệnh nhân")
-        }
-        cardTotalRx.setOnClickListener { openActivity(DanhSachDonThuoc::class.java, "Danh sách Đơn Thuốc (Tổng quan)") }
-        cardExpiring.setOnClickListener { openActivity(DanhSachDonThuoc::class.java, "Danh sách Đơn Thuốc (Sắp hết hạn)") }
-        cardCompleted.setOnClickListener { openActivity(DanhSachDonThuoc::class.java, "Danh sách Đơn Thuốc (Đã hoàn thành)") }
+        // Các sự kiện điều hướng khác
+        cardTotalPatients.setOnClickListener { openActivity(DanhSachDonThuoc::class.java, "Bệnh nhân") }
+        cardTotalRx.setOnClickListener { openActivity(DanhSachDonThuoc::class.java, "Tổng đơn thuốc") }
     }
 
     private fun applyColorFixes() {
@@ -161,22 +153,21 @@ class DonThuoc : AppCompatActivity() {
         try {
             val intent = Intent(this, cls)
             startActivity(intent)
-            Toast.makeText(this, "Đang mở: $message", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Mở: $message", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            Toast.makeText(this, "Lỗi: Không tìm thấy Activity ${cls.simpleName} (Kiểm tra Manifest!)", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Lỗi Manifest: ${cls.simpleName}", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun openChiTietDonThuoc(id: Long) {
         try {
-            val intent = Intent(this, ChiTietDonThuoc::class.java).apply {
-                putExtra("DON_THUOC_ID", id)
+            // Chuyển tới màn hình Chỉnh sửa đơn thuốc
+            val intent = Intent(this, SuaDonThuoc::class.java).apply {
+                putExtra("ITEM_ID", id)
             }
             startActivity(intent)
-            Toast.makeText(this, "Đang mở: Chi tiết Đơn Thuốc (ID: $id)", Toast.LENGTH_SHORT).show()
-        } catch (
-            e: Exception) {
-            Toast.makeText(this, "Lỗi: Không tìm thấy Activity ChiTietDonThuoc", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Lỗi: Không tìm thấy màn hình SuaDonThuoc", Toast.LENGTH_LONG).show()
         }
     }
 }

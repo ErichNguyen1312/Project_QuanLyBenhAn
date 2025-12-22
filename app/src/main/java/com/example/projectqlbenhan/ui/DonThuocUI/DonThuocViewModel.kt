@@ -1,86 +1,84 @@
 package com.example.projectqlbenhan.ui.DonThuocUI
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
+import com.example.projectqlbenhan.dao.prescriptionItemDao.PrescriptionItemDao
+import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import com.example.projectqlbenhan.dao.thuoc.DonThuocRepository
-import com.example.projectqlbenhan.entity.DonThuoc.ChiTietDonThuocEntity
-
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
+// ViewModel quản lý nghiệp vụ đơn thuốc sử dụng trực tiếp DAO
+class DonThuocViewModel(private val dao: PrescriptionItemDao) : ViewModel() {
 
-class DonThuocViewModel(private val repository: DonThuocRepository) : ViewModel() {
+    // LiveData chứa Query tìm kiếm từ giao diện
+    private val searchQuery = MutableLiveData<String>("")
 
-    // LiveData gốc (từ Repository)
-    private val danhSachGoc = repository.tatCaDonThuoc // LiveData<List<ChiTietDonThuocEntity>>
+    // LiveData chứa danh sách thuốc theo Record ID (Bệnh án)
+    private val _danhSachThuoc = MutableLiveData<List<PrescriptionItem>>()
 
-    // LiveData chứa Query tìm kiếm hiện tại
-    private val searchQuery = MutableLiveData<String>()
-
-    // LiveData công khai chứa kết quả đã lọc (dùng MediatorLiveData)
-    val tatCaDonThuoc = MediatorLiveData<List<ChiTietDonThuocEntity>>()
+    // LiveData công khai chứa kết quả đã lọc để UI quan sát
+    val filteredPrescriptionItems = MediatorLiveData<List<PrescriptionItem>>()
 
     init {
-        // Tích hợp logic tìm kiếm
-        tatCaDonThuoc.addSource(danhSachGoc) { result ->
-            filterList(result, searchQuery.value)
+        // Tích hợp logic tìm kiếm khi danh sách thuốc hoặc query thay đổi
+        filteredPrescriptionItems.addSource(_danhSachThuoc) { items ->
+            filterList(items, searchQuery.value)
         }
-        tatCaDonThuoc.addSource(searchQuery) { query ->
-            filterList(danhSachGoc.value, query)
+        filteredPrescriptionItems.addSource(searchQuery) { query ->
+            filterList(_danhSachThuoc.value, query)
         }
     }
 
-    private fun filterList(list: List<ChiTietDonThuocEntity>?, query: String?) {
+
+    fun loadPrescriptionByRecord(recordId: Long) = viewModelScope.launch(Dispatchers.IO) {
+        val items = dao.getItemsByRecordId(recordId)
+        _danhSachThuoc.postValue(items)
+    }
+
+    private fun filterList(list: List<PrescriptionItem>?, query: String?) {
         if (list == null) return
 
         if (query.isNullOrEmpty()) {
-            tatCaDonThuoc.value = list
+            filteredPrescriptionItems.value = list
         } else {
             val lowerCaseQuery = query.lowercase(Locale.getDefault())
-            val filteredList = list.filter {
-                // ⭐️ FIX: Bổ sung tenBenhNhan và bỏ hoSoKhamId
-                it.tenThuoc.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
-                        it.dangThuoc.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
-                        it.lieuDung.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
-                        (it.ghiChu?.lowercase(Locale.getDefault())?.contains(lowerCaseQuery) ?: false) ||
-                        it.tenBenhNhan.lowercase(Locale.getDefault()).contains(lowerCaseQuery) // FIX
+            filteredPrescriptionItems.value = list.filter {
+                it.medicineName.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
+                        it.unit.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
+                        it.dosage.lowercase(Locale.getDefault()).contains(lowerCaseQuery)
             }
-            tatCaDonThuoc.value = filteredList
         }
     }
 
-    // Hàm gọi từ UI khi người dùng nhập query
+    // Cập nhật query tìm kiếm từ SearchBar
     fun search(query: String) {
         searchQuery.value = query.trim()
     }
 
-    // ------------------------------------------------------
-    // CÁC HÀM THAO TÁC DATABASE ASYNC (Đã FIX TÊN HÀM)
-    // ------------------------------------------------------
 
-    // FIX: Đã đổi tên hàm themDonThuoc thành them (và làm cho nó suspend để trả về ID)
-    suspend fun themDonThuocVaLayId(donThuoc: ChiTietDonThuocEntity): Long {
-        return repository.them(donThuoc)
+    fun themDonThuoc(items: List<PrescriptionItem>) = viewModelScope.launch(Dispatchers.IO) {
+        dao.insertPrescriptionItems(items)
     }
 
-    // FIX: Đã đổi tên hàm capNhatDonThuoc thành capNhat
-    fun capNhatDonThuoc(donThuoc: ChiTietDonThuocEntity) = viewModelScope.launch {
-        repository.capNhat(donThuoc)
+    /**
+     * Cập nhật thông tin thuốc (Liều dùng, số lượng)
+     */
+    fun capNhatDonThuoc(item: PrescriptionItem) = viewModelScope.launch(Dispatchers.IO) {
+        dao.updateItem(item)
     }
 
-    // FIX: Đã đổi tên hàm xoaDonThuoc thành xoaTheoId
-    fun xoaDonThuocTheoId(id: Long) = viewModelScope.launch {
-        repository.xoaTheoId(id)
+    /**
+     * Xóa một loại thuốc khỏi đơn
+     */
+    fun xoaThuoc(item: PrescriptionItem) = viewModelScope.launch(Dispatchers.IO) {
+        dao.deleteSingleItem(item)
     }
 
-    // FIX: Hàm này trả về LiveData
-    fun layDonThuocTheoId(id: Long): LiveData<ChiTietDonThuocEntity?> {
-        return repository.layDonThuocTheoId(id)
+    /**
+     * Lấy thông tin chi tiết một loại thuốc theo ID
+     */
+    suspend fun getById(id: Long): PrescriptionItem? = withContext(Dispatchers.IO) {
+        return@withContext dao.getItemById(id)
     }
-
-    // ❌ LƯU Ý: Nếu bạn cần hàm lấy Hồ sơ khám bệnh, bạn cần phải giữ lại HoSoKhamBenhDao/Repo.
-    // Vì bạn đã xóa chúng, các hàm đó đã bị loại bỏ khỏi ViewModel này.
 }

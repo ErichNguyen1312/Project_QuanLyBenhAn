@@ -8,13 +8,12 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.projectqlbenhan.database.MedicalRecordDatabase
+
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.dao.thuoc.DonThuocRepository
-import com.example.projectqlbenhan.dao.thuoc.PhongKhamDatabase
-import com.example.projectqlbenhan.entity.DonThuoc.ChiTietDonThuocEntity
-import com.example.projectqlbenhan.utils.SessionManager // ⭐ Cần import SessionManager
+import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem // Sử dụng Entity mới
+import com.example.projectqlbenhan.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,32 +30,17 @@ class ThemDonThuoc : AppCompatActivity() {
     private lateinit var edtGhiChu: EditText
     private lateinit var btnLuu: Button
     private lateinit var btnHuy: Button
-
     private lateinit var iconBack: ImageView
 
-    private lateinit var donThuocViewModel: DonThuocViewModel
-
-    // ⭐ Biến lưu Record ID (nếu được truyền)
     private var currentRecordId: Long = -1L
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_them_don_thuoc)
 
-        khoiTaoMVVM()
         setControl()
-        getIntentDataAndPrepopulate()
+        getPatientDataAndPrepopulate() // Tự động điền thông tin bệnh nhân
         setEvent()
-    }
-
-    private fun khoiTaoMVVM() {
-        val application = requireNotNull(this).application
-        val database = PhongKhamDatabase.layDatabase(application)
-
-        val donThuocRepo = DonThuocRepository(database.donThuocDao())
-        val factory = DonThuocViewModelFactory(donThuocRepo)
-        donThuocViewModel = ViewModelProvider(this, factory).get(DonThuocViewModel::class.java)
     }
 
     private fun setControl() {
@@ -69,111 +53,89 @@ class ThemDonThuoc : AppCompatActivity() {
         edtGhiChu = findViewById(R.id.edtGhiChu)
         btnLuu = findViewById(R.id.btnLuu)
         btnHuy = findViewById(R.id.btnXoa)
-
         iconBack = findViewById(R.id.iconBack)
     }
 
-    // ⭐ FIX: Lấy dữ liệu từ Intent và Session để điền sẵn
-    private fun getIntentDataAndPrepopulate() {
+    /**
+     * Lấy dữ liệu từ SessionManager để điền sẵn vào Form và khóa chỉnh sửa
+     */
+    private fun getPatientDataAndPrepopulate() {
+        // Lấy Record ID từ Intent nếu chuyển từ màn hình Chi tiết bệnh án
         currentRecordId = intent.getLongExtra("RECORD_ID", -1L)
 
-        // Đọc thông tin Bệnh nhân từ Session Manager
+        // Đọc thông tin Bệnh nhân từ Session Manager đã lưu trước đó
         val patientIdFromSession = SessionManager.getCurrentPatientId(this)
         val patientNameFromSession = SessionManager.getCurrentPatientName(this)
 
-        // Tự động gán và khóa trường Bệnh nhân nếu dữ liệu có sẵn trong Session
         if (patientIdFromSession != -1L && !patientNameFromSession.isNullOrEmpty()) {
-
-            // 1. Gán ID Bệnh nhân và KHÓA
+            // 1. Gán ID Bệnh nhân và KHÓA trường nhập
             edtMaBenhNhan.setText(patientIdFromSession.toString())
             edtMaBenhNhan.isEnabled = false
             edtMaBenhNhan.isFocusable = false
 
-            // 2. Gán Tên Bệnh nhân và KHÓA
+            // 2. Gán Tên Bệnh nhân và KHÓA trường nhập
             edtTenBenhNhan.setText(patientNameFromSession)
             edtTenBenhNhan.isEnabled = false
             edtTenBenhNhan.isFocusable = false
-        } else {
-            // Nếu Session rỗng, cho phép người dùng nhập bình thường
-            edtMaBenhNhan.isEnabled = true
-            edtTenBenhNhan.isEnabled = true
         }
     }
 
-
     private fun setEvent() {
-        iconBack.setOnClickListener {
-            onBackPressed()
-        }
-
-        btnLuu.setOnClickListener {
-            luuDonThuocMoi()
-        }
-
-        btnHuy.setOnClickListener {
-            onBackPressed()
-        }
+        iconBack.setOnClickListener { finish() }
+        btnHuy.setOnClickListener { finish() }
+        btnLuu.setOnClickListener { luuDonThuocMoi() }
     }
 
     private fun luuDonThuocMoi() {
-
-        // 1. Lấy tên BN từ Session (nếu đã điền sẵn) hoặc từ EditText (nếu chưa điền sẵn)
-        val tenBN = SessionManager.getCurrentPatientName(this) ?: edtTenBenhNhan.text.toString().trim()
         val tenThuoc = edtTenThuoc.text.toString().trim()
         val dangThuoc = edtDangThuoc.text.toString().trim()
-        val lieuDung = edtLieuDung.text.toString().trim()
-        val soLanDungText = edtSoLanDung.text.toString().trim()
+        val lieuDung = edtLieuDung.text.toString().trim() // Dosage
+        val quantityStr = edtSoLanDung.text.toString().trim() // Số lượng
         val ghiChu = edtGhiChu.text.toString().trim()
 
-        // Validation
-        if (tenBN.isEmpty() || tenThuoc.isEmpty() || dangThuoc.isEmpty() || lieuDung.isEmpty() || soLanDungText.isEmpty()) {
-            Toast.makeText(this, "Vui lòng điền đủ các trường bắt buộc.", Toast.LENGTH_LONG).show()
+        // Kiểm tra dữ liệu bắt buộc
+        if (tenThuoc.isEmpty() || quantityStr.isEmpty() || lieuDung.isEmpty()) {
+            Toast.makeText(this, "Vui lòng điền đủ thông tin thuốc, liều dùng và số lượng.", Toast.LENGTH_LONG).show()
             return
         }
 
-        val soLanDung: Int
+        val quantity: Int
         try {
-            soLanDung = soLanDungText.toInt()
+            quantity = quantityStr.toInt()
         } catch (e: NumberFormatException) {
-            Toast.makeText(this, "Số lần dùng không hợp lệ.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Số lượng không hợp lệ.", Toast.LENGTH_SHORT).show()
             return
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val donThuocMoi = ChiTietDonThuocEntity(
-                    tenBenhNhan = tenBN,
-                    // ... (Thêm recordId nếu Entity Prescription của bạn có trường này) ...
+                val db = MedicalRecordDatabase.getDatabase(this@ThemDonThuoc)
 
-                    tenThuoc = tenThuoc,
-                    dangThuoc = dangThuoc,
-                    lieuDung = lieuDung,
-                    soLanDung = soLanDung,
-                    ghiChu = if (ghiChu.isEmpty()) null else ghiChu
+                // Khởi tạo Entity mới theo cấu trúc bảng prescription_items
+                val newItem = PrescriptionItem(
+                    recordId = currentRecordId,
+                    medicineName = tenThuoc,
+                    quantity = quantity,
+                    unit = dangThuoc,
+                    dosage = lieuDung,
+                    // Lưu ý: Trường ghi chú có thể gán vào dosage hoặc mở rộng Entity nếu cần
                 )
 
-                val newDonThuocId = donThuocViewModel.themDonThuocVaLayId(donThuocMoi)
+                // Lưu vào Database thông qua DAO
+                db.prescriptionItemDao().insertPrescriptionItems(listOf(newItem))
 
                 withContext(Dispatchers.Main) {
-                    if (newDonThuocId > 0) {
-                        Toast.makeText(this@ThemDonThuoc, "Đã lưu đơn thuốc thành công!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ThemDonThuoc, "Đã lưu đơn thuốc thành công!", Toast.LENGTH_LONG).show()
 
-                        // ⭐ DỌN DẸP SESSION sau khi lưu thành công
-                        SessionManager.clearCurrentPatientInfo(this@ThemDonThuoc)
+                    // ⭐ DỌN DẸP SESSION sau khi lưu thành công để đảm bảo an toàn dữ liệu cho lần sau
+                    SessionManager.clearCurrentPatientInfo(this@ThemDonThuoc)
 
-                        val intent = Intent(this@ThemDonThuoc, ChiTietDonThuoc::class.java).apply {
-                            putExtra("DON_THUOC_ID", newDonThuocId)
-                        }
-                        startActivity(intent)
-                        finish()
-                    } else {
-                        Toast.makeText(this@ThemDonThuoc, "Lưu đơn thuốc thất bại (ID = 0).", Toast.LENGTH_LONG).show()
-                    }
+                    finish()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@ThemDonThuoc, "Lỗi hệ thống khi lưu: ${e.message}", Toast.LENGTH_LONG).show()
-                    Log.e("ThemDonThuoc", "Lỗi khi lưu đơn thuốc", e)
+                    Toast.makeText(this@ThemDonThuoc, "Lỗi khi lưu: ${e.message}", Toast.LENGTH_LONG).show()
+                    Log.e("ThemDonThuoc", "Lỗi DB", e)
                 }
             }
         }

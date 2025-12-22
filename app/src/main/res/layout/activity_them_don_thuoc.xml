@@ -33,7 +33,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Thêm Đơn Thuốc"
+            android:text="Kê Đơn Thuốc Mới"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -57,95 +57,120 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Thêm đơn thuốc mới"
-                android:textSize="22sp"
+                android:text="Thông tin định danh"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginBottom="24dp" />
+                android:textColor="#5ABAF3"
+                android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/edtMaBenhNhan"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:hint="Mã bệnh nhân (ID Hồ sơ)"
+                android:hint="Mã bệnh nhân (Tự động)"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:inputType="number"
-                android:textColorHint="#A0A0A0"
-                android:autofillHints="name" />
+                android:layout_marginBottom="12dp"
+                android:inputType="none"
+                android:enabled="false"
+                android:focusable="false"
+                android:background="#E0E0E0"
+                android:textColor="@android:color/black" />
 
             <EditText
                 android:id="@+id/edtTenBenhNhan"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:hint="Tên bệnh nhân"
+                android:hint="Tên bệnh nhân (Tự động)"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:inputType="textCapWords"
-                android:textColorHint="#A0A0A0"
-                android:autofillHints="name" />
+                android:layout_marginBottom="20dp"
+                android:inputType="none"
+                android:enabled="false"
+                android:focusable="false"
+                android:background="#E0E0E0"
+                android:textColor="@android:color/black" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#BDBDBD"
+                android:layout_marginBottom="20dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chi tiết đơn thuốc"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#5ABAF3"
+                android:layout_marginBottom="12dp" />
 
             <EditText
                 android:id="@+id/edtTenThuoc"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:hint="Tên thuốc"
+                android:hint="Tên thuốc (VD: Paracetamol 500mg)"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:inputType="textCapSentences"
-                android:textColorHint="#A0A0A0"
-                android:autofillHints="name" />
+                android:textColorHint="#A0A0A0" />
 
             <EditText
                 android:id="@+id/edtDangThuoc"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:hint="Dạng thuốc"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:inputType="textCapSentences"
-                android:textColorHint="#A0A0A0"
-                android:autofillHints="name" />
-
-            <EditText
-                android:id="@+id/edtLieuDung"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:hint="Liều dùng"
+                android:hint="Dạng (Viên, Chai, Vỉ)"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:inputType="text"
-                android:textColorHint="#A0A0A0"
-                android:autofillHints="name" />
+                android:textColorHint="#A0A0A0" />
 
-            <EditText
-                android:id="@+id/edtSoLanDung"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:hint="Số lần dùng trong ngày"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:layout_marginBottom="16dp"
-                android:inputType="number"
-                android:textColorHint="#A0A0A0"
-                android:autofillHints="name" />
+                android:weightSum="2">
+
+                <EditText
+                    android:id="@+id/edtSoLanDung"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="1"
+                    android:hint="Số lần/ngày"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:inputType="number"
+                    android:textColorHint="#A0A0A0"
+                    android:layout_marginEnd="8dp"/>
+
+                <EditText
+                    android:id="@+id/edtLieuDung"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="1"
+                    android:hint="Số lượng (Số viên)"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:inputType="number"
+                    android:textColorHint="#A0A0A0"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
 
             <EditText
                 android:id="@+id/edtGhiChu"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:hint="Ghi chú"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:layout_height="wrap_content"
+                android:minHeight="80dp"
+                android:hint="Lời dặn bác sĩ (VD: Uống sau ăn no)"
+                android:padding="16dp"
                 android:layout_marginBottom="32dp"
+                android:gravity="top"
                 android:inputType="textMultiLine"
-                android:textColorHint="#A0A0A0"
-                android:autofillHints="name" />
+                android:textColorHint="#A0A0A0" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -158,14 +183,13 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Lưu"
-                    android:textSize="20sp"
+                    android:text="Lưu Đơn"
+                    android:textSize="18sp"
                     android:textColor="@android:color/white"
                     android:backgroundTint="#4CAF50"
                     android:layout_marginEnd="8dp"
                     android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
-                    android:stateListAnimator="@null"/>
+                    android:paddingBottom="12dp"/>
 
                 <Button
                     android:id="@+id/btnXoa"
@@ -173,17 +197,13 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Hủy"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:textColor="@android:color/white"
                     android:backgroundTint="#F44336"
                     android:layout_marginStart="8dp"
                     android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
-                    android:stateListAnimator="@null"/>
+                    android:paddingBottom="12dp"/>
             </LinearLayout>
-
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
-
-

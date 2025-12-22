@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- Toolbar -->
     <include layout="@layout/custom_toolbar" />
 
     <ScrollView
@@ -19,73 +18,102 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Ngày tái khám -->
             <TextView
-                android:text="Ngày tái khám"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:text="Ngày tái khám"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvNgayTaiKham"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/border"
-                android:padding="12dp"
-                android:text="Chọn ngày"
-                android:textColor="#888888"
                 android:clickable="true"
-                android:focusable="true" />
-
-            <!-- Giờ tái khám -->
-            <TextView
-                android:text="Giờ tái khám"
-                android:layout_marginTop="24dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:focusable="true"
+                android:hint="Chọn ngày"
+                android:padding="12dp"
+                android:textColor="#333333" />
 
             <TextView
-                android:id="@+id/tvGioTaiKham"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/border"
-                android:padding="12dp"
-                android:text="Chọn giờ"
-                android:textColor="#888888"
-                android:clickable="true"
-                android:focusable="true" />
+                android:layout_marginTop="20dp"
+                android:text="Giờ hẹn"
+                android:textStyle="bold" />
 
-            <!-- Ghi chú -->
             <TextView
-                android:text="Ghi chú"
-                android:layout_marginTop="24dp"
+                android:id="@+id/tvChonGio"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/border"
+                android:clickable="true"
+                android:focusable="true"
+                android:hint="Chọn giờ"
+                android:padding="12dp"
+                android:textColor="#333333" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Bác sĩ phụ trách"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/spnBacSi"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/border"
+                android:padding="4dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Ghi chú"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/edtGhiChu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/border"
-                android:padding="12dp"
-                android:minLines="3"
                 android:gravity="top"
-                android:hint="Nhập ghi chú" />
+                android:hint="Nhập ghi chú"
+                android:minLines="3"
+                android:padding="12dp" />
 
-            <!-- Button -->
-            <Button
-                android:id="@+id/btnSave"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Lưu lịch tái khám" />
-            <Button
-                android:id="@+id/btnXoa"
-                android:layout_marginTop="16dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Xóa lịch tái khám" />
+                android:orientation="vertical">
+
+                <Button
+                    android:id="@+id/btnSave"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/black"
+                    android:padding="12dp"
+                    android:text="Cập nhật thay đổi"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnXoa"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:backgroundTint="#D32F2F"
+                    android:padding="12dp"
+                    android:text="Hủy lịch hẹn này"
+                    android:textColor="@color/white" />
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
-
 </LinearLayout>

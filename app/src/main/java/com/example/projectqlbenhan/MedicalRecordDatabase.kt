@@ -4,41 +4,40 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-
-// Import các DAO - Cần khớp chính xác với cấu trúc folder trong image_59c9d8.png
 import com.example.projectqlbenhan.dao.accountDao.AccountDao
-import com.example.projectqlbenhan.dao.doctor.DoctorDao
-import com.example.projectqlbenhan.dao.patient.PatientDao
 import com.example.projectqlbenhan.dao.appointment.AppointmentDao
+import com.example.projectqlbenhan.dao.doctor.DoctorDao
 import com.example.projectqlbenhan.dao.medicalRecord.MedicalRecordDao
+import com.example.projectqlbenhan.dao.patient.PatientDao
 import com.example.projectqlbenhan.dao.prescriptionItemDao.PrescriptionItemDao
 import com.example.projectqlbenhan.dao.reviewDao.ReviewDao
-
-// Import các Entity
 import com.example.projectqlbenhan.entity.account.Account
 import com.example.projectqlbenhan.entity.appointment.Appointment
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.entity.patient.Patient
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 import com.example.projectqlbenhan.entity.review.Review
-import com.example.projectqlbenhan.entity.doctor.Doctor
+import com.example.projectqlbenhan.utils.Doctor
+
+// Lưu ý package name cho đúng
+
+
 
 @Database(
     entities = [
-        Account::class,          // 1. Tài khoản đăng nhập
-        Doctor::class,           // 2. Thông tin bác sĩ
-        Patient::class,          // 3. Thông tin bệnh nhân
-        Appointment::class,      // 4. Lịch hẹn khám
-        MedicalRecord::class,    // 5. Hồ sơ bệnh án
-        PrescriptionItem::class, // 6. Chi tiết đơn thuốc
-        Review::class            // 7. Đánh giá từ người dùng
+        Account::class,          // 1. Tài khoản
+        Doctor::class,           // 2. Bác sĩ
+        Patient::class,          // 3. Bệnh nhân
+        Appointment::class,      // 4. Lịch hẹn
+        MedicalRecord::class,    // 5. Bệnh án
+        PrescriptionItem::class, // 6. Thuốc
+        Review::class            // 7. Đánh giá
     ],
     version = 5,
     exportSchema = false
 )
 abstract class MedicalRecordDatabase : RoomDatabase() {
 
-    // Khai báo các hàm abstract để truy cập vào DAO
     abstract fun accountDao(): AccountDao
     abstract fun doctorDao(): DoctorDao
     abstract fun patientDao(): PatientDao
@@ -51,17 +50,15 @@ abstract class MedicalRecordDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: MedicalRecordDatabase? = null
 
-        /**
-         * Phương thức khởi tạo Database theo Singleton Pattern.
-         */
         fun getDatabase(context: Context): MedicalRecordDatabase {
+            // Singleton Pattern chuẩn
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     MedicalRecordDatabase::class.java,
                     "qlbenhan_db"
                 )
-                    .fallbackToDestructiveMigration() // Xóa dữ liệu cũ nếu đổi version (hữu ích khi debug)
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

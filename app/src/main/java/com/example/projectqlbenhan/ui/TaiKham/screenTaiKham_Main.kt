@@ -77,9 +77,7 @@ class screenTaiKham_Main : AppCompatActivity() {
             // Ví dụ: db.appointmentDao().getAppointmentsByPatient(patientId)
             // Ở đây mình giả sử hàm getUpcomingAppointments lấy hết, bạn cần lọc theo patientId
             val appointments = withContext(Dispatchers.IO) {
-                // db.appointmentDao().getAllOfPatient(patientId)
-                // Tạm dùng list rỗng để code không đỏ, bạn thay bằng hàm DAO thật nhé
-                mutableListOf<Appointment>()
+                db.appointmentDao().getAppointmentsByPatient(patientId)
             }
 
             // 2. Lấy danh sách bác sĩ để Map tên

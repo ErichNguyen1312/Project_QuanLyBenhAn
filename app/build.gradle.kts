@@ -42,6 +42,7 @@ android {
 dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     val room_version = "2.8.4"
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
 
     implementation("androidx.room:room-runtime:$room_version")
 

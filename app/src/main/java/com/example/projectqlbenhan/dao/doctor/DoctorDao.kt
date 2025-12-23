@@ -48,4 +48,7 @@ interface DoctorDao {
     @Query("SELECT * FROM doctors")
     fun getAllDoctorsFlow(): Flow<List<Doctor>>
 
+    //Lấy danh sách bác sĩ - Trí
+    @Query("SELECT * FROM doctors")
+    suspend fun getAll(): List<Doctor>
 }

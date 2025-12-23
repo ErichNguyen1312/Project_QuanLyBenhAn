@@ -130,4 +130,17 @@ interface AppointmentDao {
         ORDER BY appointmentDate ASC
     """)
     suspend fun getAppointmentsByDateRange(start: Long, end: Long): List<AppointmentWithPatient>
+
+    // update Tái khám - Trí
+    @Query(
+        """
+    UPDATE appointments 
+    SET appointmentDate = :date,
+        reason = :notes,
+        doctor_id = :doctorId
+    WHERE appointmentId = :id
+"""
+    )
+    suspend fun updateAppointmentTri(id: Long, date: Long, notes: String?, doctorId: Long?)
+
 }

@@ -8,12 +8,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
-
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,6 +49,7 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
         patientId = intent.getLongExtra("patient_id", -1)
         patientName = intent.getStringExtra("patient_name") ?: "Bệnh nhân"
 
+        tvHeader = findViewById(R.id.tvHeader)
         tvHeader.text = "Bệnh án của $patientName"
     }
 
@@ -61,11 +60,10 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
         btnAddMedicalRecord = findViewById(R.id.btnAddMedicalRecord)
 
         // Setup RecyclerView
+        // ⭐️ SỬA LẠI: Click item -> Mở UpdateMedicalRecord (Mode Xem/Sửa)
         adapter = MedicalRecordAdapter(medicalRecordList) { record ->
-            // ⭐️ CLICK ITEM: Mở màn hình UpdateMedicalRecord để XEM/SỬA
-            // (Thay vì mở PatientMedicalRecordDetail như cũ)
             val intent = Intent(this, UpdateMedicalRecord::class.java)
-            intent.putExtra("record_id", record.recordId) // Truyền ID để load dữ liệu cũ
+            intent.putExtra("record_id", record.recordId) // Truyền ID để load dữ liệu
             intent.putExtra("patient_id", patientId)
             launcher.launch(intent)
         }
@@ -77,19 +75,20 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
     private fun setEvent() {
         btnBack.setOnClickListener { finish() }
 
+        // ⭐️ SỬA LẠI: Click Thêm -> Mở UpdateMedicalRecord (Mode Tạo mới)
         btnAddMedicalRecord.setOnClickListener {
-            // ⭐️ CLICK THÊM: Mở màn hình UpdateMedicalRecord để TẠO MỚI
-            // (Truyền record_id = -1)
             val intent = Intent(this, UpdateMedicalRecord::class.java)
             intent.putExtra("patient_id", patientId)
             intent.putExtra("appointment_id", -1L) // Không từ lịch hẹn
-            intent.putExtra("record_id", -1L)      // Tạo mới
+            intent.putExtra("record_id", -1L)      // -1 để báo hiệu là Tạo mới
             launcher.launch(intent)
         }
     }
 
     private fun loadMedicalRecords() {
-        lifecycleScope.launch(Dispatchers.IO) {
+        // Dùng lifecycleScope hoặc CoroutineScope đều được
+        // Ở đây giữ nguyên CoroutineScope như style của bro
+        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
             val list = dao.getRecordsByPatient(patientId)
 
             withContext(Dispatchers.Main) {
@@ -97,7 +96,7 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
                 medicalRecordList.addAll(list)
                 adapter.notifyDataSetChanged()
 
-                // Ẩn hiện view Empty
+                // Logic ẩn hiện view Empty
                 if (medicalRecordList.isEmpty()) {
                     layoutEmpty.visibility = View.VISIBLE
                     rcRecyclerMedicalRecord.visibility = View.GONE
@@ -109,10 +108,11 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
         }
     }
 
-    // Dùng 1 launcher chung cho cả Thêm và Sửa để reload list khi quay lại
+    // Dùng 1 launcher chung cho cả Thêm và Sửa
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             loadMedicalRecords()
         }
     }
+
 }

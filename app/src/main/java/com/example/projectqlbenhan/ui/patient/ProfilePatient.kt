@@ -122,7 +122,14 @@ class ProfilePatient : AppCompatActivity() {
             }
         }
     }
+    // ⭐️ THÊM HÀM NÀY VÀO ⭐️
+    override fun onResume() {
+        super.onResume()
 
+        if (patientId > -1) {
+            loadRecentRecords()
+        }
+    }
     private fun loadRecentRecords() {
         CoroutineScope(Dispatchers.IO).launch {
             val list = dao.getRecentMedicalRecords(patientId)
@@ -193,4 +200,5 @@ class ProfilePatient : AppCompatActivity() {
         }
         return if (age < 0) 0 else age
     }
+
 }

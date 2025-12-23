@@ -33,9 +33,10 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
+            android:id="@+id/tvHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chỉnh sửa bệnh án"
+            android:text="Khám bệnh &amp; Kê đơn"
             android:textAlignment="center"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
@@ -73,7 +74,7 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_input_white"
                 android:padding="16dp"
-                android:text="Viêm họng cấp"
+                android:hint="Nhập chẩn đoán bệnh"
                 android:inputType="textCapSentences"
                 android:textColor="#000000"
                 android:textSize="16sp" />
@@ -94,9 +95,9 @@
                 android:background="@drawable/bg_input_white"
                 android:gravity="top|start"
                 android:inputType="textMultiLine"
-                android:minLines="4"
+                android:minLines="3"
                 android:padding="16dp"
-                android:text="Đau rát cổ họng, ho khan, sốt nhẹ, cảm giác mệt mỏi và khó nuốt."
+                android:hint="Nhập triệu chứng bệnh nhân"
                 android:textColor="#000000"
                 android:textSize="16sp" />
 
@@ -105,7 +106,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="8dp"
-                android:text="Loại bệnh"
+                android:text="Loại bệnh (Phân loại)"
                 android:textColor="#333333"
                 android:textSize="16sp" />
 
@@ -115,7 +116,7 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_input_white"
                 android:padding="16dp"
-                android:text="Bệnh truyền nhiễm"
+                android:hint="VD: Nội khoa, Tai Mũi Họng..."
                 android:textColor="#000000"
                 android:textSize="16sp" />
 
@@ -124,49 +125,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="8dp"
-                android:text="Ngày khám"
-                android:textColor="#333333"
-                android:textSize="16sp" />
-
-            <EditText
-                android:id="@+id/edtDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_input_white"
-                android:clickable="true"
-                android:drawableEnd="@android:drawable/ic_menu_my_calendar"
-                android:drawableTint="#000000"
-                android:focusable="false"
-                android:padding="16dp"
-                android:text="10/15/2023"
-                android:textColor="#000000"
-                android:textSize="16sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="8dp"
-                android:text="Bác sĩ"
-                android:textColor="#333333"
-                android:textSize="16sp" />
-
-            <EditText
-                android:id="@+id/edtDoctor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_input_white"
-                android:padding="16dp"
-                android:text="BS. Nguyễn Văn An"
-                android:textColor="#000000"
-                android:textSize="16sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="8dp"
-                android:text="Ghi chú thêm"
+                android:text="Ghi chú bác sĩ"
                 android:textColor="#333333"
                 android:textSize="16sp" />
 
@@ -177,27 +136,60 @@
                 android:background="@drawable/bg_input_white"
                 android:gravity="top|start"
                 android:inputType="textMultiLine"
-                android:minLines="4"
+                android:minLines="3"
                 android:padding="16dp"
-                android:text="Bệnh nhân cần uống nhiều nước ấm và nghỉ ngơi. Tái khám sau 3 ngày nếu triệu chứng không thuyên giảm."
+                android:hint="Lời dặn dò, ghi chú thêm..."
                 android:textColor="#000000"
                 android:textSize="16sp" />
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnUpdate"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:background="@drawable/bg_btn_primary"
-                android:padding="14dp"
-                android:text="Cập nhật"
-                android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp">
 
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="ĐƠN THUỐC"
+                    android:textColor="#2196F3"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
+                <Button
+                    android:id="@+id/btnAddMedicine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="+ Thêm thuốc"
+                    android:textSize="12sp"
+                    android:backgroundTint="#E3F2FD"
+                    android:textColor="#2196F3"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"/>
+            </LinearLayout>
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rcPrescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="100dp"
+                android:background="@drawable/bg_input_white"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="2"
+                tools:listitem="@android:layout/simple_list_item_2"/> <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnUpdate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/bg_btn_primary"
+            android:padding="14dp"
+            android:text="LƯU BỆNH ÁN"
+            android:textAllCaps="true"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/btnDelete"
@@ -211,8 +203,8 @@
                 android:textSize="16sp"
                 android:clickable="true"
                 android:focusable="true"
+                android:visibility="gone"
                 android:background="?attr/selectableItemBackground"/>
-
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

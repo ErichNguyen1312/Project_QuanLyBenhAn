@@ -5,110 +5,103 @@ import android.content.SharedPreferences
 
 object SessionManager {
 
-    // -------------------------------------------------------------------------
-    // KHÓA CHO SESSION BÁC SĨ (Đăng nhập)
-    // -------------------------------------------------------------------------
-    private const val PREF_DOCTOR_SESSION_NAME = "doctor_session"
-    private const val KEY_DOCTOR_ID = "doctor_id"
-    private const val KEY_DOCTOR_NAME = "doctor_name"
+    // --- 1. SESSION ĐĂNG NHẬP (USER SESSION) ---
+    private const val PREF_USER_SESSION = "UserSession"
 
-    // -------------------------------------------------------------------------
-    // KHÓA CHO SESSION BỆNH NHÂN ĐANG THAO TÁC (Dùng cho Thêm Đơn Thuốc)
-    // -------------------------------------------------------------------------
-    // Sử dụng tên session khác hoặc chung, ở đây dùng chung file SharedPreferences
-    private const val PREF_APP_SESSION_NAME = "AppSession"
-    private const val KEY_CURRENT_PATIENT_ID = "current_patient_id"
-    private const val KEY_CURRENT_PATIENT_NAME = "current_patient_name"
+    private const val KEY_IS_LOGGED_IN = "is_logged_in"
+    private const val KEY_ACCOUNT_ID = "account_id"       // ID tài khoản (quan trọng để đổi pass)
+    private const val KEY_ROLE = "role"                   // "DOCTOR", "PATIENT", "ADMIN"
+    private const val KEY_SPECIFIC_ID = "specific_id"     // doctorId hoặc patientId
+    private const val KEY_FULL_NAME = "full_name"         // Tên hiển thị
 
-    // Hàm tiện ích để lấy SharedPreferences (dùng cho Doctor session)
-    private fun getDoctorSharedPrefs(context: Context): SharedPreferences {
-        return context.getSharedPreferences(PREF_DOCTOR_SESSION_NAME, Context.MODE_PRIVATE)
+    // --- 2. SESSION TÁC VỤ (CONTEXT SESSION) ---
+    // Dùng khi Bác sĩ đang thao tác trên hồ sơ 1 bệnh nhân cụ thể
+    private const val PREF_CONTEXT_SESSION = "ContextSession"
+    private const val KEY_SELECTED_PATIENT_ID = "selected_patient_id"
+    private const val KEY_SELECTED_PATIENT_NAME = "selected_patient_name"
+
+
+    private fun getUserPrefs(context: Context): SharedPreferences {
+        return context.getSharedPreferences(PREF_USER_SESSION, Context.MODE_PRIVATE)
     }
 
-    // Hàm tiện ích để lấy SharedPreferences (dùng cho Patient session)
-    private fun getPatientSharedPrefs(context: Context): SharedPreferences {
-        // Sử dụng một tên khác để lưu Patient session, tránh xung đột logic
-        return context.getSharedPreferences(PREF_APP_SESSION_NAME, Context.MODE_PRIVATE)
+    private fun getContextPrefs(context: Context): SharedPreferences {
+        return context.getSharedPreferences(PREF_CONTEXT_SESSION, Context.MODE_PRIVATE)
     }
 
+    // ========================================================================
+    // A. QUẢN LÝ ĐĂNG NHẬP (LOGIN SESSION)
+    // ========================================================================
 
-    // -------------------------------------------------------------------------
-    // LOGIC SESSION BÁC SĨ (Giữ nguyên)
-    // -------------------------------------------------------------------------
-
-    //    luu session dang nhap
-    fun saveDoctorSession(
+    /**
+     * Lưu phiên đăng nhập cho bất kỳ User nào (Bác sĩ, Bệnh nhân, Admin)
+     */
+    fun saveUserSession(
         context: Context,
-        doctorId: Long,
-        doctorName: String
+        accountId: Long,
+        role: String,
+        specificId: Long, // Là doctorId nếu là BS, patientId nếu là BN, -1 nếu là Admin
+        fullName: String
     ) {
-        getDoctorSharedPrefs(context).edit()
-            .putLong(KEY_DOCTOR_ID, doctorId)
-            .putString(KEY_DOCTOR_NAME, doctorName)
-            .apply()
+        getUserPrefs(context).edit().apply {
+            putBoolean(KEY_IS_LOGGED_IN, true)
+            putLong(KEY_ACCOUNT_ID, accountId)
+            putString(KEY_ROLE, role)
+            putLong(KEY_SPECIFIC_ID, specificId)
+            putString(KEY_FULL_NAME, fullName)
+            apply()
+        }
     }
 
-    //    lay doctor dang nhap
-    fun getDoctorId(context: Context): Long {
-        return getDoctorSharedPrefs(context).getLong(KEY_DOCTOR_ID, -1L)
-    }
-
-    fun getDoctorName(context: Context): String? {
-        return getDoctorSharedPrefs(context).getString(KEY_DOCTOR_NAME, null)
-    }
-
-    //    check login
+    // Kiểm tra đã đăng nhập chưa
     fun isLoggedIn(context: Context): Boolean {
-        return getDoctorId(context) != -1L
+        return getUserPrefs(context).getBoolean(KEY_IS_LOGGED_IN, false)
     }
 
-    //    logout, xoa session
+    // Lấy Role hiện tại (để phân quyền UI)
+    fun getRole(context: Context): String? {
+        return getUserPrefs(context).getString(KEY_ROLE, null)
+    }
+
+    // Lấy ID cụ thể (DoctorId hoặc PatientId) để query dữ liệu cá nhân
+    fun getSpecificId(context: Context): Long {
+        return getUserPrefs(context).getLong(KEY_SPECIFIC_ID, -1L)
+    }
+
+    // Lấy Account ID (để đổi mật khẩu)
+    fun getAccountId(context: Context): Long {
+        return getUserPrefs(context).getLong(KEY_ACCOUNT_ID, -1L)
+    }
+
+    // Lấy tên hiển thị xin chào
+    fun getFullName(context: Context): String {
+        return getUserPrefs(context).getString(KEY_FULL_NAME, "Người dùng") ?: "Người dùng"
+    }
+
+    // Đăng xuất: Xóa sạch mọi thứ
     fun logout(context: Context) {
-        // Xóa session Bác sĩ
-        getDoctorSharedPrefs(context).edit().clear().apply()
-        // Xóa luôn session Bệnh nhân đang thao tác để dọn dẹp
-        clearCurrentPatientInfo(context)
+        getUserPrefs(context).edit().clear().apply()
+        getContextPrefs(context).edit().clear().apply() // Xóa luôn context đang làm việc
     }
 
-    //    clear khi logout (hàm này tương đương logout, có thể dùng logout thay thế)
-    fun clear(context: Context) {
-        getDoctorSharedPrefs(context).edit().clear().apply()
-        clearCurrentPatientInfo(context)
+    // ========================================================================
+    // B. QUẢN LÝ TÁC VỤ (WORKING CONTEXT)
+    // (Dành cho Bác sĩ khi chọn 1 bệnh nhân để khám/xem hồ sơ)
+    // ========================================================================
+
+    fun saveSelectedPatient(context: Context, patientId: Long, patientName: String) {
+        getContextPrefs(context).edit().apply {
+            putLong(KEY_SELECTED_PATIENT_ID, patientId)
+            putString(KEY_SELECTED_PATIENT_NAME, patientName)
+            apply()
+        }
     }
 
-
-    // -------------------------------------------------------------------------
-    // LOGIC SESSION BỆNH NHÂN ĐANG THAO TÁC (Đã thêm)
-    // -------------------------------------------------------------------------
-
-    /**
-     * Lưu ID và Tên Bệnh nhân đang được xem/thao tác vào session.
-     */
-    fun saveCurrentPatientInfo(context: Context, patientId: Long, patientName: String) {
-        getPatientSharedPrefs(context).edit()
-            .putLong(KEY_CURRENT_PATIENT_ID, patientId)
-            .putString(KEY_CURRENT_PATIENT_NAME, patientName)
-            .apply()
+    fun getSelectedPatientId(context: Context): Long {
+        return getContextPrefs(context).getLong(KEY_SELECTED_PATIENT_ID, -1L)
     }
 
-    /**
-     * Lấy ID Bệnh nhân hiện tại từ session. Trả về -1L nếu không có.
-     */
-    fun getCurrentPatientId(context: Context): Long {
-        return getPatientSharedPrefs(context).getLong(KEY_CURRENT_PATIENT_ID, -1L)
-    }
-
-    /**
-     * Lấy Tên Bệnh nhân hiện tại từ session. Trả về null nếu không có.
-     */
-    fun getCurrentPatientName(context: Context): String? {
-        return getPatientSharedPrefs(context).getString(KEY_CURRENT_PATIENT_NAME, null)
-    }
-
-    /**
-     * XÓA (dọn dẹp) thông tin Bệnh nhân hiện tại trong session.
-     */
-    fun clearCurrentPatientInfo(context: Context) {
-        getPatientSharedPrefs(context).edit().clear().apply()
+    fun clearSelectedPatient(context: Context) {
+        getContextPrefs(context).edit().clear().apply()
     }
 }

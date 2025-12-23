@@ -33,9 +33,11 @@ interface DoctorDao {
     @Query("SELECT * FROM doctors WHERE account_id = :accountId LIMIT 1")
     suspend fun getDoctorByAccountId(accountId: Long): Doctor?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(doctor: Doctor)
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    suspend fun insert(doctor: Doctor)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(doctor: Doctor): Long
     @Update
     suspend fun update(doctor: Doctor)
 

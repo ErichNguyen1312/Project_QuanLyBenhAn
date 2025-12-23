@@ -2,7 +2,6 @@ package com.example.projectqlbenhan.ui.patient
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
@@ -16,8 +15,8 @@ import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.dao.patient.PatientDao
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
-import com.example.projectqlbenhan.ui.TaiKham.screenTaiKham_Main
 import com.example.projectqlbenhan.ui.medicalRecord.ProfilePatientMedicalRecord
+import com.example.projectqlbenhan.ui.medicalRecord.UpdateMedicalRecord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,7 +36,6 @@ class ProfilePatient : AppCompatActivity() {
 
     lateinit var dao: PatientDao
 
-
     private lateinit var rcRecentRecords: RecyclerView
     private lateinit var recentAdapter: RecentMedicalRecordAdapter
     private val recentRecordList = ArrayList<MedicalRecord>()
@@ -53,30 +51,28 @@ class ProfilePatient : AppCompatActivity() {
         setControl()
         setData()
         setEvent()
-
     }
 
     private fun setEvent() {
         btnUpdate.setOnClickListener { updatePatient() }
-
         btnDelete.setOnClickListener { showDeleteConfirm() }
 
+        // Nút "Xem tất cả bệnh án"
         btnPatientMedicalRecordDetail.setOnClickListener {
             val intent = Intent(this, ProfilePatientMedicalRecord::class.java)
             intent.putExtra("patient_id", patientId)
-            startActivity(intent)
+            intent.putExtra("patient_name", tvHeaderName.text.toString()) // Truyền tên qua cho đẹp
+            generalLauncher.launch(intent)
         }
 
         btnTaiKham.setOnClickListener {
-            val intent = Intent(this, screenTaiKham_Main::class.java)
-            intent.putExtra("patient_id", patientId)
-            startActivity(intent)
+//            val intent = Intent(this, screenTaiKham_Main::class.java)
+//            intent.putExtra("patient_id", patientId)
+//            startActivity(intent)
         }
-
 
         btnBack.setOnClickListener { finish() }
     }
-
 
     private fun setControl() {
         tvHeaderName = findViewById(R.id.tvHeaderName)
@@ -91,26 +87,29 @@ class ProfilePatient : AppCompatActivity() {
         rcRecentRecords = findViewById(R.id.rcRecentRecords)
         layoutRecentEmpty = findViewById(R.id.layoutRecentEmpty)
 
-        // Setup RecyclerView
-        recentAdapter = RecentMedicalRecordAdapter(recentRecordList)
+        // Setup RecyclerView với sự kiện Click
+        recentAdapter = RecentMedicalRecordAdapter(recentRecordList) { record ->
+            // ⭐️ CLICK VÀO LỊCH SỬ -> Mở màn hình Khám (Mode Sửa)
+            val intent = Intent(this, UpdateMedicalRecord::class.java)
+            intent.putExtra("record_id", record.recordId)
+            intent.putExtra("patient_id", patientId)
+            generalLauncher.launch(intent)
+        }
+
         rcRecentRecords.layoutManager = LinearLayoutManager(this)
         rcRecentRecords.adapter = recentAdapter
-
     }
 
-    //cac ham xu ly
-    //set data
+    // --- DATA HANDLING ---
     private fun setData() {
         CoroutineScope(Dispatchers.IO).launch {
-
             patientId = intent.getLongExtra("patient_id", -1)
             val patient = dao.getPatientById(patientId)
 
             withContext(Dispatchers.Main) {
-
                 if (patient != null) {
                     val name = patient.fullName ?: "Không rõ"
-                    val age = patient.calculateAge(patient.dateOfBirth) ?: 0
+                    val age = calculateAge(patient.dateOfBirth) ?: 0
                     val gender = patient.gender ?: "Không rõ"
 
                     recordId = patient.medicalRecordNumber?.toString() ?: ""
@@ -119,7 +118,6 @@ class ProfilePatient : AppCompatActivity() {
                     tvName.text = "Tên: $name"
                     tvInfo.text = "Tuổi: $age | Giới tính: $gender | Mã HS: $recordId"
                 }
-
                 loadRecentRecords()
             }
         }
@@ -127,11 +125,9 @@ class ProfilePatient : AppCompatActivity() {
 
     private fun loadRecentRecords() {
         CoroutineScope(Dispatchers.IO).launch {
-
             val list = dao.getRecentMedicalRecords(patientId)
 
             withContext(Dispatchers.Main) {
-
                 recentRecordList.clear()
                 recentRecordList.addAll(list)
                 recentAdapter.notifyDataSetChanged()
@@ -142,38 +138,21 @@ class ProfilePatient : AppCompatActivity() {
         }
     }
 
-    //show dialog form comfirm
     private fun showDeleteConfirm() {
         AlertDialog.Builder(this)
             .setTitle("Xác nhận xoá")
             .setMessage("Bạn có chắc muốn xoá bệnh nhân này không?")
             .setPositiveButton("Đồng ý") { _, _ ->
                 deletePatient()
-
             }
             .setNegativeButton("Hủy", null)
             .show()
     }
 
-    override fun onResume() {
-        super.onResume()
-        loadRecentRecords()
-    }
-
-    // put record id  to list patient
-    private fun returnDeleteResult() {
-        val intent = Intent().apply {
-            putExtra("delete_recordId", recordId)
-        }
-        setResult(RESULT_OK, intent)
-        finish()
-    }
-
+    // --- CRUD ---
     private fun deletePatient() {
         CoroutineScope(Dispatchers.IO).launch {
-
             dao.deletePatientById(patientId)
-
             withContext(Dispatchers.Main) {
                 setResult(RESULT_OK)
                 finish()
@@ -181,48 +160,37 @@ class ProfilePatient : AppCompatActivity() {
         }
     }
 
-    //update patient
     private fun updatePatient() {
-
         val intent = Intent(this, UpdatePatient::class.java)
         intent.putExtra("patient_id", patientId)
-        Log.d("patient_id_fromProfile", "patient_id: $patientId")
         updateLauncher.launch(intent)
     }
 
-
+    // Launcher dùng riêng cho update thông tin cá nhân
     private val updateLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                reloadPatient()
+                setData() // Reload thông tin cá nhân
             }
         }
 
-    private fun reloadPatient() {
-        CoroutineScope(Dispatchers.IO).launch {
-            patientId = intent.getLongExtra("update_patient_id", -1)
-            if (patientId == -1L) {
-                Log.d("patient_id_fromProfile", "patient_id not found: $patientId")
-                finish()
-            }
-            val patient = dao.getPatientById(patientId)
-
-            withContext(Dispatchers.Main) {
-
-                if (patient != null) {
-
-                    val name = patient.fullName ?: "Không rõ"
-                    val age = patient.calculateAge(patient.dateOfBirth) ?: 0
-                    val gender = patient.gender ?: "Không rõ"
-                    recordId = (patient.medicalRecordNumber ?: 0) as String
-                    tvHeaderName.text = name
-                    tvName.text = "Tên: $name"
-                    tvInfo.text = "Tuổi: $age | Giới tính: $gender | Mã HS: $recordId"
-                }
+    // Launcher dùng chung (Reload list bệnh án khi quay lại)
+    private val generalLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                loadRecentRecords()
             }
         }
+
+    private fun calculateAge(dob: Long): Int {
+        if (dob == 0L) return 0
+        val dobCal = java.util.Calendar.getInstance()
+        dobCal.timeInMillis = dob
+        val today = java.util.Calendar.getInstance()
+        var age = today.get(java.util.Calendar.YEAR) - dobCal.get(java.util.Calendar.YEAR)
+        if (today.get(java.util.Calendar.DAY_OF_YEAR) < dobCal.get(java.util.Calendar.DAY_OF_YEAR)) {
+            age--
+        }
+        return if (age < 0) 0 else age
     }
-
 }
-
-

@@ -12,12 +12,21 @@ import java.util.Date
 import java.util.Locale
 
 class RecentMedicalRecordAdapter(
-    private val list: List<MedicalRecord>
+    private val list: List<MedicalRecord>,
+    private val onClick: (MedicalRecord) -> Unit // ⭐️ Thêm callback click
 ) : RecyclerView.Adapter<RecentMedicalRecordAdapter.ViewHolder>() {
 
     inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         val tvDate = v.findViewById<TextView>(R.id.tvDate)
         val tvDiagnosis = v.findViewById<TextView>(R.id.tvDiagnosis)
+
+        fun bind(item: MedicalRecord) {
+            tvDate.text = formatDate(item.examinationDate)
+            tvDiagnosis.text = item.diagnosis
+
+            // ⭐️ Bắt sự kiện click
+            itemView.setOnClickListener { onClick(item) }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -29,10 +38,7 @@ class RecentMedicalRecordAdapter(
     override fun getItemCount() = list.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = list[position]
-
-        holder.tvDate.text = formatDate(item.examinationDate)
-        holder.tvDiagnosis.text = item.diagnosis
+        holder.bind(list[position]) // Gọi hàm bind
     }
 
     private fun formatDate(millis: Long): String {

@@ -30,7 +30,7 @@ class PatientAdapterRecycler (
 
             tvName.text = name
             tvInfo.text =
-                "${patient.calculateAge(patient.dateOfBirth)} Tuổi · ${patient.gender} · ${patient.medicalRecordNumber}"
+                "${calculateAge(patient.dateOfBirth)} Tuổi · ${patient.gender} · ${patient.medicalRecordNumber}"
 
             itemView.setOnClickListener {
                 onClick(patient)
@@ -67,6 +67,16 @@ class PatientAdapterRecycler (
         holder.bind(patients[position])
     }
     override fun getItemCount(): Int = patients.size
-
+    private fun calculateAge(dob: Long): Int {
+        if (dob == 0L) return 0
+        val dobCal = java.util.Calendar.getInstance()
+        dobCal.timeInMillis = dob
+        val today = java.util.Calendar.getInstance()
+        var age = today.get(java.util.Calendar.YEAR) - dobCal.get(java.util.Calendar.YEAR)
+        if (today.get(java.util.Calendar.DAY_OF_YEAR) < dobCal.get(java.util.Calendar.DAY_OF_YEAR)) {
+            age--
+        }
+        return if (age < 0) 0 else age
+    }
 
 }

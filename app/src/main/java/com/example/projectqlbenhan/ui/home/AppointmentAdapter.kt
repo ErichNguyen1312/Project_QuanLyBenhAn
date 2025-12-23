@@ -9,8 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.appointment.AppointmentWithPatient
 import java.text.SimpleDateFormat
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import java.util.Date
 import java.util.Locale
 
 class AppointmentAdapter(
@@ -22,7 +21,7 @@ class AppointmentAdapter(
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvTime: TextView = itemView.findViewById(R.id.tvTime)
         val tvPatientName: TextView = itemView.findViewById(R.id.tvPatientName)
-        val tvAppointmentType: TextView = itemView.findViewById(R.id.tvAppointmentType)
+        val tvReason: TextView = itemView.findViewById(R.id.tvAppointmentType)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -35,39 +34,40 @@ class AppointmentAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = data[position]
-        val status = item.appointment.status
-        holder.tvTime.text = formatTime24hToAMPM(item.appointment.appointmentTime)
-        holder.tvPatientName.text = item.patient.fullName
-        holder.tvAppointmentType.text = item.appointment.notes ?: "Không có ghi chú"
 
-        when (status) {
+        // ⭐️ FIX: Format timestamp Long -> String Giờ
+        holder.tvTime.text = formatTimestampToTime(item.appointment.appointmentDate)
+
+        holder.tvPatientName.text = item.patient.fullName
+        holder.tvReason.text = item.appointment.reason ?: "Tái khám"
+
+        when (item.appointment.status) {
             "MISSED" -> {
                 holder.tvTime.setTextColor(Color.RED)
-                holder.tvAppointmentType.text = "Quá hạn / Không đến"
-                holder.tvAppointmentType.setTextColor(Color.RED)
+                holder.tvReason.text = "Quá hạn / Vắng mặt"
+                holder.tvReason.setTextColor(Color.RED)
             }
+
             "CANCELLED" -> {
                 holder.tvTime.setTextColor(Color.GRAY)
-                holder.tvAppointmentType.text = "Đã hủy hẹn"
+                holder.tvReason.text = "Đã hủy"
+                holder.tvReason.setTextColor(Color.GRAY)
             }
-            "COMPLETED" -> {
-                holder.tvTime.setTextColor(Color.parseColor("#4CAF50"))
-            }
+
+            "COMPLETED" -> holder.tvTime.setTextColor(Color.parseColor("#4CAF50"))
             else -> {
                 holder.tvTime.setTextColor(Color.parseColor("#007BFF"))
-                holder.tvAppointmentType.setTextColor(Color.parseColor("#6C757D"))
+                holder.tvReason.setTextColor(Color.parseColor("#6C757D"))
             }
         }
 
-        holder.itemView.setOnClickListener { onItemClick(item) }
-
+        holder.itemView.setOnClickListener { onItemClick(item)
+        }
         holder.itemView.setOnLongClickListener {
-            if (status == "SCHEDULED") {
+            if (item.appointment.status == "SCHEDULED") {
                 onItemLongClick(item)
                 true
-            } else {
-                false
-            }
+            } else false
         }
     }
 
@@ -76,12 +76,11 @@ class AppointmentAdapter(
         notifyDataSetChanged()
     }
 
-    fun formatTime24hToAMPM(time24h: String): String {
+    // Hàm helper format giờ
+    private fun formatTimestampToTime(timestamp: Long): String {
         return try {
-            val input = SimpleDateFormat("HH:mm", Locale.US)
-            val output = SimpleDateFormat("h:mm a", Locale.US)
-            val date = input.parse(time24h)
-            output.format(date!!)
+            val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+            sdf.format(Date(timestamp))
         } catch (e: Exception) {
             "--:--"
         }

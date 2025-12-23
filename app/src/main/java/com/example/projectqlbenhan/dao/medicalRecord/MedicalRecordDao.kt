@@ -52,12 +52,12 @@ interface MedicalRecordDao {
     suspend fun getAll(): List<MedicalRecord>
 
     // Thống kê bệnh
-    @Query("""
-        SELECT diagnosis as diseaseType, COUNT(*) as total 
-        FROM medical_records 
-        GROUP BY diagnosis
-    """)
-    fun getDiseaseStats(): List<DiseaseStat>
+//    @Query("""
+//        SELECT diagnosis as diseaseType, COUNT(*) as total
+//        FROM medical_records
+//        GROUP BY diagnosis
+//    """)
+//    fun getDiseaseStats(): List<DiseaseStat>
 
     // Lấy bệnh án cụ thể của bệnh nhân
     @Query("""
@@ -80,4 +80,14 @@ interface MedicalRecordDao {
     // Tìm bệnh án theo lịch hẹn (để check xem lịch này khám chưa)
     @Query("SELECT * FROM medical_records WHERE appointment_id = :apptId LIMIT 1")
     suspend fun getRecordByAppointmentId(apptId: Long): MedicalRecord?
+
+    // Trong MedicalRecordDao.kt
+
+    // Thống kê bệnh
+    @Query("""
+        SELECT disease_type as diseaseType, COUNT(*) as total 
+        FROM medical_records 
+        GROUP BY disease_type
+    """)
+    fun getDiseaseStats(): List<DiseaseStat>
 }

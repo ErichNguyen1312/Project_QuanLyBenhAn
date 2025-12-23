@@ -16,9 +16,7 @@ import com.example.projectqlbenhan.dao.appointment.AppointmentDao
 import com.example.projectqlbenhan.dao.medicalRecord.MedicalRecordDao
 import com.example.projectqlbenhan.dao.patient.PatientDao
 import com.example.projectqlbenhan.entity.appointment.Appointment
-import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.entity.patient.Patient
-import com.example.projectqlbenhan.ui.ThongBaoTaiKham.Helper_ThongBaoTaiKham
 import com.example.projectqlbenhan.utils.MrnGenerator
 import com.example.projectqlbenhan.utils.SessionManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -39,8 +37,8 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
     private lateinit var edtTime: EditText
     private lateinit var btnSave: Button
 
-    private var selectedDateMillis: Long = 0L
-    private var selectedTime: String = ""
+    // Biến Calendar duy nhất để lưu ngày giờ
+    private val appointmentCalendar = Calendar.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,6 +62,12 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
         edtTime = view.findViewById(R.id.edtTime)
         btnSave = view.findViewById(R.id.btnSave)
 
+        // Reset giây
+        appointmentCalendar.set(Calendar.SECOND, 0)
+        appointmentCalendar.set(Calendar.MILLISECOND, 0)
+
+        updateDateTimeUI()
+
         edtDate.setOnClickListener { pickDate() }
         edtTime.setOnClickListener { pickTime() }
         btnSave.setOnClickListener { saveAppointment() }
@@ -71,137 +75,138 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
         return view
     }
 
+    private fun updateDateTimeUI() {
+        val day = appointmentCalendar.get(Calendar.DAY_OF_MONTH)
+        val month = appointmentCalendar.get(Calendar.MONTH) + 1
+        val year = appointmentCalendar.get(Calendar.YEAR)
+        edtDate.setText(String.format("%02d/%02d/%d", day, month, year))
+
+        val hour = appointmentCalendar.get(Calendar.HOUR_OF_DAY)
+        val minute = appointmentCalendar.get(Calendar.MINUTE)
+        edtTime.setText(String.format("%02d:%02d", hour, minute))
+    }
 
     private fun pickDate() {
-        val cal = Calendar.getInstance()
+        val currentYear = appointmentCalendar.get(Calendar.YEAR)
+        val currentMonth = appointmentCalendar.get(Calendar.MONTH)
+        val currentDay = appointmentCalendar.get(Calendar.DAY_OF_MONTH)
+
         DatePickerDialog(
             requireContext(),
             { _, year, month, day ->
-                cal.set(year, month, day, 0, 0, 0)
-                selectedDateMillis = cal.timeInMillis
-                edtDate.setText(
-                    String.format("%02d/%02d/%d", day, month + 1, year)
-                )
+                appointmentCalendar.set(Calendar.YEAR, year)
+                appointmentCalendar.set(Calendar.MONTH, month)
+                appointmentCalendar.set(Calendar.DAY_OF_MONTH, day)
+                updateDateTimeUI()
             },
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH),
-            cal.get(Calendar.DAY_OF_MONTH)
+            currentYear, currentMonth, currentDay
         ).show()
     }
 
-
     private fun pickTime() {
-        val cal = Calendar.getInstance()
+        val currentHour = appointmentCalendar.get(Calendar.HOUR_OF_DAY)
+        val currentMinute = appointmentCalendar.get(Calendar.MINUTE)
+
         TimePickerDialog(
             requireContext(),
             { _, hour, minute ->
-                selectedTime = String.format("%02d:%02d", hour, minute)
-                edtTime.setText(selectedTime)
+                appointmentCalendar.set(Calendar.HOUR_OF_DAY, hour)
+                appointmentCalendar.set(Calendar.MINUTE, minute)
+                updateDateTimeUI()
             },
-            cal.get(Calendar.HOUR_OF_DAY),
-            cal.get(Calendar.MINUTE),
-            true
+            currentHour, currentMinute, true
         ).show()
     }
-
 
     private fun saveAppointment() {
         val name = edtName.text.toString().trim()
         val phone = edtPhone.text.toString().trim()
 
-        if (name.isEmpty() || selectedDateMillis == 0L || selectedTime.isEmpty()) {
-            Toast.makeText(context, "Vui lòng nhập đủ thông tin", Toast.LENGTH_SHORT).show()
+        if (name.isEmpty()) {
+            Toast.makeText(context, "Vui lòng nhập tên bệnh nhân", Toast.LENGTH_SHORT).show()
             return
         }
 
         lifecycleScope.launch {
-            //kiem tra benh nhan cu
-            var patienId: Long
             val existingPatient = patientDao.getPatientByPhone(phone)
             if (existingPatient != null) {
-                patienId = existingPatient.patientId
                 if (existingPatient.fullName != name) {
                     withContext(Dispatchers.Main) {
                         showOptionExistingPatient(existingPatient)
                     }
-
+                } else {
+                    createAppointment(existingPatient.patientId, existingPatient.fullName)
                 }
             } else {
-                if (name.isEmpty()) {
-                    Toast.makeText(context, "Vui lòng nhập tên bệnh nhân", Toast.LENGTH_SHORT)
-                        .show()
-                    return@launch
-                }
                 val mrn = MrnGenerator.generateUnique(patientDao)
                 val newPatientId = withContext(Dispatchers.IO) {
                     patientDao.insertPatient(
                         Patient(
+                            accountId = null,
                             fullName = name,
                             phoneNumber = phone,
                             medicalRecordNumber = mrn,
                             dateOfBirth = 0L,
-                            gender = "ĐẶT LỊCH",
+                            gender = "Khác",
                             address = null
                         )
                     )
                 }
                 createAppointment(newPatientId, name)
             }
-
-
         }
     }
 
     private fun showOptionExistingPatient(existPatient: Patient) {
         android.app.AlertDialog.Builder(requireContext())
             .setTitle("Số điện thoại đã tồn tại")
-            .setMessage("Tìm thấy bệnh nhân: ${existPatient.fullName}\nBạn có muốn dùng hồ sơ cũ này để đặt lịch không?")
+            .setMessage("Tìm thấy hồ sơ: ${existPatient.fullName}\nDùng hồ sơ này để đặt lịch?")
             .setPositiveButton("Dùng hồ sơ cũ") { _, _ ->
                 edtName.setText(existPatient.fullName)
                 edtName.isEnabled = false
-
-
+                createAppointment(existPatient.patientId, existPatient.fullName)
             }
-            .setNegativeButton("Kiểm tra lại SĐT") { dialog, _ ->
+            .setNegativeButton("Nhập lại SĐT") { dialog, _ ->
                 dialog.dismiss()
                 edtPhone.requestFocus()
             }
             .show()
-
     }
 
     private fun createAppointment(patientId: Long, patientName: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val recordId = medicalRecordDao.insert(
-                MedicalRecord(
-                    patientId = patientId,
-                    diagnosis = "ĐẶT LỊCH",
-                    symptoms = "Chưa khám",
-                    diseaseType = "Chưa khám",
-                    examinationDate = selectedDateMillis,
-                    doctorId = SessionManager.getDoctorId(requireContext()),
-                    notes = "Hồ sơ tạo khi đặt lịch"
-                )
-            )
+        val finalTimestamp = appointmentCalendar.timeInMillis
 
+        // Lưu ý: Nếu bạn đã update SessionManager mới thì dùng getSpecificId
+        // Nếu chưa thì dùng getDoctorId như cũ. Ở đây mình dùng getSpecificId cho chuẩn hệ thống mới.
+        val doctorId = SessionManager.getSpecificId(requireContext())
+
+        // Check lỗi ID
+        if (doctorId == -1L) {
+            lifecycleScope.launch(Dispatchers.Main) {
+                Toast.makeText(requireContext(), "Lỗi phiên đăng nhập", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            // ⭐️ CHỈ CẦN TẠO MỖI APPOINTMENT THÔI
             appointmentDao.insert(
                 Appointment(
-                    recordId = recordId,
                     patientId = patientId,
-                    appointmentDate = selectedDateMillis,
-                    appointmentTime = selectedTime,
-                    location = "Phòng khám",
-                    doctorId = SessionManager.getDoctorId(requireContext()),
-                    notes = "Đặt lịch trước",
-                    status = "SCHEDULED"
+                    doctorId = doctorId,
+                    appointmentDate = finalTimestamp,
+                    reason = "Đặt lịch nhanh",
+                    status = "SCHEDULED" // Trạng thái chờ khám
                 )
             )
 
+            // ❌ ĐÃ XÓA đoạn tạo MedicalRecord "treo" ở đây.
+            // Bệnh án sẽ được tạo ở màn hình "UpdateMedicalRecord" khi bác sĩ bắt đầu khám.
 
             withContext(Dispatchers.Main) {
                 Toast.makeText(
                     requireContext(),
-                    "Đã thêm lịch hẹn cho $patientName",
+                    "Đã đặt lịch thành công cho $patientName",
                     Toast.LENGTH_SHORT
                 ).show()
                 onAdded.invoke()

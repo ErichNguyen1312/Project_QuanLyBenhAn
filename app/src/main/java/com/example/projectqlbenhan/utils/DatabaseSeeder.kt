@@ -1,345 +1,197 @@
 package com.example.projectqlbenhan.utils
 
 import com.example.projectqlbenhan.MedicalRecordDatabase
-import com.example.projectqlbenhan.entity.Prescription
+import com.example.projectqlbenhan.entity.account.Account
 import com.example.projectqlbenhan.entity.appointment.Appointment
+import com.example.projectqlbenhan.entity.doctor.Doctor
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.entity.patient.Patient
+import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.security.MessageDigest
 import java.util.Calendar
-import kotlin.random.Random
 
 object DatabaseSeeder {
 
     suspend fun seedIfNeeded(db: MedicalRecordDatabase) {
         withContext(Dispatchers.IO) {
+            // 1. Kiểm tra: Nếu đã có tài khoản thì coi như đã seed, dừng lại
+            try {
+                if (db.accountDao().countAccounts() > 0) return@withContext
+            } catch (e: Exception) {
+                // Nếu chưa có hàm countAccounts trong DAO, bỏ qua lỗi để chạy tiếp
+            }
 
-            if (db.patientDao().countPatients() > 0) return@withContext
+            val defaultPassHash = hashPassword("123456")
 
-            // =====================
-            // 1. PATIENT (3)
-            // =====================
+            // ==========================================
+            // 2. TẠO ACCOUNT & PROFILE
+            // ==========================================
+
+            // --- A. ADMIN ---
+            db.accountDao().insertAccount(
+                Account(username = "admin", passwordHash = defaultPassHash, role = "ADMIN")
+            )
+
+            // --- B. DOCTOR (Bác sĩ) ---
+            val docAccId = db.accountDao().insertAccount(
+                Account(username = "bacsi1", passwordHash = defaultPassHash, role = "DOCTOR")
+            )
+            // Tạo Profile Bác sĩ liên kết với Account
+            val doctor = Doctor(
+                accountId = docAccId,
+                fullName = "BS. Nguyễn Văn Đức",
+                specialization = "Nội Khoa",
+                description = "Chuyên khoa tiêu hóa, gan mật"
+            )
+            val savedDoctorId = db.doctorDao().insert(doctor)
+
+
+            // --- C. PATIENT 1 (Bệnh nhân có tài khoản) ---
+            val patAccId1 = db.accountDao().insertAccount(
+                Account(username = "benhnhan1", passwordHash = defaultPassHash, role = "PATIENT")
+            )
             val p1 = Patient(
-                fullName = "Nguyễn Văn An",
-                gender = "Nam",
-                dateOfBirth = getDob(1998),
-                phoneNumber = "0900000001",
-                address = "TP.HCM",
-                medicalRecordNumber = "HS001"
-            )
-
-            val p2 = Patient(
-                fullName = "Trần Thị Bình",
+                accountId = patAccId1,
+                fullName = "Trần Thị Lan",
+                medicalRecordNumber = "BN-001", // Mã hồ sơ bắt buộc
+                dateOfBirth = getDob(1995),
                 gender = "Nữ",
-                dateOfBirth = getDob(1996),
-                phoneNumber = "0900000002",
-                address = "TP.HCM",
-                medicalRecordNumber = "HS002"
+                phoneNumber = "0912345678",
+                address = "Quận 1, TP.HCM"
             )
+            val p1Id = db.patientDao().insertPatient(p1)
 
-            val p3 = Patient(
-                fullName = "Lê Văn Cường",
+            // --- D. PATIENT 2 (Khách vãng lai - Không có Account) ---
+            val p2 = Patient(
+                accountId = null, // Vãng lai -> null
+                fullName = "Lê Văn Tèo (Vãng lai)",
+                medicalRecordNumber = "BN-002",
+                dateOfBirth = getDob(2000),
                 gender = "Nam",
-                dateOfBirth = getDob(1994),
-                phoneNumber = "0900000003",
-                address = "TP.HCM",
-                medicalRecordNumber = "HS003"
+                phoneNumber = "0987654321",
+                address = "Quận 5, TP.HCM"
+            )
+            val p2Id = db.patientDao().insertPatient(p2)
+
+
+            // ==========================================
+            // 3. TẠO LỊCH HẸN (APPOINTMENT)
+            // ==========================================
+
+            // Lịch hẹn 1: Đã hoàn thành (của Lan - BN001)
+            val appt1Id = db.appointmentDao().insert(
+                Appointment(
+                    patientId = p1Id,
+                    doctorId = savedDoctorId,
+                    appointmentDate = getDateOffset(-2), // 2 ngày trước
+                    status = "COMPLETED",
+                    reason = "Đau bụng kéo dài"
+                )
             )
 
-            db.patientDao().insertPatient(p1)
-            db.patientDao().insertPatient(p2)
-            db.patientDao().insertPatient(p3)
-
-            val patients = db.patientDao().getAll()
-
-            // =====================
-            // 2. MEDICAL RECORD (3)
-            // =====================
-            val r1 = MedicalRecord(
-                patientId = patients[0].patientId,
-                diagnosis = "Cảm cúm",
-                symptoms = "Sốt nhẹ",
-                diseaseType = "Nội khoa",
-                examinationDate = getDateOffset(-2),
-                doctorId = 1L,
-                notes = "Theo dõi tại nhà"
-            )
-
-            val r2 = MedicalRecord(
-                patientId = patients[1].patientId,
-                diagnosis = "Đau dạ dày",
-                symptoms = "Đau thượng vị",
-                diseaseType = "Tiêu hóa",
-                examinationDate = getDateOffset(-1),
-                doctorId = 1L,
-                notes = "Ăn uống điều độ"
-            )
-
-            val r3 = MedicalRecord(
-                patientId = patients[2].patientId,
-                diagnosis = "Viêm họng",
-                symptoms = "Đau rát họng",
-                diseaseType = "Tai mũi họng",
-                examinationDate = getDateOffset(0),
-                doctorId = 1L,
-                notes = "Uống đủ nước"
-            )
-
-            db.medicalRecordDao().insert(r1)
-            db.medicalRecordDao().insert(r2)
-            db.medicalRecordDao().insert(r3)
-
-            val records = db.medicalRecordDao().getAll()
-
-            // =====================
-            // 3. APPOINTMENT (3 ngày khác nhau)
-            // =====================
+            // Lịch hẹn 2: Sắp tới (của Tèo - BN002)
             db.appointmentDao().insert(
                 Appointment(
-                    recordId = records[0].recordId,
-                    patientId = records[0].patientId,
-                    doctorId = 1L,
-                    appointmentDate = getDateOffset(1),
-                    appointmentTime = "9:00 AM",
-                    location = "Phòng khám A",
-                    notes = "Tái khám cảm cúm",
-                    reminderEnabled = true
+                    patientId = p2Id,
+                    doctorId = savedDoctorId,
+                    appointmentDate = getDateOffset(1), // Ngày mai
+                    status = "SCHEDULED",
+                    reason = "Tái khám định kỳ"
                 )
             )
 
-            db.appointmentDao().insert(
-                Appointment(
-                    recordId = records[1].recordId,
-                    patientId = records[1].patientId,
-                    doctorId = 1L,
-                    appointmentDate = getDateOffset(2),
-                    appointmentTime = "10:00 AM",
-                    location = "Phòng khám B",
-                    notes = "Tái khám dạ dày",
-                    reminderEnabled = true
-                )
-            )
+            // ==========================================
+            // 4. TẠO BỆNH ÁN (MEDICAL RECORD)
+            // ==========================================
 
-            db.appointmentDao().insert(
-                Appointment(
-                    recordId = records[2].recordId,
-                    patientId = records[2].patientId,
-                    doctorId = 1L,
-                    appointmentDate = getDateOffset(3),
-                    appointmentTime = "2:00 PM",
-                    location = "Bệnh viện Quận 1",
-                    notes = "Tái khám họng",
-                    reminderEnabled = true
-                )
+            // Bệnh án 1 (Khớp với Lịch hẹn 1)
+            val record1 = MedicalRecord(
+                patientId = p1Id,
+                doctorId = savedDoctorId,
+                appointmentId = appt1Id, // Link với lịch hẹn
+                diagnosis = "Viêm dạ dày cấp",
+                symptoms = "Đau thượng vị, buồn nôn, chán ăn",
+                diseaseType = "Nội khoa", // Khớp với trường mới
+                doctorNotes = "Hạn chế đồ chua cay, không thức khuya",
+                doctorAdvice = "Uống thuốc đúng giờ, tái khám sau 1 tuần",
+                examinationDate = getDateOffset(-2)
             )
+            val record1Id = db.medicalRecordDao().insert(record1)
 
-            // =====================
-            // 4. PRESCRIPTION (3 KHÁC NHAU)
-            // =====================
-            db.prescriptionDao().insert(
-                Prescription(
-                    recordId = records[0].recordId,
-                    medicineName = "Paracetamol",
-                    dosage = "1 viên",
-                    frequency = "3 lần/ngày",
-                    durationDays = 5,
-                    instructions = "Uống sau ăn"
-                )
+            // Bệnh án 2 (Cấp cứu/Vãng lai - Không có lịch hẹn)
+            val record2 = MedicalRecord(
+                patientId = p2Id,
+                doctorId = savedDoctorId,
+                appointmentId = null, // Không có lịch trước
+                diagnosis = "Dị ứng thực phẩm",
+                symptoms = "Nổi mề đay, ngứa toàn thân",
+                diseaseType = "Da liễu",
+                doctorNotes = "Đã tiêm thuốc chống dị ứng tại chỗ",
+                doctorAdvice = "Kiêng hải sản, thịt bò trong 3 ngày",
+                examinationDate = getDateOffset(-5) // 5 ngày trước
             )
+            val record2Id = db.medicalRecordDao().insert(record2)
 
-            db.prescriptionDao().insert(
-                Prescription(
-                    recordId = records[1].recordId,
-                    medicineName = "Omeprazole",
-                    dosage = "1 viên",
-                    frequency = "1 lần/ngày",
-                    durationDays = 14,
-                    instructions = "Uống trước ăn sáng"
-                )
-            )
 
-            db.prescriptionDao().insert(
-                Prescription(
-                    recordId = records[2].recordId,
-                    medicineName = "Amoxicillin",
-                    dosage = "2 viên",
-                    frequency = "2 lần/ngày",
-                    durationDays = 7,
-                    instructions = "Uống đủ liều"
+            // ==========================================
+            // 5. TẠO ĐƠN THUỐC (PRESCRIPTION ITEMS)
+            // ==========================================
+
+            // Thuốc cho Record 1
+            val items1 = listOf(
+                PrescriptionItem(
+                    recordId = record1Id,
+                    medicineName = "Omeprazole 20mg",
+                    quantity = 14,
+                    unit = "Viên",
+                    dosage = "Sáng 1 viên trước ăn 30p"
+                ),
+                PrescriptionItem(
+                    recordId = record1Id,
+                    medicineName = "Phosphalugel",
+                    quantity = 10,
+                    unit = "Gói",
+                    dosage = "Uống khi đau hoặc sau ăn"
                 )
             )
+            db.prescriptionItemDao().insertPrescriptionItems(items1)
+
+            // Thuốc cho Record 2
+            val items2 = listOf(
+                PrescriptionItem(
+                    recordId = record2Id,
+                    medicineName = "Loratadin 10mg",
+                    quantity = 5,
+                    unit = "Viên",
+                    dosage = "Sáng 1 viên sau ăn"
+                )
+            )
+            db.prescriptionItemDao().insertPrescriptionItems(items2)
         }
     }
 
     // =====================
-    // UTIL
+    // UTILS HELPERS
     // =====================
+
+    private fun hashPassword(password: String): String {
+        val bytes = MessageDigest.getInstance("SHA-256").digest(password.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
+
+    // Lấy timestamp từ năm sinh (VD: 1995 -> timestamp)
     private fun getDob(year: Int): Long {
         val cal = Calendar.getInstance()
         cal.set(year, 0, 1)
         return cal.timeInMillis
     }
 
+    // Lấy timestamp +/- số ngày so với hiện tại
     private fun getDateOffset(days: Int): Long {
         val cal = Calendar.getInstance()
         cal.add(Calendar.DAY_OF_YEAR, days)
         return cal.timeInMillis
     }
 }
-
-//
-//object DatabaseSeeder {
-//
-//    suspend fun seedIfNeeded(db: MedicalRecordDatabase) {
-//        withContext(Dispatchers.IO) {
-//            if (db.patientDao().countPatients() > 0) return@withContext
-//
-//            val patients = seedPatients(db)
-//            val records = seedMedicalRecords(db, patients)
-//            seedPrescriptions(db, records)
-//            seedAppointments(db, records)
-//        }
-//    }
-//
-//    // =========================
-//    // 1. PATIENT (10)
-//    // =========================
-//    private suspend fun seedPatients(db: MedicalRecordDatabase): List<Patient> {
-//
-//        val names = listOf(
-//            "Nguyễn Phúc  An", "Trần Bình Trọng ", "Lê Văn Cường",
-//            "Phạm Thị Dung", "Hoàng Văn Đức", "Võ Thị Hạnh",
-//            "Đặng Văn Khoa", "Bùi Thị Lan", "Phan Văn Minh", "Ngô Thị Nga"
-//        )
-//
-//        names.forEachIndexed { index, name ->
-//            db.patientDao().insertPatient(
-//                Patient(
-//                    fullName = name,
-//                    gender = if (index % 2 == 0) "Nam" else "Nữ",
-//                    dateOfBirth = randomDob(20, 70),
-//                    phoneNumber = "09${(10000000..99999999).random()}",
-//                    address = "TP.HCM",
-//                    medicalRecordNumber = "HS-${System.currentTimeMillis()}-$index"
-//                )
-//            )
-//        }
-//
-//        return db.patientDao().getAll()
-//    }
-//
-//    // =========================
-//    // 2. MEDICAL RECORD (1–2 / patient)
-//    // =========================
-//    private suspend fun seedMedicalRecords(
-//        db: MedicalRecordDatabase,
-//        patients: List<Patient>
-//    ): List<MedicalRecord> {
-//
-//        val diagnoses = listOf(
-//            "Cảm cúm", "Viêm họng", "Đau dạ dày",
-//            "Tăng huyết áp", "Viêm xoang",
-//            "Mất ngủ", "Rối loạn tiêu hóa"
-//        )
-//
-//        patients.forEach { patient ->
-//            repeat(Random.nextInt(1, 3)) {
-//                db.medicalRecordDao().insert(
-//                    MedicalRecord(
-//                        patientId = patient.patientId,
-//                        diagnosis = diagnoses.random(),
-//                        symptoms = "Mệt mỏi, đau đầu",
-//                        diseaseType = "Nội khoa",
-//                        examinationDate = randomPastDate(15),
-//                        doctorId = 1L,
-//                        notes = "Theo dõi thêm"
-//                    )
-//                )
-//            }
-//        }
-//
-//        return db.medicalRecordDao().getAll()
-//    }
-//
-//    // =========================
-//    // 3. PRESCRIPTION (2–5 / record)
-//    // =========================
-//    private suspend fun seedPrescriptions(
-//        db: MedicalRecordDatabase,
-//        records: List<MedicalRecord>
-//    ) {
-//        val medicines = listOf(
-//            "Paracetamol", "Amoxicillin", "Vitamin C",
-//            "Ibuprofen", "Omeprazole", "Alpha Choay",
-//            "Panadol", "Becozyme"
-//        )
-//
-//        records.forEach { record ->
-//            repeat(Random.nextInt(2, 6)) {
-//                db.prescriptionDao().insert(
-//                    Prescription(
-//                        recordId = record.recordId,
-//                        medicineName = medicines.random(),
-//                        dosage = "1–2 viên/lần",
-//                        frequency = "${Random.nextInt(2,4)} lần/ngày",
-//                        durationDays = Random.nextInt(3, 10),
-//                        instructions = "Uống sau ăn"
-//                    )
-//                )
-//            }
-//        }
-//    }
-//
-//    // =========================
-//    // 4. APPOINTMENT (1–3 / record)
-//    // =========================
-//    private suspend fun seedAppointments(
-//        db: MedicalRecordDatabase,
-//        records: List<MedicalRecord>
-//    ) {
-//
-//        val locations = listOf(
-//            "Phòng khám A", "Phòng khám B",
-//            "Bệnh viện Quận 1", "Bệnh viện Quận 7"
-//        )
-//
-//        records.forEach { record ->
-//            repeat(Random.nextInt(1, 4)) {
-//                db.appointmentDao().insert(
-//                    Appointment(
-//                        recordId = record.recordId,
-//                        patientId = record.patientId,
-//                        doctorId = 1L,
-//                        appointmentDate = randomFutureDate(30),
-//                        appointmentTime = "${Random.nextInt(8, 17)}:00",
-//                        location = locations.random(),
-//                        notes = "Tái khám theo chỉ định",
-//                        reminderEnabled = true
-//                    )
-//                )
-//            }
-//        }
-//    }
-//
-//    // =========================
-//    // UTIL DATE
-//    // =========================
-//    private fun randomDob(minAge: Int, maxAge: Int): Long {
-//        val cal = Calendar.getInstance()
-//        cal.add(Calendar.YEAR, -Random.nextInt(minAge, maxAge))
-//        return cal.timeInMillis
-//    }
-//
-//    private fun randomPastDate(days: Int): Long {
-//        val cal = Calendar.getInstance()
-//        cal.add(Calendar.DAY_OF_YEAR, -Random.nextInt(1, days))
-//        return cal.timeInMillis
-//    }
-//
-//    private fun randomFutureDate(days: Int): Long {
-//        val cal = Calendar.getInstance()
-//        cal.add(Calendar.DAY_OF_YEAR, Random.nextInt(1, days))
-//        return cal.timeInMillis
-//    }
-//}

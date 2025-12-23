@@ -52,6 +52,9 @@ data class MedicalRecord(
     @ColumnInfo(name = "symptoms")
     val symptoms: String,
 
+    @ColumnInfo(name = "disease_type")
+    val diseaseType: String, // VD: "Nội khoa", "Ngoại khoa", "Tai Mũi Họng"
+
     @ColumnInfo(name = "doctor_notes")
     val doctorNotes: String?,
 

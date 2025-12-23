@@ -19,4 +19,6 @@ interface AccountDao {
 
     @Query("UPDATE accounts SET passwordHash = :newPass WHERE accountId = :id")
     suspend fun updatePassword(id: Long, newPass: String)
+    @Query("SELECT COUNT(*) FROM accounts")
+    suspend fun countAccounts(): Int
 }

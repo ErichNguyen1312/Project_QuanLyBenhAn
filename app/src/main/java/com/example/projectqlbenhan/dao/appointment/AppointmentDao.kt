@@ -122,4 +122,12 @@ interface AppointmentDao {
 
     @Query("SELECT * FROM appointments WHERE status = 'SCHEDULED' AND appointmentDate = :today")
     suspend fun getTodayScheduledAppointments(today: Long): List<Appointment>
+
+    @Transaction
+    @Query("""
+        SELECT * FROM appointments 
+        WHERE appointmentDate BETWEEN :start AND :end
+        ORDER BY appointmentDate ASC
+    """)
+    suspend fun getAppointmentsByDateRange(start: Long, end: Long): List<AppointmentWithPatient>
 }

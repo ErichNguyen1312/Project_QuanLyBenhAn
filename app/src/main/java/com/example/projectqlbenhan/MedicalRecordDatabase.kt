@@ -1,57 +1,87 @@
-package com.example.projectqlbenhan.database
+package com.example.projectqlbenhan
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.projectqlbenhan.dao.accountDao.AccountDao
+import com.example.projectqlbenhan.dao.appointment.AppointmentDao
+import com.example.projectqlbenhan.dao.doctor.DoctorDao
+import com.example.projectqlbenhan.dao.medicalRecord.MedicalRecordDao
+import com.example.projectqlbenhan.dao.patient.PatientDao
+import com.example.projectqlbenhan.dao.prescriptionItemDao.PrescriptionItemDao
 import com.example.projectqlbenhan.entity.account.Account
 import com.example.projectqlbenhan.entity.appointment.Appointment
+import com.example.projectqlbenhan.entity.doctor.Doctor
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.entity.patient.Patient
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
-import com.example.projectqlbenhan.entity.review.Review
-import com.example.projectqlbenhan.utils.Doctor
-
-// Lưu ý package name cho đúng
-
-
+import com.example.projectqlbenhan.utils.AccountSeeder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Database(
     entities = [
-        Account::class,          // 1. Tài khoản
-        Doctor::class,           // 2. Bác sĩ
-        Patient::class,          // 3. Bệnh nhân
-        Appointment::class,      // 4. Lịch hẹn
-        MedicalRecord::class,    // 5. Bệnh án
-        PrescriptionItem::class, // 6. Thuốc
-        Review::class            // 7. Đánh giá
+        Doctor::class,
+        Patient::class,
+        MedicalRecord::class,
+        Appointment::class,
+        PrescriptionItem::class,
+        Account::class // 1. Nhớ thêm Account vào đây
     ],
-    version = 5,
+    version = 6, // 2. Tăng version lên (nếu cũ là 5)
     exportSchema = false
 )
 abstract class MedicalRecordDatabase : RoomDatabase() {
 
-    abstract fun accountDao(): AccountDao
     abstract fun doctorDao(): DoctorDao
     abstract fun patientDao(): PatientDao
-    abstract fun appointmentDao(): AppointmentDao
     abstract fun medicalRecordDao(): MedicalRecordDao
+    abstract fun appointmentDao(): AppointmentDao
     abstract fun prescriptionItemDao(): PrescriptionItemDao
-    abstract fun reviewDao(): ReviewDao
+    abstract fun accountDao(): AccountDao // Thêm DAO Account
+
+    private class MedicalRecordDatabaseCallback(
+        private val scope: CoroutineScope
+    ) : RoomDatabase.Callback() {
+
+        override fun onCreate(db: SupportSQLiteDatabase) {
+            super.onCreate(db)
+            INSTANCE?.let { database ->
+                scope.launch(Dispatchers.IO) {
+                    // 3. Gọi các hàm Seed dữ liệu mẫu ở đây
+                    AccountSeeder.seed(database.accountDao()) // <-- Gọi Account Seeder
+                }
+            }
+        }
+
+        // Nếu bro muốn nó chạy check mỗi lần mở app (để chắc chắn có data) thì dùng onOpen
+        override fun onOpen(db: SupportSQLiteDatabase) {
+            super.onOpen(db)
+            INSTANCE?.let { database ->
+                scope.launch(Dispatchers.IO) {
+                    AccountSeeder.seed(database.accountDao())
+                }
+            }
+        }
+    }
 
     companion object {
         @Volatile
         private var INSTANCE: MedicalRecordDatabase? = null
 
         fun getDatabase(context: Context): MedicalRecordDatabase {
-            // Singleton Pattern chuẩn
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     MedicalRecordDatabase::class.java,
-                    "qlbenhan_db"
+                    "medical_record_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    // Nhớ thêm dòng này để kích hoạt Callback
+                    .addCallback(MedicalRecordDatabaseCallback(CoroutineScope(Dispatchers.IO)))
+                    .fallbackToDestructiveMigration() // Xóa dữ liệu cũ nếu đổi version (Cẩn thận khi dùng)
                     .build()
                 INSTANCE = instance
                 instance

@@ -153,7 +153,7 @@ class Patients : AppCompatActivity() {
 
             val list = when (mode) {
                 MODE_MY -> {
-                    val doctorId = SessionManager.getDoctorId(this@Patients)
+                    val doctorId = SessionManager.getSpecificId(this@Patients)
                     dao.getPatientsByDoctor(doctorId)
                 }
 

@@ -1,5 +1,6 @@
 package com.example.projectqlbenhan.ui.patient
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -9,10 +10,10 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.patient.Patient
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,6 +33,10 @@ class UpdatePatient : AppCompatActivity() {
 
     private var patientId: Long = 0L
 
+    // Biến để lưu giữ thông tin cũ (tránh bị mất khi update)
+    private var currentAccountId: Long? = null
+    private var currentCreatedAt: Long = System.currentTimeMillis()
+
     private val db: MedicalRecordDatabase by lazy {
         MedicalRecordDatabase.getDatabase(this)
     }
@@ -46,6 +51,7 @@ class UpdatePatient : AppCompatActivity() {
         if (patientId == -1L) {
             Toast.makeText(this, "Lỗi: không tìm thấy bệnh nhân", Toast.LENGTH_SHORT).show()
             finish()
+            return
         }
         setControl()
         loadData()
@@ -55,29 +61,31 @@ class UpdatePatient : AppCompatActivity() {
 
     //cac ham xu ly
     private fun loadData() {
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             val patient = dao.getPatientById(patientId)
 
-            runOnUiThread {
+            withContext(Dispatchers.Main) {
                 if (patient != null) {
+                    // 1. Lưu lại dữ liệu cũ quan trọng
+                    currentAccountId = patient.accountId
+                    currentCreatedAt = patient.createdAt
+
+                    // 2. Đổ dữ liệu lên giao diện
                     etName.setText(patient.fullName)
                     etRecordId.setText(patient.medicalRecordNumber)
                     etAddress.setText(patient.address ?: "")
                     etPhone.setText(patient.phoneNumber ?: "")
 
-                    etAge.setText(patient.calculateAge(patient.dateOfBirth).toString())
+                    etAge.setText(calculateAge(patient.dateOfBirth).toString())
 
                     if (patient.gender == "Nam") rbMale.isChecked = true
                     else rbFemale.isChecked = true
-
-
-                    if (patient.gender == "Nam") rbMale.isChecked = true else rbFemale.isChecked =
-                        true
+                } else {
+                    toast("Không tìm thấy thông tin bệnh nhân")
+                    finish()
                 }
             }
         }
-
-
     }
 
     private fun updatePatient() {
@@ -91,46 +99,44 @@ class UpdatePatient : AppCompatActivity() {
         if (age == null || age <= 0) return toast("Tuổi không hợp lệ")
         if (recordId.isEmpty()) return toast("Vui lòng nhập mã hồ sơ")
 
-        val gender =
-            if (rbMale.isChecked) "Nam"
-            else "Nữ"
-
-        // age → dateOfBirth
+        val gender = if (rbMale.isChecked) "Nam" else "Nữ"
         val dob = ageToDateOfBirth(age)
 
+        // ⭐️ FIX LỖI Ở ĐÂY: Truyền đủ tham số cho Constructor mới
         val patientUpdated = Patient(
             patientId = patientId,
+            accountId = currentAccountId, // Truyền lại accountId cũ (quan trọng!)
             fullName = name,
+            medicalRecordNumber = recordId,
             dateOfBirth = dob,
             gender = gender,
             phoneNumber = phone,
             address = address,
-            medicalRecordNumber = recordId
+            createdAt = currentCreatedAt // Giữ nguyên ngày tạo cũ
         )
 
+        // Lưu xuống database
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                dao.updatePatient(patientUpdated)
+                withContext(Dispatchers.Main) {
+                    toast("Cập nhật thành công!")
 
-        //luu xuong database
-        CoroutineScope(Dispatchers.IO).launch {
-            dao.updatePatient(patientUpdated)
-            withContext(Dispatchers.Main) {
-                toast("Update bệnh nhân thành công!")
-                setResult(RESULT_OK)
-                //PUT EXTRA to profile
-                intent.putExtra("update_patient_id", patientId)
-                //log test
-
-                Log.d("update_patient", "update_patient: $patientUpdated")
-                Log.d("update_patient_id", "update_patient_id: ${patientUpdated.patientId}")
-                intent.putExtra("updated", true)
-                setResult(RESULT_OK, intent)
-                finish()
-
+                    // Trả kết quả về
+                    val resultIntent = Intent()
+                    resultIntent.putExtra("update_patient_id", patientId)
+                    resultIntent.putExtra("updated", true)
+                    setResult(RESULT_OK, resultIntent)
+                    finish()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    toast("Lỗi cập nhật: ${e.message}")
+                    Log.e("UpdatePatient", "Error: ", e)
+                }
             }
         }
-
-
     }
-
 
     private fun toast(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
@@ -143,30 +149,32 @@ class UpdatePatient : AppCompatActivity() {
     }
 
     private fun setEvent() {
-        btnBack.setOnClickListener {
-            finish()
-        }
-
-        btnUpdate.setOnClickListener {
-            updatePatient()
-        }
+        btnBack.setOnClickListener { finish() }
+        btnUpdate.setOnClickListener { updatePatient() }
     }
-
 
     private fun setControl() {
         btnBack = findViewById(R.id.btnBack)
-
         etName = findViewById(R.id.etName)
         etAge = findViewById(R.id.etAge)
         etRecordId = findViewById(R.id.etRecordId)
         etAddress = findViewById(R.id.etAddress)
         etPhone = findViewById(R.id.etPhone)
-
         rgGender = findViewById(R.id.rgGender)
         rbMale = findViewById(R.id.rbMale)
         rbFemale = findViewById(R.id.rbFemale)
-
         btnUpdate = findViewById(R.id.btnUpdate)
     }
 
+    private fun calculateAge(dob: Long): Int {
+        if (dob == 0L) return 0
+        val dobCal = java.util.Calendar.getInstance()
+        dobCal.timeInMillis = dob
+        val today = java.util.Calendar.getInstance()
+        var age = today.get(java.util.Calendar.YEAR) - dobCal.get(java.util.Calendar.YEAR)
+        if (today.get(java.util.Calendar.DAY_OF_YEAR) < dobCal.get(java.util.Calendar.DAY_OF_YEAR)) {
+            age--
+        }
+        return if (age < 0) 0 else age
+    }
 }

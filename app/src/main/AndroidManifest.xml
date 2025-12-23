@@ -44,7 +44,7 @@
             android:name=".ui.home.HomeActivity"
             android:exported="true" />
         <activity
-            android:name=".ui.loginService.Login"
+            android:name=".ui.authService.Login"
             android:exported="true" />
         <activity
             android:name=".ui.medicalRecord.ProfilePatientMedicalRecord"

@@ -9,11 +9,11 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope // Dùng cái này an toàn hơn CoroutineScope tự tạo
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.patient.Patient
 import com.example.projectqlbenhan.utils.MrnGenerator
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,6 +31,8 @@ class CreatePatient : AppCompatActivity() {
     private lateinit var rbMale: RadioButton
     private lateinit var rbFemale: RadioButton
     private lateinit var btnSave: Button
+
+    // Lazy load DAO
     private val dao by lazy {
         MedicalRecordDatabase.getDatabase(this).patientDao()
     }
@@ -45,36 +47,25 @@ class CreatePatient : AppCompatActivity() {
     }
 
     private fun setEvent() {
-
-        btnBack.setOnClickListener {
-            finish()
-        }
-
-        btnSave.setOnClickListener {
-            savePatient()
-
-        }
+        btnBack.setOnClickListener { finish() }
+        btnSave.setOnClickListener { savePatient() }
     }
 
     private fun setControl() {
         btnBack = findViewById(R.id.btnBack)
-
         etName = findViewById(R.id.etName)
         etAge = findViewById(R.id.etAge)
         etRecordId = findViewById(R.id.etRecordId)
         etAddress = findViewById(R.id.etAddress)
         etPhone = findViewById(R.id.etPhone)
-
         rgGender = findViewById(R.id.rgGender)
         rbMale = findViewById(R.id.rbMale)
         rbFemale = findViewById(R.id.rbFemale)
-
         btnSave = findViewById(R.id.btnSave)
     }
 
-    //cac ham xu ly
+    // --- CÁC HÀM XỬ LÝ ---
     private fun savePatient() {
-
         val name = etName.text.toString().trim()
         val ageStr = etAge.text.toString().trim()
         val recordNumber = etRecordId.text.toString().trim()
@@ -98,65 +89,62 @@ class CreatePatient : AppCompatActivity() {
 
         val dateOfBirthTimestamp = convertAgeToDob(age)
 
-
-
-        // Tạo  Patient
+        // Tạo Patient khớp với Entity mới
         val newPatient = Patient(
+            patientId = 0, // Mặc định để AutoGenerate
+            accountId = null, // ⭐️ MỚI: Thêm trường này (null vì tạo offline)
             fullName = name,
+            medicalRecordNumber = recordNumber,
             dateOfBirth = dateOfBirthTimestamp,
             gender = gender,
             phoneNumber = phone,
-            address = address,
-            medicalRecordNumber = recordNumber
+            address = address
+            // createdAt tự động lấy thời gian hiện tại
         )
 
-        //luu xuong database
-        CoroutineScope(Dispatchers.IO).launch {
-
+        // Lưu xuống database (Dùng lifecycleScope)
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
                 dao.insertPatient(newPatient)
+
+                // ⭐️ QUAN TRỌNG: Chỉ đóng màn hình khi đã lưu xong
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@CreatePatient, "Thêm bệnh nhân thành công!", Toast.LENGTH_SHORT).show()
-                    finish()
+                    toast("Thêm bệnh nhân thành công!")
+                    finish() // <--- Finish ở đây mới đúng logic
                 }
             } catch (e: android.database.sqlite.SQLiteConstraintException) {
-                //kiem tra neu trung lan 1 thi generator lan 2
+                // Xử lý trùng mã hồ sơ
                 val newMrn = MrnGenerator.generateUnique(dao)
                 withContext(Dispatchers.Main) {
                     etRecordId.setText(newMrn)
-                    Toast.makeText(this@CreatePatient, "Mã hồ sơ bị trùng, đã tạo mã mới. Vui lòng lưu lại.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@CreatePatient, "Mã hồ sơ bị trùng. Hệ thống đã tạo mã mới: $newMrn", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("CreatePatient", "Error", e)
+                    toast("Lỗi: ${e.message}")
                 }
             }
         }
-        finish()
-
-        //log test
-        Log.d("new_patient", "patient: $newPatient")
-
+        // ❌ Đã xóa finish() ở ngoài này để tránh lỗi đóng app sớm
     }
 
-    //convert tuoi sang date of birth
-    fun convertAgeToDob(age: Int): Long {
+    private fun convertAgeToDob(age: Int): Long {
         val cal = Calendar.getInstance()
         cal.add(Calendar.YEAR, -age)
         return cal.timeInMillis
     }
 
-    //tao ma ho so
     private fun autoFillMrn() {
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             val mrn = MrnGenerator.generateUnique(dao)
-
             withContext(Dispatchers.Main) {
                 etRecordId.setText(mrn)
-
             }
         }
     }
 
-    //xu ly toast thong bao
-    private fun toast(msg: String){
+    private fun toast(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-
     }
 }

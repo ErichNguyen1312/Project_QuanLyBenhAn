@@ -3,13 +3,15 @@ package com.example.projectqlbenhan.ui.TaiKham
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.appointment.Appointment
 import com.example.projectqlbenhan.entity.doctor.Doctor
+import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.ui.ThongBaoTaiKham.AlarmScheduler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,15 +24,24 @@ class screenTaiKham_Create : AppCompatActivity() {
     private lateinit var tvChonNgay: TextView
     private lateinit var tvChonGio: TextView
     private lateinit var edtGhiChu: EditText
-    private lateinit var edtBenhAn: EditText // Hoặc dùng để nhập User nếu cần
+
+    // ĐÃ SỬA: Thay EditText bằng Spinner
+    private lateinit var spnBenhAn: Spinner
+
     private lateinit var btnSave: Button
-    private lateinit var spnBacSi: Spinner // Spinner chọn bác sĩ
+    private lateinit var spnBacSi: Spinner
 
     private var selectedDateCalendar: Calendar = Calendar.getInstance()
-    private var doctorList: List<Doctor> = listOf()
-    private var selectedDoctorId: Long? = null
 
-    // ID bệnh nhân (Lấy từ Intent hoặc Session)
+    // List dữ liệu
+    private var doctorList: List<Doctor> = listOf()
+    private var medicalRecordList: List<MedicalRecord> = listOf()
+
+    // Biến lưu lựa chọn
+    private var selectedDoctorId: Long? = null
+    private var selectedRecordId: Long? = null // ID bệnh án cũ được chọn
+
+    // ID bệnh nhân (Lấy từ Intent)
     private var patientId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +53,10 @@ class screenTaiKham_Create : AppCompatActivity() {
         // Lấy ID bệnh nhân truyền từ màn hình trước
         patientId = intent.getLongExtra("patient_id", -1)
 
-        loadDoctors() // Load danh sách bác sĩ
+        // Load dữ liệu
+        loadDoctors()
+        loadMedicalRecords() // Hàm mới để load bệnh án vào Spinner
+
         setEvent()
     }
 
@@ -50,9 +64,57 @@ class screenTaiKham_Create : AppCompatActivity() {
         tvChonNgay = findViewById(R.id.tvChonNgay)
         tvChonGio = findViewById(R.id.tvChonGio)
         edtGhiChu = findViewById(R.id.edtGhiChu)
-        edtBenhAn = findViewById(R.id.edtBenhAn) // Có thể ẩn nếu tự động lấy patientId
+
+        // ĐÃ SỬA: Ánh xạ Spinner Bệnh án
+        spnBenhAn = findViewById(R.id.spnBenhAn)
+
         btnSave = findViewById(R.id.btnSave)
         spnBacSi = findViewById(R.id.spnBacSi)
+    }
+
+    // Hàm mới: Load danh sách bệnh án cũ của bệnh nhân
+    private fun loadMedicalRecords() {
+        if (patientId == -1L) return
+
+        lifecycleScope.launch {
+            val db = MedicalRecordDatabase.getDatabase(this@screenTaiKham_Create)
+
+            // Lấy danh sách bệnh án từ DAO
+            medicalRecordList = withContext(Dispatchers.IO) {
+                db.medicalRecordDao().getRecordsOfPatient(patientId)
+            }
+
+            // Tạo danh sách hiển thị cho Spinner (VD: "20/12/2024 - Sốt xuất huyết")
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val displayList = mutableListOf<String>()
+
+            // Thêm lựa chọn mặc định
+            displayList.add("Chọn bệnh án cũ (Không bắt buộc)")
+
+            displayList.addAll(medicalRecordList.map { record ->
+                val dateStr = sdf.format(Date(record.examinationDate)) // Đảm bảo field tên là examinationDate hoặc date
+                "$dateStr - ${record.diagnosis}"
+            })
+
+            val adapter = ArrayAdapter(
+                this@screenTaiKham_Create,
+                android.R.layout.simple_spinner_dropdown_item,
+                displayList
+            )
+            spnBenhAn.adapter = adapter
+
+            spnBenhAn.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    if (position == 0) {
+                        selectedRecordId = null // Chọn mục đầu tiên -> Không chọn bệnh án nào
+                    } else {
+                        // Trừ đi 1 vì index 0 là dòng text mặc định
+                        selectedRecordId = medicalRecordList.getOrNull(position - 1)?.recordId
+                    }
+                }
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
+        }
     }
 
     private fun loadDoctors() {
@@ -62,14 +124,12 @@ class screenTaiKham_Create : AppCompatActivity() {
                 db.doctorDao().getAll()
             }
 
-
-            // Map danh sách bác sĩ ra tên để hiển thị Spinner
             val doctorNames = doctorList.map { it.fullName }
             val adapter = ArrayAdapter(this@screenTaiKham_Create, android.R.layout.simple_spinner_dropdown_item, doctorNames)
             spnBacSi.adapter = adapter
 
             spnBacSi.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     if (doctorList.isNotEmpty()) {
                         selectedDoctorId = doctorList[position].doctorId
                     }
@@ -129,8 +189,13 @@ class screenTaiKham_Create : AppCompatActivity() {
             return
         }
 
-        val note = edtGhiChu.text.toString()
+        var note = edtGhiChu.text.toString()
         val finalTime = selectedDateCalendar.timeInMillis
+
+        // Logic bổ sung: Nếu có chọn bệnh án cũ, nối thêm vào ghi chú để bác sĩ biết
+        if (selectedRecordId != null) {
+            note = "$note (Tái khám theo hồ sơ ID: $selectedRecordId)"
+        }
 
         lifecycleScope.launch {
             val db = MedicalRecordDatabase.getDatabase(this@screenTaiKham_Create)
@@ -141,11 +206,12 @@ class screenTaiKham_Create : AppCompatActivity() {
                 doctorId = selectedDoctorId,
                 appointmentDate = finalTime,
                 status = "SCHEDULED",
-                reason = note
+                reason = note // Lưu ghi chú (đã bao gồm ID bệnh án cũ nếu có)
             )
 
             val newId = db.appointmentDao().insert(newAppt)
 
+            // Schedule Alarm (chỉ dùng 3 tham số như đã fix trước đó)
             AlarmScheduler.schedule(
                 this@screenTaiKham_Create,
                 newId,

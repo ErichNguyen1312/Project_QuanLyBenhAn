@@ -24,17 +24,16 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Mã bệnh án / Tên bệnh nhân"
+                android:text="Chọn Bệnh án cũ"
                 android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/edtBenhAn"
+            <Spinner
+                android:id="@+id/spnBenhAn"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="55dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/border"
-                android:hint="Nhập thông tin..."
-                android:padding="12dp" />
+                android:padding="4dp" />
 
             <TextView
                 android:layout_width="match_parent"

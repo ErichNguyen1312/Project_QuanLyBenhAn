@@ -15,6 +15,7 @@ import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
+import com.example.projectqlbenhan.ui.patient.RecentMedicalRecordAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,7 +32,7 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
     private var patientName: String = ""
 
     private val medicalRecordList = mutableListOf<MedicalRecord>()
-    private lateinit var adapter: MedicalRecordAdapter
+    private lateinit var adapter: RecentMedicalRecordAdapter
 
     private val dao by lazy {
         MedicalRecordDatabase.getDatabase(this).medicalRecordDao()
@@ -41,8 +42,9 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile_patient_medical_record)
 
-        getIntentData()
+
         setControl()
+        getIntentData()
         setEvent()
         loadMedicalRecords()
     }
@@ -59,9 +61,10 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
         rcRecyclerMedicalRecord = findViewById(R.id.rcRecyclerMedicalRecord)
         layoutEmpty = findViewById(R.id.layoutEmpty)
         btnAddMedicalRecord = findViewById(R.id.btnAddMedicalRecord)
+        tvHeader = findViewById(R.id.tvHeader)
 
         // Setup RecyclerView
-        adapter = MedicalRecordAdapter(medicalRecordList) { record ->
+        adapter = RecentMedicalRecordAdapter(medicalRecordList) { record ->
             // ⭐️ CLICK ITEM: Mở màn hình UpdateMedicalRecord để XEM/SỬA
             // (Thay vì mở PatientMedicalRecordDetail như cũ)
             val intent = Intent(this, UpdateMedicalRecord::class.java)

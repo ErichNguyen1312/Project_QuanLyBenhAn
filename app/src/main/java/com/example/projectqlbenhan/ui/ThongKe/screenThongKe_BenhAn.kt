@@ -10,7 +10,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

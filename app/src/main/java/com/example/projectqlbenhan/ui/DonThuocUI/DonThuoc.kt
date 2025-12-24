@@ -15,7 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.projectqlbenhan.R
 // Import đúng Database và Entity đã thống nhất
-import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 import java.text.SimpleDateFormat
 import java.util.Date

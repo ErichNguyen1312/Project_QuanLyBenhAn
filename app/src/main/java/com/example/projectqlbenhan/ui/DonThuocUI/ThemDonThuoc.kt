@@ -9,7 +9,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.MedicalRecordDatabase
 
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem // Sử dụng Entity mới
@@ -64,8 +64,8 @@ class ThemDonThuoc : AppCompatActivity() {
         currentRecordId = intent.getLongExtra("RECORD_ID", -1L)
 
         // Đọc thông tin Bệnh nhân từ Session Manager đã lưu trước đó
-        val patientIdFromSession = SessionManager.getCurrentPatientId(this)
-        val patientNameFromSession = SessionManager.getCurrentPatientName(this)
+        val patientIdFromSession = SessionManager.getSpecificId(this)
+        val patientNameFromSession = SessionManager.getFullName(this)
 
         if (patientIdFromSession != -1L && !patientNameFromSession.isNullOrEmpty()) {
             // 1. Gán ID Bệnh nhân và KHÓA trường nhập
@@ -128,7 +128,7 @@ class ThemDonThuoc : AppCompatActivity() {
                     Toast.makeText(this@ThemDonThuoc, "Đã lưu đơn thuốc thành công!", Toast.LENGTH_LONG).show()
 
                     // ⭐ DỌN DẸP SESSION sau khi lưu thành công để đảm bảo an toàn dữ liệu cho lần sau
-                    SessionManager.clearCurrentPatientInfo(this@ThemDonThuoc)
+                    SessionManager.clearSelectedPatient(this@ThemDonThuoc)
 
                     finish()
                 }

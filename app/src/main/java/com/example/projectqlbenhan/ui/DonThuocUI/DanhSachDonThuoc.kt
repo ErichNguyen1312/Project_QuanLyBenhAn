@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.projectqlbenhan.R
 // Sửa import đúng Database trung tâm
-import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.MedicalRecordDatabase
 
 class DanhSachDonThuoc : AppCompatActivity() {
 

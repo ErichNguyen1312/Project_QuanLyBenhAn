@@ -3,7 +3,7 @@ package com.example.projectqlbenhan.ui.ThongBaoTaiKham
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.MedicalRecordDatabase
 import java.util.Calendar
 
 class Worker_ThongBaoTaiKham(

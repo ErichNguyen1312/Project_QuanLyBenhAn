@@ -5,7 +5,7 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 import com.example.projectqlbenhan.utils.SessionManager
@@ -57,8 +57,8 @@ class SuaDonThuoc : AppCompatActivity() {
         currentItemId = intent.getLongExtra("ITEM_ID", -1L)
 
         // Hiển thị thông tin và khóa các trường định danh bệnh nhân
-        edtMaBenhNhan.setText(SessionManager.getCurrentPatientId(this).toString())
-        edtTenBenhNhan.setText(SessionManager.getCurrentPatientName(this))
+        edtMaBenhNhan.setText(SessionManager.getSpecificId(this).toString())
+        edtTenBenhNhan.setText(SessionManager.getFullName(this))
 
         if (currentItemId != -1L) {
             lifecycleScope.launch(Dispatchers.IO) {

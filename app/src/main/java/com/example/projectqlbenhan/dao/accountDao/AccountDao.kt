@@ -9,7 +9,7 @@ import com.example.projectqlbenhan.entity.account.Account
 @Dao
 interface AccountDao {
     @Query("SELECT * FROM accounts WHERE username = :user AND passwordHash = :pass LIMIT 1")
-    suspend fun login(user: String, pass: String): Account?
+    suspend fun     login(user: String, pass: String): Account?
 
     @Query("SELECT EXISTS(SELECT 1 FROM accounts WHERE username = :username)")
     suspend fun isUsernameExist(username: String): Boolean

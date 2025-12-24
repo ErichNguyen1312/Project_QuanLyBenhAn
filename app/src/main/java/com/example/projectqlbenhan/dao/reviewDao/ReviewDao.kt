@@ -4,32 +4,32 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.projectqlbenhan.entity.review.Review
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ReviewDao {
     @Insert
     suspend fun insertReview(review: Review): Long
 
-    // Lấy đánh giá của 1 cuộc hẹn
-    @Query("SELECT * FROM reviews WHERE appointment_id = :apptId LIMIT 1")
-    suspend fun getReviewByAppointment(apptId: Long): Review?
+    // 1. Tìm review theo Record ID (Thay vì Appointment)
+    @Query("SELECT * FROM reviews WHERE record_id = :recordId LIMIT 1")
+    suspend fun getReviewByRecord(recordId: Long): Review?
 
-    // Thống kê điểm trung bình của Bác sĩ (Rating 1)
+    // 2. Thống kê điểm (Join với bảng medical_records để lấy doctorId nếu cần,
+    // hoặc nếu bro đã lưu doctorId vào review thì query thẳng bảng review luôn cho nhanh)
+    // Ở đây giả sử mình Query thông qua MedicalRecord để cho chuẩn
     @Query("""
         SELECT AVG(r.rating_doctor) 
         FROM reviews r 
-        INNER JOIN appointments a ON r.appointment_id = a.appointmentId 
-        WHERE a.doctor_id = :doctorId
+        INNER JOIN medical_records m ON r.record_id = m.recordId 
+        WHERE m.doctor_id = :doctorId
     """)
-    fun getDoctorAverageRating(doctorId: Long): Flow<Float?>
+    suspend fun getDoctorAverageRating(doctorId: Long): Float?
 
-    // Lấy danh sách review của bác sĩ
     @Query("""
         SELECT r.* FROM reviews r
-        INNER JOIN appointments a ON r.appointment_id = a.appointmentId
-        WHERE a.doctor_id = :doctorId
+        INNER JOIN medical_records m ON r.record_id = m.recordId
+        WHERE m.doctor_id = :doctorId
         ORDER BY r.created_at DESC
     """)
-    fun getDoctorReviews(doctorId: Long): Flow<List<Review>>
+    suspend fun getDoctorReviews(doctorId: Long): List<Review>
 }

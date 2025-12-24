@@ -29,35 +29,35 @@ class UpdateMedicalRecord : AppCompatActivity() {
     private lateinit var edtType: EditText
     private lateinit var edtNotes: EditText
 
-    private lateinit var btnSave: Button // Nút "LƯU BỆNH ÁN"
+    private lateinit var btnSave: Button
     private lateinit var btnDelete: TextView
     private lateinit var btnAddMedicine: Button
     private lateinit var rcPrescription: RecyclerView
 
-    // Data & Logic
+    // Data
     private var appointmentId: Long = -1
     private var patientId: Long = -1
-    private var recordId: Long = -1 // -1: Tạo mới, >0: Cập nhật
+    private var recordId: Long = -1
+    private var isViewOnly: Boolean = false // ⭐️ Biến cờ quan trọng
 
-    // Quản lý thuốc
     private val medicineList = mutableListOf<PrescriptionItem>()
     private lateinit var prescriptionAdapter: PrescriptionItemAdapter
 
-    // Database & DAOs
     private val db by lazy { MedicalRecordDatabase.getDatabase(this) }
     private val medicalRecordDao by lazy { db.medicalRecordDao() }
     private val appointmentDao by lazy { db.appointmentDao() }
     private val prescriptionItemDao by lazy { db.prescriptionItemDao() }
+    private val reviewDao by lazy { db.reviewDao() }
+    private lateinit var btnRateDoctor: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_update_medical_record)
 
-        getIntentData()
+        getIntentData() // Lấy cờ is_view_only ở đây
         initViews()
         setupRecyclerView()
 
-        // Phân biệt chế độ: Tạo mới hay Cập nhật
         if (recordId != -1L) {
             setupForUpdateMode()
         } else {
@@ -65,12 +65,20 @@ class UpdateMedicalRecord : AppCompatActivity() {
         }
 
         setEvents()
+
+        // ⭐️ LOGIC KHÓA GIAO DIỆN (Code cũ của bro đang thiếu đoạn này)
+        if (isViewOnly) {
+            setupReadOnlyMode()
+        }
     }
 
     private fun getIntentData() {
         appointmentId = intent.getLongExtra("appointment_id", -1)
         patientId = intent.getLongExtra("patient_id", -1)
         recordId = intent.getLongExtra("record_id", -1)
+
+        // Lấy cờ từ Intent
+        isViewOnly = intent.getBooleanExtra("is_view_only", false)
     }
 
     private fun initViews() {
@@ -85,17 +93,22 @@ class UpdateMedicalRecord : AppCompatActivity() {
         btnDelete = findViewById(R.id.btnDelete)
         btnAddMedicine = findViewById(R.id.btnAddMedicine)
         rcPrescription = findViewById(R.id.rcPrescription)
+        btnRateDoctor = findViewById(R.id.btnRateDoctor)
     }
 
     private fun setupRecyclerView() {
-        // Adapter thuốc với sự kiện xóa
         prescriptionAdapter = PrescriptionItemAdapter(medicineList) { position ->
-            medicineList.removeAt(position)
-            prescriptionAdapter.notifyItemRemoved(position)
+            // Nếu chỉ xem thì KHÔNG cho xóa thuốc
+            if (!isViewOnly) {
+                medicineList.removeAt(position)
+                prescriptionAdapter.notifyItemRemoved(position)
+            }
         }
         rcPrescription.layoutManager = LinearLayoutManager(this)
         rcPrescription.adapter = prescriptionAdapter
     }
+
+    // --- CÁC HÀM SETUP MODE ---
 
     private fun setupForCreateMode() {
         tvHeader.text = "Khám bệnh & Kê đơn"
@@ -107,26 +120,48 @@ class UpdateMedicalRecord : AppCompatActivity() {
         tvHeader.text = "Cập nhật bệnh án"
         btnSave.text = "CẬP NHẬT"
         btnDelete.visibility = View.VISIBLE
-
         loadExistingData()
+    }
+
+    // ⭐️ HÀM KHÓA GIAO DIỆN (Ẩn nút, khóa nhập liệu)
+    private fun setupReadOnlyMode() {
+        // 1. Ẩn nút
+        btnSave.visibility = View.GONE
+        btnDelete.visibility = View.GONE
+        btnAddMedicine.visibility = View.GONE
+
+        // 2. Đổi tiêu đề
+        tvHeader.text = "Chi tiết bệnh án"
+
+        // 3. Khóa nhập liệu
+        disableEditText(edtDiagnosis)
+        disableEditText(edtSymptoms)
+        disableEditText(edtType)
+        disableEditText(edtNotes)
+        checkIfCanReview()
+    }
+
+    private fun disableEditText(editText: EditText) {
+        editText.isFocusable = false
+        editText.isFocusableInTouchMode = false
+        editText.inputType = android.text.InputType.TYPE_NULL
+        editText.setTextColor(resources.getColor(android.R.color.black, null))
+        editText.background = null
     }
 
     private fun loadExistingData() {
         lifecycleScope.launch(Dispatchers.IO) {
             val record = medicalRecordDao.getRecordById(recordId)
-            val items = prescriptionItemDao.getItemsByRecordId(recordId) // Load thuốc cũ
+            val items = prescriptionItemDao.getItemsByRecordId(recordId)
 
             withContext(Dispatchers.Main) {
                 if (record != null) {
                     edtDiagnosis.setText(record.diagnosis)
                     edtSymptoms.setText(record.symptoms)
                     edtType.setText(record.diseaseType)
-                    edtNotes.setText(record.doctorNotes) // Sửa lại field cho khớp entity
-
-                    // Nếu vào từ List hồ sơ thì patientId có thể chưa set, lấy từ record
+                    edtNotes.setText(record.doctorNotes)
                     if (patientId == -1L) patientId = record.patientId
                 }
-
                 medicineList.clear()
                 medicineList.addAll(items)
                 prescriptionAdapter.notifyDataSetChanged()
@@ -137,20 +172,29 @@ class UpdateMedicalRecord : AppCompatActivity() {
     private fun setEvents() {
         tvCancel.setOnClickListener { finish() }
 
-        btnAddMedicine.setOnClickListener { showAddMedicineDialog() }
-
-        btnSave.setOnClickListener {
-            if (recordId == -1L) saveNewRecord() else updateRecord()
+        // Chặn sự kiện click nếu đang xem
+        btnAddMedicine.setOnClickListener {
+            if (!isViewOnly) showAddMedicineDialog()
         }
 
-        btnDelete.setOnClickListener { showDeleteConfirm() }
+        btnSave.setOnClickListener {
+            if (!isViewOnly) {
+                if (recordId == -1L) saveNewRecord() else updateRecord()
+            }
+        }
+
+        btnDelete.setOnClickListener {
+            if (!isViewOnly) showDeleteConfirm()
+        }
     }
 
-    // --- Dialog Thêm Thuốc ---
     private fun showAddMedicineDialog() {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.dialog_add_medicine)
-        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
 
         val edtName = dialog.findViewById<EditText>(R.id.edtMedName)
         val edtQty = dialog.findViewById<EditText>(R.id.edtMedQty)
@@ -165,10 +209,9 @@ class UpdateMedicalRecord : AppCompatActivity() {
             val dosage = edtDosage.text.toString()
 
             if (name.isNotEmpty() && qty > 0) {
-                // Tạo item thuốc tạm
                 val item = PrescriptionItem(
                     itemId = 0,
-                    recordId = if(recordId == -1L) 0 else recordId,
+                    recordId = if (recordId == -1L) 0 else recordId,
                     medicineName = name,
                     quantity = qty,
                     unit = unit,
@@ -184,21 +227,17 @@ class UpdateMedicalRecord : AppCompatActivity() {
         dialog.show()
     }
 
-    // --- CASE 1: TẠO MỚI ---
     private fun saveNewRecord() {
+        // ... (Giữ nguyên logic lưu)
         val diagnosis = edtDiagnosis.text.toString().trim()
         val symptoms = edtSymptoms.text.toString().trim()
         val type = edtType.text.toString().trim()
         val notes = edtNotes.text.toString().trim()
-        val doctorId = SessionManager.getSpecificId(this) // Lấy ID bác sĩ từ session
+        val doctorId = SessionManager.getSpecificId(this)
 
-        if (diagnosis.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập chẩn đoán", Toast.LENGTH_SHORT).show()
-            return
-        }
+        if (diagnosis.isEmpty()) return
 
         lifecycleScope.launch(Dispatchers.IO) {
-            // 1. Insert Medical Record
             val newRecord = MedicalRecord(
                 patientId = patientId,
                 doctorId = doctorId,
@@ -212,26 +251,24 @@ class UpdateMedicalRecord : AppCompatActivity() {
             )
             val newRecordId = medicalRecordDao.insert(newRecord)
 
-            // 2. Insert Prescriptions (Update recordId cho list thuốc)
             val prescriptions = medicineList.map { it.copy(recordId = newRecordId) }
             if (prescriptions.isNotEmpty()) {
                 prescriptionItemDao.insertPrescriptionItems(prescriptions)
             }
 
-            // 3. Update Appointment Status (Nếu khám từ lịch hẹn)
             if (appointmentId != -1L) {
                 appointmentDao.updateStatus(appointmentId, "COMPLETED")
             }
 
             withContext(Dispatchers.Main) {
-                Toast.makeText(this@UpdateMedicalRecord, "Lưu bệnh án thành công!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@UpdateMedicalRecord, "Lưu thành công!", Toast.LENGTH_SHORT)
+                    .show()
                 setResult(RESULT_OK)
                 finish()
             }
         }
     }
 
-    // --- CASE 2: CẬP NHẬT ---
     private fun updateRecord() {
         val diagnosis = edtDiagnosis.text.toString().trim()
         val symptoms = edtSymptoms.text.toString().trim()
@@ -241,7 +278,6 @@ class UpdateMedicalRecord : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val oldRecord = medicalRecordDao.getRecordById(recordId)
             if (oldRecord != null) {
-                // Giữ nguyên các trường không sửa (ngày tạo, patientId, doctorId...)
                 val updatedRecord = oldRecord.copy(
                     diagnosis = diagnosis,
                     symptoms = symptoms,
@@ -250,7 +286,6 @@ class UpdateMedicalRecord : AppCompatActivity() {
                 )
                 medicalRecordDao.update(updatedRecord)
 
-                // Cập nhật thuốc: Cách đơn giản nhất là Xóa hết cũ -> Insert lại mới
                 prescriptionItemDao.deleteItemsByRecordId(recordId)
                 val newMedicines = medicineList.map { it.copy(itemId = 0, recordId = recordId) }
                 if (newMedicines.isNotEmpty()) {
@@ -258,7 +293,8 @@ class UpdateMedicalRecord : AppCompatActivity() {
                 }
 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@UpdateMedicalRecord, "Đã cập nhật!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@UpdateMedicalRecord, "Đã cập nhật!", Toast.LENGTH_SHORT)
+                        .show()
                     setResult(RESULT_OK)
                     finish()
                 }
@@ -266,19 +302,15 @@ class UpdateMedicalRecord : AppCompatActivity() {
         }
     }
 
-    // --- CASE 3: XÓA ---
     private fun showDeleteConfirm() {
         AlertDialog.Builder(this)
             .setTitle("Xác nhận xóa")
-            .setMessage("Bạn có chắc chắn muốn xóa bệnh án này không? Dữ liệu thuốc cũng sẽ bị xóa.")
+            .setMessage("Bạn có chắc muốn xóa?")
             .setPositiveButton("Xóa") { _, _ ->
                 lifecycleScope.launch(Dispatchers.IO) {
                     medicalRecordDao.deleteRecord(recordId)
-                    // Thuốc sẽ tự xóa nếu database thiết lập Cascade, hoặc xóa thủ công:
                     prescriptionItemDao.deleteItemsByRecordId(recordId)
-
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@UpdateMedicalRecord, "Đã xóa bệnh án", Toast.LENGTH_SHORT).show()
                         setResult(RESULT_OK)
                         finish()
                     }
@@ -286,5 +318,67 @@ class UpdateMedicalRecord : AppCompatActivity() {
             }
             .setNegativeButton("Hủy", null)
             .show()
+    }
+    private fun checkIfCanReview() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val existingReview = reviewDao.getReviewByRecord(recordId)
+
+            withContext(Dispatchers.Main) {
+                if (existingReview == null) {
+
+                    btnRateDoctor.visibility = View.VISIBLE
+                    btnRateDoctor.setOnClickListener { showAdvancedRatingDialog() }
+                } else {
+
+                    btnRateDoctor.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun showAdvancedRatingDialog() {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_rating_advanced)
+        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+
+        val rbDoctor = dialog.findViewById<RatingBar>(R.id.rbDoctor)
+        val rbDiagnosis = dialog.findViewById<RatingBar>(R.id.rbDiagnosis)
+        val rbMedication = dialog.findViewById<RatingBar>(R.id.rbMedication)
+        val edtComment = dialog.findViewById<EditText>(R.id.edtComment)
+        val btnSubmit = dialog.findViewById<Button>(R.id.btnSubmitRating)
+
+        btnSubmit.setOnClickListener {
+            val rDoc = rbDoctor.rating.toInt()
+            val rDiag = rbDiagnosis.rating.toInt()
+            val rMed = rbMedication.rating.toInt()
+            val comment = edtComment.text.toString()
+
+            if (rDoc == 0 || rDiag == 0 || rMed == 0) {
+                Toast.makeText(this, "Vui lòng chấm điểm đủ 3 mục!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            saveReview(rDoc, rDiag, rMed, comment)
+            dialog.dismiss()
+        }
+        dialog.show()
+    }
+
+    private fun saveReview(rDoc: Int, rDiag: Int, rMed: Int, comment: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val review = com.example.projectqlbenhan.entity.review.Review(
+                recordId = recordId, // Neo vào bệnh án hiện tại
+                ratingDoctor = rDoc,
+                ratingDiagnosis = rDiag,
+                ratingMedication = rMed,
+                comment = comment
+            )
+            reviewDao.insertReview(review)
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@UpdateMedicalRecord, "Cảm ơn đánh giá của bạn!", Toast.LENGTH_SHORT).show()
+                btnRateDoctor.visibility = View.GONE // Ẩn nút ngay lập tức
+            }
+        }
     }
 }

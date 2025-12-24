@@ -9,18 +9,21 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope // Dùng cái này an toàn hơn CoroutineScope tự tạo
+import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.entity.account.Account
 import com.example.projectqlbenhan.entity.patient.Patient
 import com.example.projectqlbenhan.utils.MrnGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.security.MessageDigest
 import java.util.Calendar
 
 class CreatePatient : AppCompatActivity() {
 
+    // ... Khai báo view (Giữ nguyên) ...
     private lateinit var btnBack: ImageView
     private lateinit var etName: EditText
     private lateinit var etAge: EditText
@@ -32,23 +35,15 @@ class CreatePatient : AppCompatActivity() {
     private lateinit var rbFemale: RadioButton
     private lateinit var btnSave: Button
 
-    // Lazy load DAO
-    private val dao by lazy {
-        MedicalRecordDatabase.getDatabase(this).patientDao()
-    }
+    // Khởi tạo DB để dùng cho cả Patient và Account
+    private val db by lazy { MedicalRecordDatabase.getDatabase(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create_patient)
-
         setControl()
         autoFillMrn()
         setEvent()
-    }
-
-    private fun setEvent() {
-        btnBack.setOnClickListener { finish() }
-        btnSave.setOnClickListener { savePatient() }
     }
 
     private fun setControl() {
@@ -64,8 +59,13 @@ class CreatePatient : AppCompatActivity() {
         btnSave = findViewById(R.id.btnSave)
     }
 
-    // --- CÁC HÀM XỬ LÝ ---
-    private fun savePatient() {
+    private fun setEvent() {
+        btnBack.setOnClickListener { finish() }
+        btnSave.setOnClickListener { savePatientWithAccount() } // Đổi tên hàm
+    }
+
+    // --- LOGIC MỚI: TẠO ACCOUNT KÈM THEO ---
+    private fun savePatientWithAccount() {
         val name = etName.text.toString().trim()
         val ageStr = etAge.text.toString().trim()
         val recordNumber = etRecordId.text.toString().trim()
@@ -74,12 +74,10 @@ class CreatePatient : AppCompatActivity() {
 
         // Validate
         if (name.isEmpty()) return toast("Vui lòng nhập họ tên")
+        if (phone.isEmpty()) return toast("Vui lòng nhập SĐT (để làm tài khoản)")
         if (ageStr.isEmpty()) return toast("Vui lòng nhập tuổi")
-
         val age = ageStr.toIntOrNull()
         if (age == null || age <= 0) return toast("Tuổi không hợp lệ")
-
-        if (recordNumber.isEmpty()) return toast("Vui lòng nhập mã hồ sơ")
 
         val gender = when (rgGender.checkedRadioButtonId) {
             R.id.rbMale -> "Nam"
@@ -87,46 +85,53 @@ class CreatePatient : AppCompatActivity() {
             else -> return toast("Vui lòng chọn giới tính")
         }
 
-        val dateOfBirthTimestamp = convertAgeToDob(age)
-
-        // Tạo Patient khớp với Entity mới
-        val newPatient = Patient(
-            patientId = 0, // Mặc định để AutoGenerate
-            accountId = null, // ⭐️ MỚI: Thêm trường này (null vì tạo offline)
-            fullName = name,
-            medicalRecordNumber = recordNumber,
-            dateOfBirth = dateOfBirthTimestamp,
-            gender = gender,
-            phoneNumber = phone,
-            address = address
-            // createdAt tự động lấy thời gian hiện tại
-        )
-
-        // Lưu xuống database (Dùng lifecycleScope)
         lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                dao.insertPatient(newPatient)
+            // 1. Kiểm tra SĐT đã tồn tại chưa (Vì SĐT là Username)
+            val isExist = db.accountDao().isUsernameExist(phone)
+            if (isExist) {
+                withContext(Dispatchers.Main) {
+                    toast("Số điện thoại này đã có tài khoản!")
+                }
+                return@launch
+            }
 
-                // ⭐️ QUAN TRỌNG: Chỉ đóng màn hình khi đã lưu xong
+            try {
+                // 2. Tạo Account Mặc Định
+                // Username = Phone, Pass = 123456
+                val defaultPass = hashPassword("123456")
+                val newAccount = Account(
+                    username = phone,
+                    passwordHash = defaultPass,
+                    role = "PATIENT"
+                )
+                val newAccountId = db.accountDao().insertAccount(newAccount)
+
+                // 3. Tạo Patient liên kết với Account vừa tạo
+                val dob = convertAgeToDob(age)
+                val newPatient = Patient(
+                    accountId = newAccountId, // Liên kết ID
+                    fullName = name,
+                    dateOfBirth = dob,
+                    gender = gender,
+                    phoneNumber = phone,
+                    address = address,
+                    medicalRecordNumber = recordNumber
+                )
+
+                db.patientDao().insertPatient(newPatient)
+
                 withContext(Dispatchers.Main) {
-                    toast("Thêm bệnh nhân thành công!")
-                    finish() // <--- Finish ở đây mới đúng logic
+                    toast("Thêm thành công! Tài khoản: $phone, MK: 123456")
+                    finish()
                 }
-            } catch (e: android.database.sqlite.SQLiteConstraintException) {
-                // Xử lý trùng mã hồ sơ
-                val newMrn = MrnGenerator.generateUnique(dao)
-                withContext(Dispatchers.Main) {
-                    etRecordId.setText(newMrn)
-                    Toast.makeText(this@CreatePatient, "Mã hồ sơ bị trùng. Hệ thống đã tạo mã mới: $newMrn", Toast.LENGTH_LONG).show()
-                }
+
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Log.e("CreatePatient", "Error", e)
                     toast("Lỗi: ${e.message}")
+                    Log.e("CreatePatient", "Error", e)
                 }
             }
         }
-        // ❌ Đã xóa finish() ở ngoài này để tránh lỗi đóng app sớm
     }
 
     private fun convertAgeToDob(age: Int): Long {
@@ -137,14 +142,20 @@ class CreatePatient : AppCompatActivity() {
 
     private fun autoFillMrn() {
         lifecycleScope.launch(Dispatchers.IO) {
-            val mrn = MrnGenerator.generateUnique(dao)
+            val mrn = MrnGenerator.generateUnique(db.patientDao())
             withContext(Dispatchers.Main) {
                 etRecordId.setText(mrn)
             }
         }
     }
 
+    // Hàm băm mật khẩu (Copy từ Seeder hoặc utils)
+    private fun hashPassword(password: String): String {
+        val bytes = MessageDigest.getInstance("SHA-256").digest(password.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
+
     private fun toast(msg: String) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
 }

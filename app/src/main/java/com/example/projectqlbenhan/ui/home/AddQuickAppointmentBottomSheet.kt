@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.dao.accountDao.AccountDao
 import com.example.projectqlbenhan.dao.appointment.AppointmentDao
 import com.example.projectqlbenhan.dao.medicalRecord.MedicalRecordDao
 import com.example.projectqlbenhan.dao.patient.PatientDao
@@ -27,17 +28,20 @@ import java.util.Calendar
 
 class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
     BottomSheetDialogFragment() {
+
+    // DAOs
     private lateinit var patientDao: PatientDao
     private lateinit var appointmentDao: AppointmentDao
     private lateinit var medicalRecordDao: MedicalRecordDao
+    private lateinit var accountDao: AccountDao
 
+    // Views
     private lateinit var edtName: EditText
     private lateinit var edtPhone: EditText
     private lateinit var edtDate: EditText
     private lateinit var edtTime: EditText
     private lateinit var btnSave: Button
 
-    // Biến Calendar duy nhất để lưu ngày giờ
     private val appointmentCalendar = Calendar.getInstance()
 
     override fun onCreateView(
@@ -45,16 +49,20 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(
-            R.layout.bottomsheet_add_appointment,
-            container,
-            false
-        )
+        val view = inflater.inflate(R.layout.bottomsheet_add_appointment, container, false)
 
+        setControl(view)
+        setEvent()
+
+        return view
+    }
+
+    private fun setControl(view: View) {
         val db = MedicalRecordDatabase.getDatabase(requireContext())
         patientDao = db.patientDao()
         appointmentDao = db.appointmentDao()
         medicalRecordDao = db.medicalRecordDao()
+        accountDao = db.accountDao()
 
         edtName = view.findViewById(R.id.edtName)
         edtPhone = view.findViewById(R.id.edtPhone)
@@ -62,18 +70,20 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
         edtTime = view.findViewById(R.id.edtTime)
         btnSave = view.findViewById(R.id.btnSave)
 
-        // Reset giây
+      // lấy mốc giờ để hiển thị thời gian hiện tại
         appointmentCalendar.set(Calendar.SECOND, 0)
         appointmentCalendar.set(Calendar.MILLISECOND, 0)
 
         updateDateTimeUI()
+    }
 
+    private fun setEvent() {
         edtDate.setOnClickListener { pickDate() }
         edtTime.setOnClickListener { pickTime() }
         btnSave.setOnClickListener { saveAppointment() }
-
-        return view
     }
+
+    // các hàm xử lý
 
     private fun updateDateTimeUI() {
         val day = appointmentCalendar.get(Calendar.DAY_OF_MONTH)
@@ -122,39 +132,68 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
         val name = edtName.text.toString().trim()
         val phone = edtPhone.text.toString().trim()
 
-        if (name.isEmpty()) {
-            Toast.makeText(context, "Vui lòng nhập tên bệnh nhân", Toast.LENGTH_SHORT).show()
+        if (name.isEmpty() || phone.isEmpty()) {
+            Toast.makeText(context, "Vui lòng nhập Tên và SĐT", Toast.LENGTH_SHORT).show()
             return
         }
 
         lifecycleScope.launch {
             val existingPatient = patientDao.getPatientByPhone(phone)
+
             if (existingPatient != null) {
+                // Nếu tên khác với SĐT cũ -> Hỏi người dùng
                 if (existingPatient.fullName != name) {
-                    withContext(Dispatchers.Main) {
-                        showOptionExistingPatient(existingPatient)
-                    }
+                    withContext(Dispatchers.Main) { showOptionExistingPatient(existingPatient) }
                 } else {
                     createAppointment(existingPatient.patientId, existingPatient.fullName)
                 }
             } else {
-                val mrn = MrnGenerator.generateUnique(patientDao)
-                val newPatientId = withContext(Dispatchers.IO) {
-                    patientDao.insertPatient(
-                        Patient(
-                            accountId = null,
-                            fullName = name,
-                            phoneNumber = phone,
-                            medicalRecordNumber = mrn,
-                            dateOfBirth = 0L,
-                            gender = "Khác",
-                            address = null
+                // ⭐️ KHÁCH MỚI -> TẠO ACCOUNT + PATIENT
+                withContext(Dispatchers.IO) {
+                    // check account đã tồn tại chưa
+                    var accountId: Long? = null
+
+                    // Check xem SĐT này đã có tài khoản chưa
+                    val isAccountExist = accountDao.isUsernameExist(phone)
+
+                    if (!isAccountExist) {
+                        // Tạo mới pass mặc định
+                        val defaultPass = hashPassword("123456")
+                        val newAccount = com.example.projectqlbenhan.entity.account.Account(
+                            username = phone,
+                            passwordHash = defaultPass,
+                            role = "PATIENT"
                         )
+                        accountId = accountDao.insertAccount(newAccount)
+                    } else {
+                        // Đã có account thì lấy ID account cũ link vào
+                        val acc = accountDao.login(phone, hashPassword("123456"))
+                        accountId = acc?.accountId
+                    }
+
+                    // tạo mã số hồ sơ tự động
+                    val mrn = MrnGenerator.generateUnique(patientDao)
+                    val newPatient = Patient(
+                        accountId = accountId,
+                        fullName = name,
+                        phoneNumber = phone,
+                        medicalRecordNumber = mrn,
+                        dateOfBirth = 0L,
+                        gender = "Khác",
+                        address = null
                     )
+                    val newPatientId = patientDao.insertPatient(newPatient)
+
+                    // tiến hành đặt lịch
+                    createAppointment(newPatientId, name)
                 }
-                createAppointment(newPatientId, name)
             }
         }
+    }
+
+    private fun hashPassword(password: String): String {
+        val bytes = java.security.MessageDigest.getInstance("SHA-256").digest(password.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
     }
 
     private fun showOptionExistingPatient(existPatient: Patient) {
@@ -175,12 +214,8 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
 
     private fun createAppointment(patientId: Long, patientName: String) {
         val finalTimestamp = appointmentCalendar.timeInMillis
-
-        // Lưu ý: Nếu bạn đã update SessionManager mới thì dùng getSpecificId
-        // Nếu chưa thì dùng getDoctorId như cũ. Ở đây mình dùng getSpecificId cho chuẩn hệ thống mới.
         val doctorId = SessionManager.getSpecificId(requireContext())
 
-        // Check lỗi ID
         if (doctorId == -1L) {
             lifecycleScope.launch(Dispatchers.Main) {
                 Toast.makeText(requireContext(), "Lỗi phiên đăng nhập", Toast.LENGTH_SHORT).show()
@@ -189,26 +224,18 @@ class AddQuickAppointmentBottomSheet(private val onAdded: () -> Unit) :
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
-            // ⭐️ CHỈ CẦN TẠO MỖI APPOINTMENT THÔI
             appointmentDao.insert(
                 Appointment(
                     patientId = patientId,
                     doctorId = doctorId,
                     appointmentDate = finalTimestamp,
                     reason = "Đặt lịch nhanh",
-                    status = "SCHEDULED" // Trạng thái chờ khám
+                    status = "SCHEDULED"
                 )
             )
 
-            // ❌ ĐÃ XÓA đoạn tạo MedicalRecord "treo" ở đây.
-            // Bệnh án sẽ được tạo ở màn hình "UpdateMedicalRecord" khi bác sĩ bắt đầu khám.
-
             withContext(Dispatchers.Main) {
-                Toast.makeText(
-                    requireContext(),
-                    "Đã đặt lịch thành công cho $patientName",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(requireContext(), "Đã đặt lịch cho $patientName", Toast.LENGTH_SHORT).show()
                 onAdded.invoke()
                 dismiss()
             }

@@ -9,127 +9,149 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
-
 import com.example.projectqlbenhan.ui.home.HomeActivity
+import com.example.projectqlbenhan.ui.patient_home.PatientHomeActivity
 import com.example.projectqlbenhan.utils.DatabaseSeeder
 import com.example.projectqlbenhan.utils.SessionManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.security.MessageDigest
 
 class Login : AppCompatActivity() {
-    private lateinit var edtUsername: EditText
-    private lateinit var edtPassword: EditText
+
+    private lateinit var etUser: EditText
+    private lateinit var etPass: EditText
     private lateinit var btnLogin: Button
 
-    private lateinit var authService: AuthService
+    // Lazy load DB
+    private lateinit var db : MedicalRecordDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        authService = AuthService(this)
-
-        val db = MedicalRecordDatabase.getDatabase(this)
-        lifecycleScope.launch {
+        setControl()      // 1. Ánh xạ View
+         db = MedicalRecordDatabase.getDatabase(this)
+        lifecycleScope.launch(Dispatchers.IO) {
             DatabaseSeeder.seedIfNeeded(db)
         }
-
-        setControl()
-        setEvent()
+        checkAlreadyLogin() // 2. Kiểm tra đăng nhập cũ (nếu có)
+        setEvent()        // 3. Gán sự kiện
     }
 
     private fun setControl() {
-        edtUsername = findViewById(R.id.edtUsername)
-        edtPassword = findViewById(R.id.edtPassword)
+        etUser = findViewById(R.id.edtUsername)
+        etPass = findViewById(R.id.edtPassword)
         btnLogin = findViewById(R.id.btnLogin)
     }
 
     private fun setEvent() {
         btnLogin.setOnClickListener {
-            doLogin()
+            handleLogin()
         }
     }
 
-    private fun doLogin() {
-        val username = edtUsername.text.toString().trim()
-        val password = edtPassword.text.toString()
+    // --- CÁC HÀM XỬ LÝ LOGIC ---
+
+    private fun checkAlreadyLogin() {
+        if (SessionManager.isLoggedIn(this)) {
+            val role = SessionManager.getRole(this)
+            when (role) {
+                "DOCTOR" -> {
+                    startActivity(Intent(this, HomeActivity::class.java))
+                    finish()
+                }
+                "PATIENT" -> {
+                    startActivity(Intent(this, PatientHomeActivity::class.java))
+                    finish()
+                }
+            }
+        }
+    }
+
+    private fun handleLogin() {
+        val username = etUser.text.toString().trim()
+        val password = etPass.text.toString().trim()
 
         if (username.isEmpty() || password.isEmpty()) {
-            toast("Vui lòng nhập đầy đủ thông tin")
+            Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show()
             return
         }
 
-        lifecycleScope.launch {
-            val result = authService.login(username, password)
-            handleLoginResult(result)
-        }
-    }
+        lifecycleScope.launch(Dispatchers.IO) {
+            val passwordHash = hashPassword(password)
+            val account = db.accountDao().login(username, passwordHash)
 
-    private fun handleLoginResult(result: AuthService.LoginResult) {
-        when (result) {
-            is AuthService.LoginResult.SuccessDoctor -> {
-                val doctor = result.doctor
-                toast("Xin chào BS. ${doctor.fullName}")
+            withContext(Dispatchers.Main) {
+                if (account != null) {
+                    // 1. Lưu Session cơ bản
+                    SessionManager.saveAuthToken(this@Login, "token_demo")
+                    SessionManager.saveUserRole(this@Login, account.role)
+                    SessionManager.saveAccountId(this@Login, account.accountId)
 
-                // luu session cua bac si
-                SessionManager.saveUserSession(
-                    context = this,
-                    accountId = doctor.accountId,
-                    role = "DOCTOR",
-                    specificId = doctor.doctorId,
-                    fullName = doctor.fullName
-                )
-                navigateToHome()
-            }
-
-            is AuthService.LoginResult.SuccessPatient -> {
-
-                val patient = result.patient
-                val patientName = patient?.fullName ?: "Bệnh nhân mới"
-                val patientId = patient?.patientId ?: -1L
-
-                toast("Xin chào $patientName")
-
-                // luu session benh nhan
-                SessionManager.saveUserSession(
-                    context = this,
-                    accountId = result.accountId,
-                    role = "PATIENT",
-                    specificId = patientId,
-                    fullName = patientName
-                )
-                navigateToHome()
-            }
-
-            is AuthService.LoginResult.SuccessAdmin -> {
-
-                toast("Xin chào Quản trị viên")
-
-                // luu session admin
-                SessionManager.saveUserSession(
-                    context = this,
-                    accountId = result.account.accountId,
-                    role = "ADMIN",
-                    // admin khoong can truong nay, vi quan ly bac si
-                    specificId = -1L,
-                    fullName = "Admin"
-                )
-                navigateToHome()
-            }
-
-            is AuthService.LoginResult.Error -> {
-                toast(result.message)
+                    // 2. PHÂN LUỒNG (QUAN TRỌNG) ⭐️
+                    when (account.role) {
+                        "DOCTOR" -> {
+                            checkDoctorAndRedirect(account.accountId)
+                        }
+                        "PATIENT" -> {
+                            checkPatientAndRedirect(account.accountId)
+                        }
+                        "ADMIN" -> {
+                            Toast.makeText(this@Login, "Admin chưa hỗ trợ", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            Toast.makeText(this@Login, "Role không hợp lệ: ${account.role}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    Toast.makeText(this@Login, "Sai tài khoản hoặc mật khẩu", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
-    private fun navigateToHome() {
-        val intent = Intent(this, HomeActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
+    // --- LOGIC CHO BÁC SĨ ---
+    private fun checkDoctorAndRedirect(accountId: Long) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val doctor = db.doctorDao().getDoctorByAccountId(accountId)
+            withContext(Dispatchers.Main) {
+                if (doctor != null) {
+                    SessionManager.saveSpecificId(this@Login, doctor.doctorId)
+                    SessionManager.saveFullName(this@Login, doctor.fullName)
+
+                    // Chuyển sang Home Bác sĩ
+                    startActivity(Intent(this@Login, HomeActivity::class.java))
+                    finish()
+                } else {
+                    Toast.makeText(this@Login, "Tài khoản này chưa có hồ sơ Bác sĩ", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
-    private fun toast(msg: String) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    // --- LOGIC CHO BỆNH NHÂN ---
+    private fun checkPatientAndRedirect(accountId: Long) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val patient = db.patientDao().getPatientByAccountId(accountId)
+            withContext(Dispatchers.Main) {
+                if (patient != null) {
+                    SessionManager.saveSpecificId(this@Login, patient.patientId)
+                    SessionManager.saveFullName(this@Login, patient.fullName)
+
+                    // Chuyển sang Home Bệnh Nhân
+                    startActivity(Intent(this@Login, PatientHomeActivity::class.java))
+                    finish()
+                } else {
+                    Toast.makeText(this@Login, "Tài khoản này chưa có hồ sơ Bệnh nhân", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun hashPassword(password: String): String {
+        val bytes = MessageDigest.getInstance("SHA-256").digest(password.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
     }
 }

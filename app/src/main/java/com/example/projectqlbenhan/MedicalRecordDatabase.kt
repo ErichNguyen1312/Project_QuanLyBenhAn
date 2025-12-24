@@ -11,12 +11,14 @@ import com.example.projectqlbenhan.dao.doctor.DoctorDao
 import com.example.projectqlbenhan.dao.medicalRecord.MedicalRecordDao
 import com.example.projectqlbenhan.dao.patient.PatientDao
 import com.example.projectqlbenhan.dao.prescriptionItemDao.PrescriptionItemDao
+import com.example.projectqlbenhan.dao.reviewDao.ReviewDao
 import com.example.projectqlbenhan.entity.account.Account
 import com.example.projectqlbenhan.entity.appointment.Appointment
 import com.example.projectqlbenhan.entity.doctor.Doctor
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.entity.patient.Patient
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
+import com.example.projectqlbenhan.entity.review.Review
 import com.example.projectqlbenhan.utils.AccountSeeder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,19 +31,24 @@ import kotlinx.coroutines.launch
         MedicalRecord::class,
         Appointment::class,
         PrescriptionItem::class,
-        Account::class // 1. Nhớ thêm Account vào đây
+        Review::class,
+        Account::class
     ],
-    version = 6, // 2. Tăng version lên (nếu cũ là 5)
+    version = 7,
     exportSchema = false
 )
 abstract class MedicalRecordDatabase : RoomDatabase() {
 
     abstract fun doctorDao(): DoctorDao
+
+    abstract fun reviewDao() : ReviewDao
     abstract fun patientDao(): PatientDao
     abstract fun medicalRecordDao(): MedicalRecordDao
     abstract fun appointmentDao(): AppointmentDao
     abstract fun prescriptionItemDao(): PrescriptionItemDao
-    abstract fun accountDao(): AccountDao // Thêm DAO Account
+    abstract fun accountDao(): AccountDao
+
+
 
     private class MedicalRecordDatabaseCallback(
         private val scope: CoroutineScope
@@ -51,13 +58,11 @@ abstract class MedicalRecordDatabase : RoomDatabase() {
             super.onCreate(db)
             INSTANCE?.let { database ->
                 scope.launch(Dispatchers.IO) {
-                    // 3. Gọi các hàm Seed dữ liệu mẫu ở đây
-                    AccountSeeder.seed(database.accountDao()) // <-- Gọi Account Seeder
+                    AccountSeeder.seed(database.accountDao())
                 }
             }
         }
 
-        // Nếu bro muốn nó chạy check mỗi lần mở app (để chắc chắn có data) thì dùng onOpen
         override fun onOpen(db: SupportSQLiteDatabase) {
             super.onOpen(db)
             INSTANCE?.let { database ->
@@ -79,9 +84,8 @@ abstract class MedicalRecordDatabase : RoomDatabase() {
                     MedicalRecordDatabase::class.java,
                     "medical_record_database"
                 )
-                    // Nhớ thêm dòng này để kích hoạt Callback
                     .addCallback(MedicalRecordDatabaseCallback(CoroutineScope(Dispatchers.IO)))
-                    .fallbackToDestructiveMigration() // Xóa dữ liệu cũ nếu đổi version (Cẩn thận khi dùng)
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

@@ -33,7 +33,7 @@ class UpdatePatient : AppCompatActivity() {
 
     private var patientId: Long = 0L
 
-    // Biến để lưu giữ thông tin cũ (tránh bị mất khi update)
+    // Biến để lưu giữ thông tin cũ
     private var currentAccountId: Long? = null
     private var currentCreatedAt: Long = System.currentTimeMillis()
 
@@ -66,11 +66,10 @@ class UpdatePatient : AppCompatActivity() {
 
             withContext(Dispatchers.Main) {
                 if (patient != null) {
-                    // 1. Lưu lại dữ liệu cũ quan trọng
+
                     currentAccountId = patient.accountId
                     currentCreatedAt = patient.createdAt
 
-                    // 2. Đổ dữ liệu lên giao diện
                     etName.setText(patient.fullName)
                     etRecordId.setText(patient.medicalRecordNumber)
                     etAddress.setText(patient.address ?: "")
@@ -102,17 +101,17 @@ class UpdatePatient : AppCompatActivity() {
         val gender = if (rbMale.isChecked) "Nam" else "Nữ"
         val dob = ageToDateOfBirth(age)
 
-        // ⭐️ FIX LỖI Ở ĐÂY: Truyền đủ tham số cho Constructor mới
+
         val patientUpdated = Patient(
             patientId = patientId,
-            accountId = currentAccountId, // Truyền lại accountId cũ (quan trọng!)
+            accountId = currentAccountId,
             fullName = name,
             medicalRecordNumber = recordId,
             dateOfBirth = dob,
             gender = gender,
             phoneNumber = phone,
             address = address,
-            createdAt = currentCreatedAt // Giữ nguyên ngày tạo cũ
+            createdAt = currentCreatedAt
         )
 
         // Lưu xuống database
@@ -122,7 +121,7 @@ class UpdatePatient : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     toast("Cập nhật thành công!")
 
-                    // Trả kết quả về
+
                     val resultIntent = Intent()
                     resultIntent.putExtra("update_patient_id", patientId)
                     resultIntent.putExtra("updated", true)
@@ -164,6 +163,9 @@ class UpdatePatient : AppCompatActivity() {
         rbMale = findViewById(R.id.rbMale)
         rbFemale = findViewById(R.id.rbFemale)
         btnUpdate = findViewById(R.id.btnUpdate)
+        etRecordId.isEnabled = false
+        etRecordId.isFocusable = false
+        etRecordId.isFocusableInTouchMode = false
     }
 
     private fun calculateAge(dob: Long): Int {

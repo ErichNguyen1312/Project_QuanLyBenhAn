@@ -16,27 +16,20 @@ object DatabaseSeeder {
 
     suspend fun seedIfNeeded(db: MedicalRecordDatabase) {
         withContext(Dispatchers.IO) {
-            // 1. Kiểm tra: Nếu đã có tài khoản thì coi như đã seed, dừng lại
             try {
                 if (db.accountDao().countAccounts() > 0) return@withContext
             } catch (e: Exception) {
-                // Nếu chưa có hàm countAccounts trong DAO, bỏ qua lỗi để chạy tiếp
             }
 
             val defaultPassHash = hashPassword("123456")
 
-            // ==========================================
-            // 2. TẠO ACCOUNT & PROFILE
-            // ==========================================
 
-            // --- A. ADMIN ---
             db.accountDao().insertAccount(
                 Account(username = "admin", passwordHash = defaultPassHash, role = "ADMIN")
             )
 
-            // --- B. DOCTOR (Bác sĩ) ---
             val docAccId = db.accountDao().insertAccount(
-                Account(username = "bacsi1", passwordHash = defaultPassHash, role = "DOCTOR")
+                Account(username = "doctor01", passwordHash = defaultPassHash, role = "DOCTOR")
             )
             // Tạo Profile Bác sĩ liên kết với Account
             val doctor = Doctor(
@@ -48,9 +41,8 @@ object DatabaseSeeder {
             val savedDoctorId = db.doctorDao().insert(doctor)
 
 
-            // --- C. PATIENT 1 (Bệnh nhân có tài khoản) ---
             val patAccId1 = db.accountDao().insertAccount(
-                Account(username = "benhnhan1", passwordHash = defaultPassHash, role = "PATIENT")
+                Account(username = "0912345678", passwordHash = defaultPassHash, role = "PATIENT")
             )
             val p1 = Patient(
                 accountId = patAccId1,
@@ -63,7 +55,6 @@ object DatabaseSeeder {
             )
             val p1Id = db.patientDao().insertPatient(p1)
 
-            // --- D. PATIENT 2 (Khách vãng lai - Không có Account) ---
             val p2 = Patient(
                 accountId = null, // Vãng lai -> null
                 fullName = "Lê Văn Tèo (Vãng lai)",

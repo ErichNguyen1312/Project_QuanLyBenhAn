@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
+import com.example.projectqlbenhan.ui.patient.RecentMedicalRecordAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,6 +31,7 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
 
     private val medicalRecordList = mutableListOf<MedicalRecord>()
     private lateinit var adapter: MedicalRecordAdapter
+
 
     private val dao by lazy {
         MedicalRecordDatabase.getDatabase(this).medicalRecordDao()
@@ -96,7 +98,7 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
                 medicalRecordList.addAll(list)
                 adapter.notifyDataSetChanged()
 
-                // Logic ẩn hiện view Empty
+                // Ẩn hiện view Empty
                 if (medicalRecordList.isEmpty()) {
                     layoutEmpty.visibility = View.VISIBLE
                     rcRecyclerMedicalRecord.visibility = View.GONE
@@ -108,7 +110,7 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
         }
     }
 
-    // Dùng 1 launcher chung cho cả Thêm và Sửa
+    // Dùng 1 launcher chung cho cả Thêm và Sửa để reload list khi quay lại
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             loadMedicalRecords()

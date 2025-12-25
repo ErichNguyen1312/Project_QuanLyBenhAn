@@ -9,6 +9,8 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.ui.BacSi.screenBacSi_Main
+import com.example.projectqlbenhan.ui.ThongKe.screenThongKe_BenhAn
 
 import com.example.projectqlbenhan.ui.authService.Login
 import com.example.projectqlbenhan.ui.patient.Patients
@@ -67,9 +69,12 @@ abstract class BaseActivity : AppCompatActivity() {
                     finishAffinity()
                 }
                 R.id.menu_ThongKeBenhAn ->{
-//                    SessionManager.clear(this)
-//                    startActivity(Intent(this, screenThongKe_BenhAn::class.java))
-//                    finishAffinity()
+                    startActivity(Intent(this, screenThongKe_BenhAn::class.java))
+                    finishAffinity()
+                }
+                R.id.menu_BacSi ->{
+                    startActivity(Intent(this, screenBacSi_Main::class.java))
+                    finishAffinity()
                 }
             }
             drawerLayout.closeDrawers()

@@ -32,7 +32,7 @@ class Login : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         setControl()
-         db = MedicalRecordDatabase.getDatabase(this)
+        db = MedicalRecordDatabase.getDatabase(this)
 
         checkAlreadyLogin()
         setEvent()
@@ -97,7 +97,8 @@ class Login : AppCompatActivity() {
                             checkPatientAndRedirect(account.accountId)
                         }
                         "ADMIN" -> {
-                            Toast.makeText(this@Login, "Admin chưa hỗ trợ", Toast.LENGTH_SHORT).show()
+                            checkAdminAndRedirect(account.accountId)
+//                            Toast.makeText(this@Login, "Admin chưa hỗ trợ", Toast.LENGTH_SHORT).show()
                         }
                         else -> {
                             Toast.makeText(this@Login, "Role không hợp lệ: ${account.role}", Toast.LENGTH_SHORT).show()
@@ -147,7 +148,17 @@ class Login : AppCompatActivity() {
             }
         }
     }
+    private fun checkAdminAndRedirect(accountId: Long) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            SessionManager.saveSpecificId(this@Login, accountId)
 
+
+            SessionManager.saveFullName(this@Login, "Administrator")
+
+            startActivity(Intent(this@Login, HomeActivity::class.java))
+            finish()
+        }
+    }
     private fun hashPassword(password: String): String {
         val bytes = MessageDigest.getInstance("SHA-256").digest(password.toByteArray())
         return bytes.joinToString("") { "%02x".format(it) }

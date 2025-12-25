@@ -22,6 +22,7 @@ import com.example.projectqlbenhan.entity.appointment.AppointmentWithPatient
 import com.example.projectqlbenhan.entity.medicalRecord.DiseaseStat
 import com.example.projectqlbenhan.ui.BaseActivity
 import com.example.projectqlbenhan.ui.medicalRecord.UpdateMedicalRecord
+import com.example.projectqlbenhan.utils.SessionManager
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.PieData
@@ -66,6 +67,10 @@ class HomeActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setControl()
+
+        //Kiểm tra role - Trí
+        checkRole()
+
         setEvent()
         checkNotificationPermission()
     }
@@ -265,6 +270,7 @@ class HomeActivity : BaseActivity() {
                     }
 
                     R.id.chipTomorrow -> {
+                        // Nếu chọn Chip Tomorrow -> Load ngày mai
                         val tmrStart = getStartOfToday() + (24 * 60 * 60 * 1000)
                         val tmrEnd = tmrStart + (24 * 60 * 60 * 1000) - 1
                         appointmentDao.getAppointmentsByDateRange(tmrStart, tmrEnd)
@@ -359,5 +365,55 @@ class HomeActivity : BaseActivity() {
         cal.set(Calendar.MINUTE, 0)
         cal.set(Calendar.SECOND, 0)
         cal.set(Calendar.MILLISECOND, 0)
+    }
+
+    // --- WORKER & NOTIFICATION LOGIC ---
+//    private fun startThongBaoTaiKhamWorker() {
+//        val workRequest = PeriodicWorkRequestBuilder<Worker_ThongBaoTaiKham>(15, TimeUnit.MINUTES).build()
+//        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+//            "ThongBaoTaiKham",
+//            ExistingPeriodicWorkPolicy.KEEP,
+//            workRequest
+//        )
+//    }
+
+    private fun ThongBaoTaiKham_LichGanNhat() {
+        lifecycleScope.launch {
+            val startToday = getStartOfToday()
+            val endToday = startToday + (24 * 60 * 60 * 1000) - 1
+
+            // Logic lấy thông báo - Cần điều chỉnh lại DAO nếu cần,
+            // ở đây tạm thời gọi hàm getAppointmentsByDateRange rồi filter
+            val todayAppointments = withContext(Dispatchers.IO) {
+                appointmentDao.getAppointmentsByDateRange(startToday, endToday)
+            }
+
+            if (todayAppointments.isNotEmpty()) {
+                // Lấy cái đầu tiên chưa hoàn thành và chưa quá hạn
+                val now = System.currentTimeMillis()
+                val nearest = todayAppointments.firstOrNull {
+                    it.appointment.status == "SCHEDULED" && it.appointment.appointmentDate > now
+                }
+
+                if (nearest != null) {
+                    if (ActivityCompat.checkSelfPermission(this@HomeActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        return@launch
+                    }
+                    // Cần map AppointmentWithPatient sang Appointment nếu Helper yêu cầu
+                    // Helper_ThongBaoTaiKham.notifyNearestIfNeeded(this@HomeActivity, nearest.appointment)
+                }
+            }
+        }
+    }
+
+
+
+    //Hàm kiểm tra role để làm quản lí bác sĩ - Trí
+    private fun checkRole(){
+        val role = SessionManager.getRole(this)
+        val menu = navigationView.menu
+        if(role != "ADMIN"){
+            menu.findItem(R.id.menu_BacSi).isVisible = false
+        }
     }
 }

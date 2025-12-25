@@ -231,7 +231,9 @@ class Booking : AppCompatActivity() {
     }
 
     private fun setupTimeSlotList(slots: List<TimeSlot>) {
-        timeSlotAdapter = TimeSlotAdapter(slots) { slot ->
+        val currentDateMillis = selectedDate?.fullDate ?: System.currentTimeMillis()
+
+        timeSlotAdapter = TimeSlotAdapter(slots, currentDateMillis) { slot ->
             selectedTimeSlot = slot
         }
         rcTimeSlots.layoutManager = GridLayoutManager(this, 3)

@@ -204,16 +204,7 @@
                 android:focusable="true"
                 android:visibility="gone"
                 android:background="?attr/selectableItemBackground"/>
-            <Button
-                android:id="@+id/btnRateDoctor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="⭐ ĐÁNH GIÁ BÁC SĨ ⭐"
-                android:backgroundTint="#FF9800"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp"
-                android:visibility="gone" />
+
 
         </LinearLayout>
     </ScrollView>

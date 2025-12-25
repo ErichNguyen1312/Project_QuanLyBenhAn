@@ -18,4 +18,7 @@ interface PrescriptionItemDao {
 
     @Query("DELETE FROM prescription_items WHERE record_id = :recordId")
     suspend fun deleteItemsByRecordId(recordId: Long)
+    // lay so luong don thuoc theo benh an la ra tong don thuoc
+    @Query("SELECT COUNT(DISTINCT record_id) FROM prescription_items")
+    fun countTotalPrescriptions(): Int
 }

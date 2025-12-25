@@ -59,7 +59,7 @@ data class MedicalRecord(
     val doctorNotes: String?,
 
     @ColumnInfo(name = "doctor_advice")
-    val doctorAdvice: String?, // ⭐️ MỚI: Lời dặn dò bệnh nhân (Ăn kiêng, uống nhiều nước...)
+    val doctorAdvice: String?,
 
     @ColumnInfo(name = "examination_date")
     val examinationDate: Long = System.currentTimeMillis()

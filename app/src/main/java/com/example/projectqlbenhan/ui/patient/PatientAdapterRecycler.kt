@@ -9,11 +9,10 @@ import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.patient.Patient
 import java.util.Calendar
 
-class PatientAdapterRecycler (
+class PatientAdapterRecycler(
     private val patients: List<Patient>,
     private val onClick: (Patient) -> Unit
-) : RecyclerView.Adapter<PatientAdapterRecycler.PatientViewHolder>()
-{
+) : RecyclerView.Adapter<PatientAdapterRecycler.PatientViewHolder>() {
     inner class PatientViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
         private var tvAvatar: TextView = itemView.findViewById(R.id.tvAvatar)
@@ -23,7 +22,7 @@ class PatientAdapterRecycler (
         fun bind(patient: Patient) {
             val name = patient.fullName ?: "?"
 
-            val handleName  = getAvatarText(name)
+            val handleName = getAvatarText(name)
 
             // Avatar = chữ cái đầu
             tvAvatar.text = handleName
@@ -66,6 +65,7 @@ class PatientAdapterRecycler (
     override fun onBindViewHolder(holder: PatientViewHolder, position: Int) {
         holder.bind(patients[position])
     }
+
     override fun getItemCount(): Int = patients.size
     private fun calculateAge(dob: Long): Int {
         if (dob == 0L) return 0

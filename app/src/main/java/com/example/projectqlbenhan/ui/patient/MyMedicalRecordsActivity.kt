@@ -41,8 +41,36 @@ class MyMedicalRecordsActivity : AppCompatActivity() {
         }
     }
 
+//    private fun loadData() {
+//        // Lấy ID từ Session
+//        val patientId = SessionManager.getSpecificId(this)
+//
+//        if (patientId == -1L) {
+//            Toast.makeText(this, "Lỗi xác thực người dùng", Toast.LENGTH_SHORT).show()
+//            return
+//        }
+//
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val db = MedicalRecordDatabase.getDatabase(this@MyMedicalRecordsActivity)
+//            val list = db.medicalRecordDao().getRecordsByPatient(patientId)
+//
+//            withContext(Dispatchers.Main) {
+//                adapter = MedicalRecordAdapter(list) { record ->
+//                    // Sự kiện click vào item
+//                    val intent = Intent(this@MyMedicalRecordsActivity, UpdateMedicalRecord::class.java)
+//                    intent.putExtra("record_id", record.recordId)
+//                    intent.putExtra("is_view_only", true)
+//                    // (Optional) Gửi thêm cờ is_view_only nếu muốn chặn sửa
+//                    startActivity(intent)
+//                }
+//
+//                rcMyRecords.layoutManager = LinearLayoutManager(this@MyMedicalRecordsActivity)
+//                rcMyRecords.adapter = adapter
+//            }
+//        }
+//    }
+
     private fun loadData() {
-        // Lấy ID từ Session
         val patientId = SessionManager.getSpecificId(this)
 
         if (patientId == -1L) {
@@ -55,12 +83,18 @@ class MyMedicalRecordsActivity : AppCompatActivity() {
             val list = db.medicalRecordDao().getRecordsByPatient(patientId)
 
             withContext(Dispatchers.Main) {
+                // 👇 SỬA ĐOẠN CLICK NÀY
                 adapter = MedicalRecordAdapter(list) { record ->
-                    // Sự kiện click vào item
-                    val intent = Intent(this@MyMedicalRecordsActivity, UpdateMedicalRecord::class.java)
+
+                    // 1. Thay đổi đích đến: Không qua Update nữa, qua thẳng Detail
+                    val intent = Intent(this@MyMedicalRecordsActivity, PatientMedicalRecordDetail::class.java)
+
+                    // 2. Truyền ID để bên kia query dữ liệu
                     intent.putExtra("record_id", record.recordId)
-                    intent.putExtra("is_view_only", true)
-                    // (Optional) Gửi thêm cờ is_view_only nếu muốn chặn sửa
+
+                    // Note: Không cần truyền cờ "is_view_only" nữa
+                    // vì PatientMedicalRecordDetail mặc định đã là View-Only rồi.
+
                     startActivity(intent)
                 }
 

@@ -61,7 +61,7 @@ class HomeActivity : BaseActivity() {
     private val appointmentDao by lazy { db.appointmentDao() }
     private val patientDao by lazy { db.patientDao() }
     private val medicalRecordDao by lazy { db.medicalRecordDao() }
-    // private val prescriptionDao by lazy { db.prescriptionItemDao() } // Uncomment khi cần
+    private val prescriptionItemDao by lazy { db.prescriptionItemDao() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,7 +73,7 @@ class HomeActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         reloadDashboard()
-//         checkUpcomingAppointments() // Nếu bro có hàm check thông báo
+//         checkUpcomingAppointments()
     }
 
     private fun setControl() {
@@ -233,11 +233,13 @@ class HomeActivity : BaseActivity() {
             val todayAppt = withContext(Dispatchers.IO) {
                 appointmentDao.countTodayAppointments(startOfDay, endOfDay)
             }
-
+            val countPrescription = withContext(Dispatchers.IO) {
+                prescriptionItemDao.countTotalPrescriptions()
+            }
             tvTotalPatients.text = countPatient.toString()
             tvTotalRecords.text = countRecord.toString()
             tvTodayAppointments.text = todayAppt.toString()
-            tvTotalPrescriptions.text = "0"
+            tvTotalPrescriptions.text = countPrescription.toString()
         }
     }
 

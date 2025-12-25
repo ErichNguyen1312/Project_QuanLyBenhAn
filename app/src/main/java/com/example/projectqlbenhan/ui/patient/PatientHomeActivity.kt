@@ -10,11 +10,12 @@ import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.ui.authService.Login
 import com.example.projectqlbenhan.ui.medicalRecord.MyMedicalRecordsActivity
 import com.example.projectqlbenhan.ui.patient.UpdatePatient
+import com.example.projectqlbenhan.ui.patient.booking.Booking
 import com.example.projectqlbenhan.utils.SessionManager
 
 class PatientHomeActivity : AppCompatActivity() {
 
-    // Khai báo View
+
     private lateinit var tvWelcome: TextView
     private lateinit var cardMyRecords: CardView
     private lateinit var cardBooking: CardView
@@ -25,9 +26,9 @@ class PatientHomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_patient_home)
 
-        setControl() // 1. Ánh xạ View
-        showWelcome() // 2. Hiển thị dữ liệu
-        setEvent()   // 3. Gán sự kiện
+        setControl()
+        showWelcome()
+        setEvent()
     }
 
     private fun setControl() {
@@ -44,12 +45,12 @@ class PatientHomeActivity : AppCompatActivity() {
     }
 
     private fun setEvent() {
-        // 1. Click "Hồ sơ của tôi"
+
         cardMyRecords.setOnClickListener {
             startActivity(Intent(this, MyMedicalRecordsActivity::class.java))
         }
 
-        // 2. Click "Thông tin cá nhân"
+
         cardProfile.setOnClickListener {
             val patientId = SessionManager.getSpecificId(this)
             if (patientId != -1L) {
@@ -61,12 +62,12 @@ class PatientHomeActivity : AppCompatActivity() {
             }
         }
 
-        // 3. Click "Đặt lịch"
+
         cardBooking.setOnClickListener {
-            Toast.makeText(this, "Chức năng đang phát triển", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, Booking::class.java)
+            startActivity(intent)
         }
 
-        // 4. Click "Đăng xuất"
         cardLogout.setOnClickListener {
             SessionManager.logout(this)
             val intent = Intent(this, Login::class.java)

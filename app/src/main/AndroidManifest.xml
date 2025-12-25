@@ -14,30 +14,44 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectQLBenhAn">
-
+        <activity
+            android:name=".ui.patient.booking.Booking"
+            android:exported="true" />
         <activity
             android:name=".ui.authService.Login"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name=".ui.patient_home.PatientHomeActivity" />
         <activity android:name=".ui.medicalRecord.MyMedicalRecordsActivity" />
-        <activity android:name=".ui.BaseActivity" android:exported="true" />
-        <activity android:name=".ui.home.HomeActivity" android:exported="true" />
-        <activity android:name=".ui.medicalRecord.ProfilePatientMedicalRecord" android:exported="true" />
-        <activity android:name=".ui.medicalRecord.UpdateMedicalRecord" android:exported="true" />
-        <activity android:name=".ui.patient.UpdatePatient" android:exported="true" />
-        <activity android:name=".ui.patient.CreatePatient" android:exported="true" />
-        <activity android:name=".ui.patient.Patients" android:exported="true" />
-
+        <activity
+            android:name=".ui.BaseActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.home.HomeActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.medicalRecord.ProfilePatientMedicalRecord"
+            android:exported="true" />
+        <activity
+            android:name=".ui.medicalRecord.UpdateMedicalRecord"
+            android:exported="true" />
+        <activity
+            android:name=".ui.patient.UpdatePatient"
+            android:exported="true" />
+        <activity
+            android:name=".ui.patient.CreatePatient"
+            android:exported="true" />
+        <activity
+            android:name=".ui.patient.Patients"
+            android:exported="true" />
         <activity
             android:name=".ui.patient.ProfilePatient"
             android:exported="false" />
-
     </application>
 
 </manifest>

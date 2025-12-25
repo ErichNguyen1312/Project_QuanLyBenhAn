@@ -4,8 +4,10 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.example.projectqlbenhan.entity.doctor.Doctor
+import com.example.projectqlbenhan.entity.doctor.DoctorWithRating
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -47,5 +49,19 @@ interface DoctorDao {
     // Load list cho bệnh nhân đặt lịch
     @Query("SELECT * FROM doctors")
     fun getAllDoctorsFlow(): Flow<List<Doctor>>
+
+    @Query("SELECT * FROM doctors")
+    suspend fun getAllDoctors(): List<Doctor>
+
+    @Transaction
+    @Query("""
+        SELECT d.*, AVG(r.rating_doctor) as averageRating
+        FROM doctors d
+        LEFT JOIN medical_records m ON d.doctorId = m.doctor_id
+        LEFT JOIN reviews r ON m.recordId = r.record_id
+        GROUP BY d.doctorId
+    """)
+    suspend fun getDoctorsWithRating(): List<DoctorWithRating>
+
 
 }

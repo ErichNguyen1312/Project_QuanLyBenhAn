@@ -20,6 +20,7 @@ import com.example.projectqlbenhan.entity.patient.Patient
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 import com.example.projectqlbenhan.entity.review.Review
 import com.example.projectqlbenhan.utils.AccountSeeder
+import com.example.projectqlbenhan.utils.DatabaseSeeder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,7 +59,9 @@ abstract class MedicalRecordDatabase : RoomDatabase() {
             super.onCreate(db)
             INSTANCE?.let { database ->
                 scope.launch(Dispatchers.IO) {
-                    AccountSeeder.seed(database.accountDao())
+//                    AccountSeeder.seed(database.accountDao())
+                    //tao data mau
+                    DatabaseSeeder.seedIfNeeded(database)
                 }
             }
         }
@@ -67,7 +70,8 @@ abstract class MedicalRecordDatabase : RoomDatabase() {
             super.onOpen(db)
             INSTANCE?.let { database ->
                 scope.launch(Dispatchers.IO) {
-                    AccountSeeder.seed(database.accountDao())
+//                    AccountSeeder.seed(database.accountDao())
+//                    DatabaseSeeder.seedIfNeeded(database)
                 }
             }
         }

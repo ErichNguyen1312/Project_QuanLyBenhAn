@@ -17,94 +17,217 @@ object DatabaseSeeder {
     suspend fun seedIfNeeded(db: MedicalRecordDatabase) {
         withContext(Dispatchers.IO) {
             try {
+                // Kiểm tra nếu đã có dữ liệu Account thì không seed lại
                 if (db.accountDao().countAccounts() > 0) return@withContext
             } catch (e: Exception) {
+                e.printStackTrace()
             }
 
             val defaultPassHash = hashPassword("123456")
 
-
+            // ==========================================
+            // 1. TẠO TÀI KHOẢN ADMIN
+            // ==========================================
             db.accountDao().insertAccount(
                 Account(username = "admin", passwordHash = defaultPassHash, role = "ADMIN")
             )
 
-            val docAccId = db.accountDao().insertAccount(
+            // ==========================================
+            // 2. TẠO BÁC SĨ (5 Bác sĩ: 1 cũ + 4 mới)
+            // ==========================================
+
+            // --- Bác sĩ 1 (Cũ) ---
+            val docAccId1 = db.accountDao().insertAccount(
                 Account(username = "doctor01", passwordHash = defaultPassHash, role = "DOCTOR")
             )
-            // Tạo Profile Bác sĩ liên kết với Account
-            val doctor = Doctor(
-                accountId = docAccId,
-                fullName = "BS. Nguyễn Văn Đức",
-                specialization = "Nội Khoa",
-                description = "Chuyên khoa tiêu hóa, gan mật"
+            val doctor1Id = db.doctorDao().insert(
+                Doctor(
+                    accountId = docAccId1,
+                    fullName = "BS. Nguyễn Văn Đức",
+                    specialization = "Nội Khoa",
+                    description = "Chuyên khoa tiêu hóa, gan mật"
+                )
             )
-            val savedDoctorId = db.doctorDao().insert(doctor)
+
+            // --- Bác sĩ 2 (Mới - Nhi Khoa) ---
+            val docAccId2 = db.accountDao().insertAccount(
+                Account(username = "doctor02", passwordHash = defaultPassHash, role = "DOCTOR")
+            )
+            db.doctorDao().insert(
+                Doctor(
+                    accountId = docAccId2,
+                    fullName = "BS. Trần Thị Mai",
+                    specialization = "Nhi Khoa",
+                    description = "Chuyên điều trị bệnh lý ở trẻ em, hô hấp nhi"
+                )
+            )
+
+            // --- Bác sĩ 3 (Mới - Tim Mạch) ---
+            val docAccId3 = db.accountDao().insertAccount(
+                Account(username = "doctor03", passwordHash = defaultPassHash, role = "DOCTOR")
+            )
+            db.doctorDao().insert(
+                Doctor(
+                    accountId = docAccId3,
+                    fullName = "BS. Lê Quốc Tuấn",
+                    specialization = "Tim Mạch",
+                    description = "Chuyên gia về huyết áp và bệnh lý mạch vành"
+                )
+            )
+
+            // --- Bác sĩ 4 (Mới - Da Liễu) ---
+            val docAccId4 = db.accountDao().insertAccount(
+                Account(username = "doctor04", passwordHash = defaultPassHash, role = "DOCTOR")
+            )
+            db.doctorDao().insert(
+                Doctor(
+                    accountId = docAccId4,
+                    fullName = "BS. Phạm Thị Dung",
+                    specialization = "Da Liễu",
+                    description = "Điều trị mụn, dị ứng, thẩm mỹ da"
+                )
+            )
+
+            // --- Bác sĩ 5 (Mới - Chấn Thương Chỉnh Hình) ---
+            val docAccId5 = db.accountDao().insertAccount(
+                Account(username = "doctor05", passwordHash = defaultPassHash, role = "DOCTOR")
+            )
+            db.doctorDao().insert(
+                Doctor(
+                    accountId = docAccId5,
+                    fullName = "BS. Hoàng Văn Nam",
+                    specialization = "Chấn Thương Chỉnh Hình",
+                    description = "Phẫu thuật xương khớp, chấn thương thể thao"
+                )
+            )
 
 
+            // ==========================================
+            // 3. TẠO BỆNH NHÂN (6 BN: 2 cũ + 4 mới)
+            // ==========================================
+
+            // --- BN 1 (Cũ - Có tài khoản) ---
             val patAccId1 = db.accountDao().insertAccount(
                 Account(username = "0912345678", passwordHash = defaultPassHash, role = "PATIENT")
             )
-            val p1 = Patient(
-                accountId = patAccId1,
-                fullName = "Trần Thị Lan",
-                medicalRecordNumber = "BN-001", // Mã hồ sơ bắt buộc
-                dateOfBirth = getDob(1995),
-                gender = "Nữ",
-                phoneNumber = "0912345678",
-                address = "Quận 1, TP.HCM"
+            val p1Id = db.patientDao().insertPatient(
+                Patient(
+                    accountId = patAccId1,
+                    fullName = "Trần Thị Lan",
+                    medicalRecordNumber = "BN-001",
+                    dateOfBirth = getDob(1995),
+                    gender = "Nữ",
+                    phoneNumber = "0912345678",
+                    address = "Quận 1, TP.HCM"
+                )
             )
-            val p1Id = db.patientDao().insertPatient(p1)
 
-            val p2 = Patient(
-                accountId = null, // Vãng lai -> null
-                fullName = "Lê Văn Tèo (Vãng lai)",
-                medicalRecordNumber = "BN-002",
-                dateOfBirth = getDob(2000),
-                gender = "Nam",
-                phoneNumber = "0987654321",
-                address = "Quận 5, TP.HCM"
+            // --- BN 2 (Cũ - Vãng lai) ---
+            val p2Id = db.patientDao().insertPatient(
+                Patient(
+                    accountId = null,
+                    fullName = "Lê Văn Tèo (Vãng lai)",
+                    medicalRecordNumber = "BN-002",
+                    dateOfBirth = getDob(2000),
+                    gender = "Nam",
+                    phoneNumber = "0987654321",
+                    address = "Quận 5, TP.HCM"
+                )
             )
-            val p2Id = db.patientDao().insertPatient(p2)
+
+            // --- BN 3 (Mới - Có tài khoản - 0909000111) ---
+            val patAccId3 = db.accountDao().insertAccount(
+                Account(username = "0909000111", passwordHash = defaultPassHash, role = "PATIENT")
+            )
+            db.patientDao().insertPatient(
+                Patient(
+                    accountId = patAccId3,
+                    fullName = "Nguyễn Văn An",
+                    medicalRecordNumber = "BN-003",
+                    dateOfBirth = getDob(1988),
+                    gender = "Nam",
+                    phoneNumber = "0909000111",
+                    address = "Thủ Đức, TP.HCM"
+                )
+            )
+
+            // --- BN 4 (Mới - Có tài khoản - 0909000222) ---
+            val patAccId4 = db.accountDao().insertAccount(
+                Account(username = "0909000222", passwordHash = defaultPassHash, role = "PATIENT")
+            )
+            db.patientDao().insertPatient(
+                Patient(
+                    accountId = patAccId4,
+                    fullName = "Phạm Thị Bích",
+                    medicalRecordNumber = "BN-004",
+                    dateOfBirth = getDob(1992),
+                    gender = "Nữ",
+                    phoneNumber = "0909000222",
+                    address = "Bình Thạnh, TP.HCM"
+                )
+            )
+
+            // --- BN 5 (Mới - Vãng lai/Cấp cứu) ---
+            db.patientDao().insertPatient(
+                Patient(
+                    accountId = null,
+                    fullName = "Trần Văn Cường (Vãng lai)",
+                    medicalRecordNumber = "BN-005",
+                    dateOfBirth = getDob(1975),
+                    gender = "Nam",
+                    phoneNumber = "0918111222",
+                    address = "Quận 3, TP.HCM"
+                )
+            )
+
+            // --- BN 6 (Mới - Vãng lai/Người già không dùng app) ---
+            db.patientDao().insertPatient(
+                Patient(
+                    accountId = null,
+                    fullName = "Lê Thị Dần (Vãng lai)",
+                    medicalRecordNumber = "BN-006",
+                    dateOfBirth = getDob(1950),
+                    gender = "Nữ",
+                    phoneNumber = "0918333444",
+                    address = "Quận 10, TP.HCM"
+                )
+            )
 
 
             // ==========================================
-            // 3. TẠO LỊCH HẸN (APPOINTMENT)
+            // 4. DATA MẪU: LỊCH HẸN & BỆNH ÁN (Giữ nguyên mẫu cũ + update nếu cần)
             // ==========================================
 
-            // Lịch hẹn 1: Đã hoàn thành (của Lan - BN001)
+            // Lịch hẹn 1: Đã hoàn thành (của Lan - BN001) với Bác sĩ 1
             val appt1Id = db.appointmentDao().insert(
                 Appointment(
                     patientId = p1Id,
-                    doctorId = savedDoctorId,
-                    appointmentDate = getDateOffset(-2), // 2 ngày trước
+                    doctorId = doctor1Id,
+                    appointmentDate = getDateOffset(-2),
                     status = "COMPLETED",
                     reason = "Đau bụng kéo dài"
                 )
             )
 
-            // Lịch hẹn 2: Sắp tới (của Tèo - BN002)
+            // Lịch hẹn 2: Sắp tới (của Tèo - BN002) với Bác sĩ 1
             db.appointmentDao().insert(
                 Appointment(
                     patientId = p2Id,
-                    doctorId = savedDoctorId,
-                    appointmentDate = getDateOffset(1), // Ngày mai
+                    doctorId = doctor1Id,
+                    appointmentDate = getDateOffset(1),
                     status = "SCHEDULED",
                     reason = "Tái khám định kỳ"
                 )
             )
 
-            // ==========================================
-            // 4. TẠO BỆNH ÁN (MEDICAL RECORD)
-            // ==========================================
-
             // Bệnh án 1 (Khớp với Lịch hẹn 1)
             val record1 = MedicalRecord(
                 patientId = p1Id,
-                doctorId = savedDoctorId,
-                appointmentId = appt1Id, // Link với lịch hẹn
+                doctorId = doctor1Id,
+                appointmentId = appt1Id,
                 diagnosis = "Viêm dạ dày cấp",
                 symptoms = "Đau thượng vị, buồn nôn, chán ăn",
-                diseaseType = "Nội khoa", // Khớp với trường mới
+                diseaseType = "Nội khoa",
                 doctorNotes = "Hạn chế đồ chua cay, không thức khuya",
                 doctorAdvice = "Uống thuốc đúng giờ, tái khám sau 1 tuần",
                 examinationDate = getDateOffset(-2)
@@ -114,20 +237,20 @@ object DatabaseSeeder {
             // Bệnh án 2 (Cấp cứu/Vãng lai - Không có lịch hẹn)
             val record2 = MedicalRecord(
                 patientId = p2Id,
-                doctorId = savedDoctorId,
-                appointmentId = null, // Không có lịch trước
+                doctorId = doctor1Id,
+                appointmentId = null,
                 diagnosis = "Dị ứng thực phẩm",
                 symptoms = "Nổi mề đay, ngứa toàn thân",
                 diseaseType = "Da liễu",
                 doctorNotes = "Đã tiêm thuốc chống dị ứng tại chỗ",
                 doctorAdvice = "Kiêng hải sản, thịt bò trong 3 ngày",
-                examinationDate = getDateOffset(-5) // 5 ngày trước
+                examinationDate = getDateOffset(-5)
             )
             val record2Id = db.medicalRecordDao().insert(record2)
 
 
             // ==========================================
-            // 5. TẠO ĐƠN THUỐC (PRESCRIPTION ITEMS)
+            // 5. TẠO ĐƠN THUỐC
             // ==========================================
 
             // Thuốc cho Record 1
@@ -163,23 +286,18 @@ object DatabaseSeeder {
         }
     }
 
-    // =====================
-    // UTILS HELPERS
-    // =====================
 
     private fun hashPassword(password: String): String {
         val bytes = MessageDigest.getInstance("SHA-256").digest(password.toByteArray())
         return bytes.joinToString("") { "%02x".format(it) }
     }
 
-    // Lấy timestamp từ năm sinh (VD: 1995 -> timestamp)
     private fun getDob(year: Int): Long {
         val cal = Calendar.getInstance()
         cal.set(year, 0, 1)
         return cal.timeInMillis
     }
 
-    // Lấy timestamp +/- số ngày so với hiện tại
     private fun getDateOffset(days: Int): Long {
         val cal = Calendar.getInstance()
         cal.add(Calendar.DAY_OF_YEAR, days)

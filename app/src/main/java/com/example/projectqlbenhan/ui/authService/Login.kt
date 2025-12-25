@@ -24,20 +24,18 @@ class Login : AppCompatActivity() {
     private lateinit var etPass: EditText
     private lateinit var btnLogin: Button
 
-    // Lazy load DB
+
     private lateinit var db : MedicalRecordDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        setControl()      // 1. Ánh xạ View
+        setControl()
          db = MedicalRecordDatabase.getDatabase(this)
-        lifecycleScope.launch(Dispatchers.IO) {
-            DatabaseSeeder.seedIfNeeded(db)
-        }
-        checkAlreadyLogin() // 2. Kiểm tra đăng nhập cũ (nếu có)
-        setEvent()        // 3. Gán sự kiện
+
+        checkAlreadyLogin()
+        setEvent()
     }
 
     private fun setControl() {
@@ -52,7 +50,7 @@ class Login : AppCompatActivity() {
         }
     }
 
-    // --- CÁC HÀM XỬ LÝ LOGIC ---
+
 
     private fun checkAlreadyLogin() {
         if (SessionManager.isLoggedIn(this)) {
@@ -85,12 +83,12 @@ class Login : AppCompatActivity() {
 
             withContext(Dispatchers.Main) {
                 if (account != null) {
-                    // 1. Lưu Session cơ bản
+
                     SessionManager.saveAuthToken(this@Login, "token_demo")
                     SessionManager.saveUserRole(this@Login, account.role)
                     SessionManager.saveAccountId(this@Login, account.accountId)
 
-                    // 2. PHÂN LUỒNG (QUAN TRỌNG) ⭐️
+
                     when (account.role) {
                         "DOCTOR" -> {
                             checkDoctorAndRedirect(account.accountId)
@@ -112,7 +110,7 @@ class Login : AppCompatActivity() {
         }
     }
 
-    // --- LOGIC CHO BÁC SĨ ---
+
     private fun checkDoctorAndRedirect(accountId: Long) {
         lifecycleScope.launch(Dispatchers.IO) {
             val doctor = db.doctorDao().getDoctorByAccountId(accountId)
@@ -121,7 +119,7 @@ class Login : AppCompatActivity() {
                     SessionManager.saveSpecificId(this@Login, doctor.doctorId)
                     SessionManager.saveFullName(this@Login, doctor.fullName)
 
-                    // Chuyển sang Home Bác sĩ
+
                     startActivity(Intent(this@Login, HomeActivity::class.java))
                     finish()
                 } else {
@@ -131,7 +129,7 @@ class Login : AppCompatActivity() {
         }
     }
 
-    // --- LOGIC CHO BỆNH NHÂN ---
+
     private fun checkPatientAndRedirect(accountId: Long) {
         lifecycleScope.launch(Dispatchers.IO) {
             val patient = db.patientDao().getPatientByAccountId(accountId)
@@ -140,7 +138,7 @@ class Login : AppCompatActivity() {
                     SessionManager.saveSpecificId(this@Login, patient.patientId)
                     SessionManager.saveFullName(this@Login, patient.fullName)
 
-                    // Chuyển sang Home Bệnh Nhân
+
                     startActivity(Intent(this@Login, PatientHomeActivity::class.java))
                     finish()
                 } else {

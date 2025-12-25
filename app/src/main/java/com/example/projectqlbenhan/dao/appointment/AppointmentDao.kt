@@ -130,4 +130,17 @@ interface AppointmentDao {
         ORDER BY appointmentDate ASC
     """)
     suspend fun getAppointmentsByDateRange(start: Long, end: Long): List<AppointmentWithPatient>
+
+    @Query("""
+        SELECT * FROM appointments 
+        WHERE doctor_id = :doctorId 
+        AND appointmentDate >= :startTime 
+        AND appointmentDate <= :endTime 
+        AND status != 'CANCELLED'
+    """)
+    suspend fun getAppointmentsByDoctorAndDate(
+        doctorId: Long,
+        startTime: Long,
+        endTime: Long
+    ): List<Appointment>
 }

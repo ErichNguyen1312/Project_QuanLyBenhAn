@@ -15,6 +15,7 @@ import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.dao.patient.PatientDao
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
+import com.example.projectqlbenhan.ui.TaiKham.screenTaiKham_Main
 import com.example.projectqlbenhan.ui.medicalRecord.ProfilePatientMedicalRecord
 import com.example.projectqlbenhan.ui.medicalRecord.UpdateMedicalRecord
 import kotlinx.coroutines.CoroutineScope
@@ -57,6 +58,7 @@ class ProfilePatient : AppCompatActivity() {
         btnUpdate.setOnClickListener { updatePatient() }
         btnDelete.setOnClickListener { showDeleteConfirm() }
 
+
         // Nút "Xem tất cả bệnh án"
         btnPatientMedicalRecordDetail.setOnClickListener {
             val intent = Intent(this, ProfilePatientMedicalRecord::class.java)
@@ -66,9 +68,9 @@ class ProfilePatient : AppCompatActivity() {
         }
 
         btnTaiKham.setOnClickListener {
-//            val intent = Intent(this, screenTaiKham_Main::class.java)
-//            intent.putExtra("patient_id", patientId)
-//            startActivity(intent)
+            val intent = Intent(this, screenTaiKham_Main::class.java)
+            intent.putExtra("patient_id", patientId)
+            startActivity(intent)
         }
 
         btnBack.setOnClickListener { finish() }

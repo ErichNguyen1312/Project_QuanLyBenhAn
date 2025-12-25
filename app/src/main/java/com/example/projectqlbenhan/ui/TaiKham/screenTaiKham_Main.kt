@@ -37,6 +37,7 @@ class screenTaiKham_Main : AppCompatActivity() {
         patientId = intent.getLongExtra("patient_id", -1)
 
         initView()
+        setControl()
         setEvent()
     }
 
@@ -45,6 +46,11 @@ class screenTaiKham_Main : AppCompatActivity() {
         refreshData()
     }
 
+    private fun setControl(){
+        listTaiKham = findViewById(R.id.listTaiKham)
+        btnDatLichTK = findViewById(R.id.btnDatLichTK)
+        ct_btnBack = findViewById(R.id.ct_btnBack)
+    }
     private fun initView() {
         listTaiKham = findViewById(R.id.listTaiKham)
         btnDatLichTK = findViewById(R.id.btnDatLichTK)

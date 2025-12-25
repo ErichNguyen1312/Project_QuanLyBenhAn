@@ -24,6 +24,8 @@ class screenTaiKham_Edit : AppCompatActivity() {
     private lateinit var btnSave: Button
     private lateinit var btnXoa: Button
     private lateinit var spnBacSi: Spinner
+    private lateinit var ct_tvTieuDe: TextView
+    private lateinit var ct_btnBack: ImageButton
 
     private var appointmentId: Long = -1
     private var currentDoctorId: Long = -1
@@ -61,15 +63,17 @@ class screenTaiKham_Edit : AppCompatActivity() {
         btnSave = findViewById(R.id.btnSave)
         btnXoa = findViewById(R.id.btnXoa)
         spnBacSi = findViewById(R.id.spnBacSi)
+        ct_tvTieuDe = findViewById(R.id.ct_tvTieuDe)
+        ct_btnBack = findViewById(R.id.ct_btnBack)
+
+        ct_tvTieuDe.text = "Chỉnh sửa lịch tái khám - Trần Thiện Trí"
     }
 
     private fun loadDoctorsAndSetSelection() {
         lifecycleScope.launch {
             val db = MedicalRecordDatabase.getDatabase(this@screenTaiKham_Edit)
-            // Fetch list bác sĩ (Giống bên Create)
             doctorList = withContext(Dispatchers.IO) {
-                // db.doctorDao().getAll() // Thay bằng hàm DAO của bạn
-                emptyList() // Placeholder
+                db.doctorDao().getAll()
             }
 
             val doctorNames = doctorList.map { it.fullName }
@@ -125,6 +129,8 @@ class screenTaiKham_Edit : AppCompatActivity() {
         btnXoa.setOnClickListener {
             showConfirmDelete()
         }
+
+        ct_btnBack.setOnClickListener { finish() }
     }
 
     private fun updateTimeDisplay() {

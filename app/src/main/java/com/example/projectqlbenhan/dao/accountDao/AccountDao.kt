@@ -1,6 +1,7 @@
 package com.example.projectqlbenhan.dao.accountDao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -21,4 +22,11 @@ interface AccountDao {
     suspend fun updatePassword(id: Long, newPass: String)
     @Query("SELECT COUNT(*) FROM accounts")
     suspend fun countAccounts(): Int
+
+    @Query("SELECT * FROM accounts WHERE accountId = :accountId")
+    suspend fun getAccountById(accountId: Long): Account
+
+    @Delete
+    suspend fun Delete(account: Account)
+
 }

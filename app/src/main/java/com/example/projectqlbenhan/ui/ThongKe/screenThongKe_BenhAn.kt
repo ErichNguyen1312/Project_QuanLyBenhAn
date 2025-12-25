@@ -1,5 +1,6 @@
 package com.example.projectqlbenhan.ui.ThongKe
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -12,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.ui.BaseActivity
+import com.example.projectqlbenhan.ui.home.HomeActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,9 +37,19 @@ class screenThongKe_BenhAn : AppCompatActivity() {
         // Khởi tạo Database
         db = MedicalRecordDatabase.getDatabase(this)
 
+
+        setControl()
         initView()
         setupSpinnerData() // Load dữ liệu cho Spinner
         setEvent()
+    }
+
+    private fun setControl(){
+        spDiseaseType = findViewById(R.id.spDiseaseType)
+        ct_btnBack = findViewById(R.id.ct_btnBack)
+        ct_tvTieuDe = findViewById(R.id.ct_tvTieuDe)
+        lvMedicalRecord = findViewById(R.id.lvMedicalRecord)
+        tvTotalCount = findViewById(R.id.tvTotalCount)
     }
 
     private fun initView() {
@@ -45,8 +58,6 @@ class screenThongKe_BenhAn : AppCompatActivity() {
         tvTotalCount = findViewById(R.id.tvTotalCount) // ID mới thêm trong XML
 
         // Toolbar custom
-        ct_btnBack = findViewById(R.id.btnBack) // Kiểm tra lại ID trong custom_toolbar
-        ct_tvTieuDe = findViewById(R.id.tvTitle) // Kiểm tra lại ID trong custom_toolbar
         ct_tvTieuDe.text = "Thống kê Bệnh án - Trần Thiện Trí"
 
         // Khởi tạo Adapter rỗng ban đầu
@@ -81,7 +92,8 @@ class screenThongKe_BenhAn : AppCompatActivity() {
     private fun setEvent() {
         // Nút Back
         ct_btnBack.setOnClickListener {
-            finish() // Đóng Activity quay về màn hình trước
+            intent = Intent(this, HomeActivity::class.java)
+            startActivity(intent)
         }
 
         // Sự kiện chọn Spinner

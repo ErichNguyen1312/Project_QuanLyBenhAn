@@ -25,6 +25,7 @@ import com.example.projectqlbenhan.entity.medicalRecord.DiseaseStat
 import com.example.projectqlbenhan.ui.BaseActivity
 
 import com.example.projectqlbenhan.ui.medicalRecord.UpdateMedicalRecord
+import com.example.projectqlbenhan.utils.SessionManager
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.PieData
@@ -78,6 +79,10 @@ class HomeActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setControl()
+
+        //Kiểm tra role - Trí
+        checkRole()
+
         setEvent()
 
         // Cấp quyền thông báo
@@ -440,6 +445,15 @@ class HomeActivity : BaseActivity() {
                 Toast.makeText(this@HomeActivity, "Đã hủy lịch hẹn", Toast.LENGTH_SHORT).show()
                 reloadDashboard() // Reload lại toàn bộ
             }
+        }
+    }
+
+    //Hàm kiểm tra role để làm quản lí bác sĩ - Trí
+    private fun checkRole(){
+        val role = SessionManager.getRole(this)
+        val menu = navigationView.menu
+        if(role != "ADMIN"){
+            menu.findItem(R.id.menu_BacSi).isVisible = false
         }
     }
 }

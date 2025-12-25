@@ -1,6 +1,7 @@
 package com.example.projectqlbenhan.dao.doctor
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -51,4 +52,13 @@ interface DoctorDao {
     //Lấy danh sách bác sĩ - Trí
     @Query("SELECT * FROM doctors")
     suspend fun getAll(): List<Doctor>
+
+    @Update
+    suspend fun Update(doctor: Doctor)
+
+    @Delete
+    suspend fun Delete(doctor: Doctor)
+
+
+
 }

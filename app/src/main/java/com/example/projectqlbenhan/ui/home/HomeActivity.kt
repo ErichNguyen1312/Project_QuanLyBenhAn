@@ -158,12 +158,22 @@ class HomeActivity : BaseActivity() {
     }
 
     private fun handleAppointmentClick(item: AppointmentWithPatient) {
+        val currentDoctorId = SessionManager.getSpecificId(this)
+
+        // Nếu ID bác sĩ trong lịch KHÁC với ID bác sĩ đang đăng nhập -> Chặn luôn
+        if (item.appointment.doctorId != currentDoctorId) {
+            Toast.makeText(this, "Bạn không phụ trách ca khám này!", Toast.LENGTH_SHORT).show()
+            return // Dừng lại, không chạy code bên dưới
+        }
         if (item.appointment.status == "SCHEDULED" || item.appointment.status == "MISSED") {
             val intent = Intent(this, UpdateMedicalRecord::class.java)
             intent.putExtra("patient_id", item.patient.patientId)
             intent.putExtra("appointment_id", item.appointment.appointmentId)
             intent.putExtra("record_id", -1L)
             startActivity(intent)
+        } else {
+            // (Optional) Toast báo nếu trạng thái đã hoàn thành/hủy
+            Toast.makeText(this, "Lịch hẹn này đã kết thúc hoặc bị hủy.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -367,52 +377,42 @@ class HomeActivity : BaseActivity() {
         cal.set(Calendar.MILLISECOND, 0)
     }
 
-    // --- WORKER & NOTIFICATION LOGIC ---
-//    private fun startThongBaoTaiKhamWorker() {
-//        val workRequest = PeriodicWorkRequestBuilder<Worker_ThongBaoTaiKham>(15, TimeUnit.MINUTES).build()
-//        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-//            "ThongBaoTaiKham",
-//            ExistingPeriodicWorkPolicy.KEEP,
-//            workRequest
-//        )
-//    }
 
     private fun ThongBaoTaiKham_LichGanNhat() {
         lifecycleScope.launch {
             val startToday = getStartOfToday()
             val endToday = startToday + (24 * 60 * 60 * 1000) - 1
 
-            // Logic lấy thông báo - Cần điều chỉnh lại DAO nếu cần,
-            // ở đây tạm thời gọi hàm getAppointmentsByDateRange rồi filter
             val todayAppointments = withContext(Dispatchers.IO) {
                 appointmentDao.getAppointmentsByDateRange(startToday, endToday)
             }
 
             if (todayAppointments.isNotEmpty()) {
-                // Lấy cái đầu tiên chưa hoàn thành và chưa quá hạn
                 val now = System.currentTimeMillis()
                 val nearest = todayAppointments.firstOrNull {
                     it.appointment.status == "SCHEDULED" && it.appointment.appointmentDate > now
                 }
 
                 if (nearest != null) {
-                    if (ActivityCompat.checkSelfPermission(this@HomeActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(
+                            this@HomeActivity,
+                            Manifest.permission.POST_NOTIFICATIONS
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
                         return@launch
                     }
-                    // Cần map AppointmentWithPatient sang Appointment nếu Helper yêu cầu
-                    // Helper_ThongBaoTaiKham.notifyNearestIfNeeded(this@HomeActivity, nearest.appointment)
+
                 }
             }
         }
     }
 
 
-
     //Hàm kiểm tra role để làm quản lí bác sĩ - Trí
-    private fun checkRole(){
+    private fun checkRole() {
         val role = SessionManager.getRole(this)
         val menu = navigationView.menu
-        if(role != "ADMIN"){
+        if (role != "ADMIN") {
             menu.findItem(R.id.menu_BacSi).isVisible = false
         }
     }

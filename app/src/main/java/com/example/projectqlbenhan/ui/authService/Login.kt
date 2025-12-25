@@ -97,8 +97,8 @@ class Login : AppCompatActivity() {
                             checkPatientAndRedirect(account.accountId)
                         }
                         "ADMIN" -> {
-                            checkAdminAndRedirect(account.accountId)
-//                            Toast.makeText(this@Login, "Admin chưa hỗ trợ", Toast.LENGTH_SHORT).show()
+//                            checkAdminAndRedirect(account.accountId)
+                            Toast.makeText(this@Login, "Admin chưa hỗ trợ", Toast.LENGTH_SHORT).show()
                         }
                         else -> {
                             Toast.makeText(this@Login, "Role không hợp lệ: ${account.role}", Toast.LENGTH_SHORT).show()

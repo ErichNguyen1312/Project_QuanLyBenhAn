@@ -17,10 +17,6 @@
         android:id="@+id/menu_ThongKeBenhAn"
         android:title="Thống kê bệnh án"
         android:icon="@drawable/ic_medical_records"/>
-    <item
-        android:id="@+id/menu_BacSi"
-        android:title="Quản lý bác sĩ"
-        android:icon="@drawable/ic_doctor_24"/>
 
     <item
         android:id="@+id/menu_logout"

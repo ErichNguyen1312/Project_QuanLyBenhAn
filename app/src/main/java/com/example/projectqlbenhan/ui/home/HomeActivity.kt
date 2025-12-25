@@ -68,9 +68,6 @@ class HomeActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setControl()
 
-        //Kiểm tra role - Trí
-        checkRole()
-
         setEvent()
         checkNotificationPermission()
     }
@@ -403,17 +400,6 @@ class HomeActivity : BaseActivity() {
                     // Helper_ThongBaoTaiKham.notifyNearestIfNeeded(this@HomeActivity, nearest.appointment)
                 }
             }
-        }
-    }
-
-
-
-    //Hàm kiểm tra role để làm quản lí bác sĩ - Trí
-    private fun checkRole(){
-        val role = SessionManager.getRole(this)
-        val menu = navigationView.menu
-        if(role != "ADMIN"){
-            menu.findItem(R.id.menu_BacSi).isVisible = false
         }
     }
 }

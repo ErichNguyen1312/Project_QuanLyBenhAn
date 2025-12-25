@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.projectqlbenhan.entity.review.Review
+import com.example.projectqlbenhan.entity.review.ReviewDetail
 
 @Dao
 interface ReviewDao {
@@ -32,4 +33,33 @@ interface ReviewDao {
         ORDER BY r.created_at DESC
     """)
     suspend fun getDoctorReviews(doctorId: Long): List<Review>
+
+    //Lầy thông tin cho chức năng thống kê đánh giá - Trí
+    @Query("""
+                SELECT 
+            r.reviewId, r.comment, r.rating_doctor, r.rating_diagnosis, r.rating_medication, r.created_at,
+            d.fullName as doctorName,
+            p.fullName as patientName
+        FROM reviews r
+        INNER JOIN medical_records m ON r.record_id = m.recordId
+        INNER JOIN doctors d ON m.doctor_id = d.doctorId
+        INNER JOIN patients p ON m.patient_id = p.patientId
+        WHERE (:docId = -1 OR d.doctorId = :docId)
+        AND (:rating = 0 OR r.rating_doctor = :rating)
+        ORDER BY r.created_at DESC
+    """)
+    suspend fun getFilteredReviews(docId: Long, rating: Int): List<ReviewDetail>
+
+    @Query("""
+        SELECT 
+            r.reviewId, r.comment, r.rating_doctor, r.rating_diagnosis, r.rating_medication, r.created_at,
+            d.fullName as doctorName,
+            p.fullName as patientName
+        FROM reviews r
+        INNER JOIN medical_records m ON r.record_id = m.recordId
+        INNER JOIN doctors d ON m.doctor_id = d.doctorId
+        INNER JOIN patients p ON m.patient_id = p.patientId
+        WHERE (r.reviewId = :reviewId)
+    """)
+    suspend fun getReviewById(reviewId: Long): ReviewDetail
 }

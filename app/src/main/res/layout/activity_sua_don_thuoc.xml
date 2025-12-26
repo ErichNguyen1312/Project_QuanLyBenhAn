@@ -67,36 +67,6 @@
                 android:layout_marginBottom="24dp" />
 
             <EditText
-                android:id="@+id/edtMaBenhNhan"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:hint="Mã bệnh nhân (Hồ sơ ID)"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:inputType="number"
-                android:textColorHint="#A0A0A0"
-                android:enabled="false"
-                android:focusable="false"
-                android:background="#EEEEEE"
-                tools:text="12345"/>
-
-            <EditText
-                android:id="@+id/edtTenBenhNhan"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:hint="Tên bệnh nhân"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:inputType="textCapWords"
-                android:textColorHint="#A0A0A0"
-                android:enabled="false"
-                android:focusable="false"
-                android:background="#EEEEEE"
-                tools:text="Trần Văn A"/>
-
-            <EditText
                 android:id="@+id/edtTenThuoc"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"

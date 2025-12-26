@@ -122,6 +122,11 @@ class UpdateMedicalRecord : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        loadData()
+        super.onResume()
+    }
+
     private fun loadData() {
         if (recordId != -1L) {
             setupForUpdateMode()

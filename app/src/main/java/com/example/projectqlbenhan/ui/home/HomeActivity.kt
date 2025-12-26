@@ -21,6 +21,7 @@ import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.appointment.AppointmentWithPatient
 import com.example.projectqlbenhan.entity.medicalRecord.DiseaseStat
 import com.example.projectqlbenhan.ui.BaseActivity
+import com.example.projectqlbenhan.ui.DonThuocUI.DanhSachDonThuoc
 import com.example.projectqlbenhan.ui.medicalRecord.UpdateMedicalRecord
 import com.example.projectqlbenhan.utils.SessionManager
 import com.github.mikephil.charting.charts.PieChart
@@ -54,6 +55,7 @@ class HomeActivity : BaseActivity() {
     private lateinit var pieChart: PieChart
     private lateinit var btnPickDate: LinearLayout
     private lateinit var tvCurrentDate: TextView
+    private lateinit var ic_prescription: ImageView
 
     private var selectedCalendar: Calendar = Calendar.getInstance()
     private lateinit var appointmentAdapter: AppointmentAdapter
@@ -92,6 +94,7 @@ class HomeActivity : BaseActivity() {
         pieChart = findViewById(R.id.pieDiseaseChart)
         btnPickDate = findViewById(R.id.btnPickDate)
         tvCurrentDate = findViewById(R.id.tvCurrentDate)
+        ic_prescription = findViewById(R.id.ic_prescription)
 
         setupRecyclerView()
 
@@ -121,6 +124,12 @@ class HomeActivity : BaseActivity() {
                 updateDateDisplay()
             }
             loadAppointments()
+        }
+
+        ic_prescription.setOnClickListener {
+            val intent = Intent(this, DanhSachDonThuoc::class.java)
+            startActivity(intent)
+
         }
     }
 

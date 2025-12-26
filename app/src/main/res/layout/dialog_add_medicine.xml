@@ -18,7 +18,8 @@
         android:id="@+id/edtMedName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Tên thuốc (VD: Panadol)" />
+        android:hint="Tên thuốc (VD: Panadol)"
+        android:inputType="textCapWords" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -38,14 +39,24 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:hint="Đơn vị (VD: Viên)" />
+            android:hint="Đơn vị (VD: Viên)"
+            android:inputType="text" />
     </LinearLayout>
 
     <EditText
         android:id="@+id/edtMedDosage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Liều dùng (VD: Sáng 1, Chiều 1)" />
+        android:hint="Liều dùng (VD: Sáng 1, Chiều 1)"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/edtMedInstruction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Lời dặn (VD: Uống sau khi ăn)"
+        android:inputType="textCapSentences"
+        android:layout_marginTop="8dp" />
 
     <Button
         android:id="@+id/btnConfirmAdd"

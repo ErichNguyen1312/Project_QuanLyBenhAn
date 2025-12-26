@@ -14,7 +14,23 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ProjectQLBenhAn">
+        android:theme="@style/Theme.ProjectQLBenhAn"
+        tools:replace="android:allowBackup"> <activity
+        android:name=".ui.DonThuocUI.ThemDonThuoc"
+        android:exported="false" />
+        <activity
+            android:name=".ui.DonThuocUI.SuaDonThuoc"
+            android:exported="false" />
+        <activity
+            android:name=".ui.DonThuocUI.DonThuoc"
+            android:exported="false" />
+        <activity
+            android:name=".ui.DonThuocUI.DanhSachDonThuoc"
+            android:exported="false" />
+        <activity
+            android:name=".ui.DonThuocUI.ChiTietDonThuoc"
+            android:exported="false" />
+
         <activity
             android:name=".ui.DanhGia.ScreenDanhGia_Detail"
             android:exported="false" />
@@ -47,17 +63,23 @@
         <activity
             android:name=".ui.patient.booking.Booking"
             android:exported="true" />
+
         <activity
             android:name=".ui.authService.Login"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.patient_home.PatientHomeActivity" />
-        <activity android:name=".ui.medicalRecord.MyMedicalRecordsActivity" />
+
+        <activity
+            android:name=".ui.patient_home.PatientHomeActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".ui.medicalRecord.MyMedicalRecordsActivity"
+            android:exported="false"/>
+
         <activity
             android:name=".ui.BaseActivity"
             android:exported="true" />
@@ -79,14 +101,10 @@
         <activity
             android:name=".ui.patient.Patients"
             android:exported="true" />
+
         <activity
             android:name=".ui.patient.ProfilePatient"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 

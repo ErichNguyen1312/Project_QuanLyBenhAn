@@ -260,14 +260,16 @@ object DatabaseSeeder {
                     medicineName = "Omeprazole 20mg",
                     quantity = 14,
                     unit = "Viên",
-                    dosage = "Sáng 1 viên trước ăn 30p"
+                    dosage = "Sáng 1 viên trước ăn 30p",
+                    instruction = "Uống khi đói" // ⭐ Bổ sung tham số để fix lỗi
                 ),
                 PrescriptionItem(
                     recordId = record1Id,
                     medicineName = "Phosphalugel",
                     quantity = 10,
                     unit = "Gói",
-                    dosage = "Uống khi đau hoặc sau ăn"
+                    dosage = "Sáng 1, Chiều 1",
+                    instruction = "Uống sau khi ăn" // ⭐ Bổ sung tham số để fix lỗi
                 )
             )
             db.prescriptionItemDao().insertPrescriptionItems(items1)
@@ -279,7 +281,8 @@ object DatabaseSeeder {
                     medicineName = "Loratadin 10mg",
                     quantity = 5,
                     unit = "Viên",
-                    dosage = "Sáng 1 viên sau ăn"
+                    dosage = "Sáng 1 viên sau ăn",
+                    instruction = "Tránh dùng thuốc khi vận hành máy móc" // ⭐ Bổ sung tham số để fix lỗi
                 )
             )
             db.prescriptionItemDao().insertPrescriptionItems(items2)

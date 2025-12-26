@@ -6,17 +6,18 @@ import com.example.projectqlbenhan.entity.doctor.Doctor
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 
 data class FullMedicalRecord(
-    @Embedded val medicalRecord: MedicalRecord,
+    @Embedded
+    val medicalRecord: MedicalRecord,
 
     @Relation(
-        parentColumn = "doctor_id",
-        entityColumn = "doctorId"
+        parentColumn = "doctor_id", // Cột doctor_id trong class MedicalRecord
+        entityColumn = "doctorId"   // Cột doctorId trong class Doctor
     )
-    val doctor: Doctor?,
+    val doctor: Doctor? = null,
 
     @Relation(
-        parentColumn = "recordId", // ID trong bảng MedicalRecord
-        entityColumn = "record_id" // ID trong bảng PrescriptionItem
+        parentColumn = "recordId",
+        entityColumn = "record_id"
     )
     val prescriptionItems: List<PrescriptionItem>
 )

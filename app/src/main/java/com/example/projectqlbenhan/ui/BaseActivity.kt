@@ -10,6 +10,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.ui.BacSi.screenBacSi_Main
+import com.example.projectqlbenhan.ui.DonThuocUI.DanhSachDonThuoc
 import com.example.projectqlbenhan.ui.DonThuocUI.DonThuoc
 import com.example.projectqlbenhan.ui.ThongKe.screenThongKe_BenhAn
 
@@ -74,7 +75,7 @@ abstract class BaseActivity : AppCompatActivity() {
                     finishAffinity()
                 }
                 R.id.menu_quanLyDonThuoc ->{
-                    startActivity(Intent(this, DonThuoc::class.java))
+                    startActivity(Intent(this, DanhSachDonThuoc::class.java))
                     finishAffinity()
                 }
             }

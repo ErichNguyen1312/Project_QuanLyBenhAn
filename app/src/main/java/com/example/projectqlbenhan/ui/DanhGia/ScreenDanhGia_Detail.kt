@@ -30,15 +30,9 @@ class ScreenDanhGia_Detail : AppCompatActivity() {
             insets
         }
 
-        // --- BẮT ĐẦU LOGIC CHÍNH ---
-
-        // 1. Xử lý nút Back
         findViewById<ImageView>(R.id.btnBack).setOnClickListener {
             finish()
         }
-
-        // 2. Nhận dữ liệu từ màn hình trước gửi sang
-        // "DATA_REVIEW" là key phải trùng khớp với bên ScreenDanhGia_Main
         lifecycleScope.launch(Dispatchers.IO) {
             val db = MedicalRecordDatabase.getDatabase(this@ScreenDanhGia_Detail)
             val reviewId = intent.getLongExtra("reviewId", 0L)
@@ -51,7 +45,6 @@ class ScreenDanhGia_Detail : AppCompatActivity() {
     }
 
     private fun setupData(item: ReviewDetail) {
-        // Ánh xạ các View
         val tvDoctor = findViewById<TextView>(R.id.tvDoctorName)
         val tvPatient = findViewById<TextView>(R.id.tvPatientName)
         val tvDate = findViewById<TextView>(R.id.tvDate)
@@ -61,16 +54,13 @@ class ScreenDanhGia_Detail : AppCompatActivity() {
         val rbDiag = findViewById<RatingBar>(R.id.ratingDiagnosis)
         val rbMed = findViewById<RatingBar>(R.id.ratingMedication)
 
-        // Gán dữ liệu Text
         tvDoctor.text = "Bác sĩ: ${item.doctorName}"
         tvPatient.text = "Bệnh nhân: ${item.patientName}"
         tvComment.text = item.comment ?: "Không có nội dung bình luận."
 
-        // Xử lý ngày tháng (Format Long -> String)
         val sdf = SimpleDateFormat("HH:mm - dd/MM/yyyy", Locale.getDefault())
         tvDate.text = sdf.format(item.createdAt)
 
-        // Gán dữ liệu RatingBar
         rbDoc.rating = item.ratingDoctor.toFloat()
         rbDiag.rating = item.ratingDiagnosis.toFloat()
         rbMed.rating = item.ratingMedication.toFloat()

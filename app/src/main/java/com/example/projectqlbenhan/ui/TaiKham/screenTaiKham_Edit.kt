@@ -40,7 +40,6 @@ class screenTaiKham_Edit : AppCompatActivity() {
 
         initView()
 
-        // Lấy dữ liệu từ Intent
         appointmentId = intent.getLongExtra("appointmentId", -1)
         val dateMillis = intent.getLongExtra("appointmentDate", System.currentTimeMillis())
         currentDoctorId = intent.getLongExtra("doctorId", -1)
@@ -48,7 +47,6 @@ class screenTaiKham_Edit : AppCompatActivity() {
 
         selectedDateCalendar.timeInMillis = dateMillis
 
-        // Hiển thị dữ liệu cũ
         updateTimeDisplay()
         edtGhiChu.setText(note)
 
@@ -80,7 +78,6 @@ class screenTaiKham_Edit : AppCompatActivity() {
             val adapter = ArrayAdapter(this@screenTaiKham_Edit, android.R.layout.simple_spinner_dropdown_item, doctorNames)
             spnBacSi.adapter = adapter
 
-            // Tìm vị trí bác sĩ cũ để set selection
             val index = doctorList.indexOfFirst { it.doctorId == currentDoctorId }
             if (index != -1) {
                 spnBacSi.setSelection(index)

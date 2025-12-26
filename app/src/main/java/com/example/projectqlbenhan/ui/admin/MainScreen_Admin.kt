@@ -11,7 +11,6 @@ import com.example.projectqlbenhan.ui.DanhGia.ScreenDanhGia_Main
 import com.example.projectqlbenhan.ui.authService.Login
 import com.example.projectqlbenhan.utils.SessionManager
 
-// import com.example.projectqlbenhan.ui.auth.LoginActivity
 
 class MainScreen_Admin : AppCompatActivity() {
 
@@ -25,13 +24,11 @@ class MainScreen_Admin : AppCompatActivity() {
         }
 
 
-        // 3. Nút Xem đánh giá
         findViewById<CardView>(R.id.cardReviews).setOnClickListener {
             val intent = Intent(this, ScreenDanhGia_Main::class.java)
             startActivity(intent)
         }
 
-        // 4. Nút Đăng xuất
         findViewById<CardView>(R.id.cardLogout).setOnClickListener {
             SessionManager.logout(this)
             val intent = Intent(this, Login::class.java)

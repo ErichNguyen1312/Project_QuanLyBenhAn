@@ -29,10 +29,7 @@ class Adapter_DanhGia(
     override fun onBindViewHolder(holder: ReviewViewHolder, position: Int) {
         val item = list[position]
 
-        // 1. Hiển thị Tên
         holder.tvName.text = item.doctorName
-
-        // 2. Xử lý Avatar (Lấy chữ cái đầu)
         val nameToShow = item.doctorName
         if (nameToShow.isNotEmpty()) {
             val firstLetter = nameToShow.substring(0, 1).uppercase()
@@ -41,9 +38,7 @@ class Adapter_DanhGia(
             holder.tvAvatar.text = "?"
         }
 
-        // 3. Hiển thị Sao
         val stars = StringBuilder()
-        // Đảm bảo rating không bị âm hoặc quá lớn để tránh lỗi vòng lặp
         val avg = (item.ratingDoctor + item.ratingDiagnosis + item.ratingMedication) / 3
         val safeRating = if (avg in 1..5) avg else 0
 

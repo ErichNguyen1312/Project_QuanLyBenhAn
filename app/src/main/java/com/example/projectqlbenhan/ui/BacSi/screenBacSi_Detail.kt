@@ -24,7 +24,7 @@ class screenBacSi_Detail : AppCompatActivity() {
     private lateinit var tvFullName: TextView
     private lateinit var tvSpecialization: TextView
     private lateinit var tvId: TextView
-    private lateinit var tvDescription: TextView // Thay cho phone/email
+    private lateinit var tvDescription: TextView
 
     private var doctorId: Long = -1
     private var currentDoctor: Doctor? = null
@@ -77,15 +77,9 @@ class screenBacSi_Detail : AppCompatActivity() {
 
             withContext(Dispatchers.Main) {
                 currentDoctor?.let { doctor ->
-                    // 1. Tên
                     tvFullName.text = "${doctor.fullName}"
-
                     tvId.text = "Mã bác sĩ: ${doctor.doctorId}"
-
-                    // 2. Chuyên khoa
                     tvSpecialization.text = doctor.specialization ?: "Chưa cập nhật chuyên khoa"
-
-                    // 3. Mô tả
                     tvDescription.text = if (doctor.description.isNullOrEmpty())
                         "Chưa có thông tin mô tả chi tiết."
                     else

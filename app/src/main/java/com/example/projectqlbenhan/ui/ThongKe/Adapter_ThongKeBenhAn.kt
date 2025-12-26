@@ -15,10 +15,9 @@ import java.util.Locale
 
 class Adapter_ThongKeBenhAn(
     context: Context,
-    private var data: List<MedicalRecord> // Đổi thành List để dễ quản lý
+    private var data: List<MedicalRecord>
 ) : ArrayAdapter<MedicalRecord>(context, 0, data) {
 
-    // Hàm cập nhật dữ liệu mới từ Activity
     fun updateData(newData: List<MedicalRecord>) {
         this.data = newData
         notifyDataSetChanged()
@@ -38,18 +37,13 @@ class Adapter_ThongKeBenhAn(
 
         val record = data[position]
 
-        // Ánh xạ View
         val tvDiagnosis = view.findViewById<TextView>(R.id.tvDiagnosis)
         val tvDiseaseType = view.findViewById<TextView>(R.id.tvDiseaseType)
         val tvDate = view.findViewById<TextView>(R.id.tvDate)
         val imgIcon = view.findViewById<ImageView>(R.id.img_icon)
 
-        // Gán dữ liệu
-        // 1. Chẩn đoán (Diagnosis)
         tvDiagnosis.text = record.diagnosis
 
-        // 2. Dòng phụ: Hiển thị triệu chứng (Symptoms) vì Entity không có field diseaseType
-        // Nếu symptoms quá dài thì cắt bớt
         val shortSymptoms = if (record.symptoms.length > 30) {
             record.symptoms.substring(0, 30) + "..."
         } else {
@@ -57,13 +51,11 @@ class Adapter_ThongKeBenhAn(
         }
         tvDiseaseType.text = "Triệu chứng: $shortSymptoms"
 
-        // 3. Ngày khám
         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val dateStr = sdf.format(Date(record.examinationDate)) // Sử dụng examinationDate từ Entity
+        val dateStr = sdf.format(Date(record.examinationDate))
         tvDate.text = "Ngày khám: $dateStr"
 
-        // 4. Set icon (Có thể logic đổi icon theo bệnh nếu muốn, hiện tại để mặc định)
-        imgIcon.setImageResource(R.drawable.outline_article_24) // Đảm bảo bạn có icon này
+        imgIcon.setImageResource(R.drawable.outline_article_24)
 
         return view
     }

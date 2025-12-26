@@ -13,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.ui.BaseActivity
 import com.example.projectqlbenhan.ui.home.HomeActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,7 +24,7 @@ class screenThongKe_BenhAn : AppCompatActivity() {
     private lateinit var ct_btnBack: ImageButton
     private lateinit var ct_tvTieuDe: TextView
     private lateinit var lvMedicalRecord: ListView
-    private lateinit var tvTotalCount: TextView // Text đếm số lượng
+    private lateinit var tvTotalCount: TextView
 
     private lateinit var adapter: Adapter_ThongKeBenhAn
     private lateinit var db: MedicalRecordDatabase
@@ -34,17 +33,17 @@ class screenThongKe_BenhAn : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_screen_thong_ke_benh_an)
 
-        // Khởi tạo Database
+
         db = MedicalRecordDatabase.getDatabase(this)
 
 
         setControl()
         initView()
-        setupSpinnerData() // Load dữ liệu cho Spinner
+        setupSpinnerData()
         setEvent()
     }
 
-    private fun setControl(){
+    private fun setControl() {
         spDiseaseType = findViewById(R.id.spDiseaseType)
         ct_btnBack = findViewById(R.id.ct_btnBack)
         ct_tvTieuDe = findViewById(R.id.ct_tvTieuDe)
@@ -55,27 +54,25 @@ class screenThongKe_BenhAn : AppCompatActivity() {
     private fun initView() {
         spDiseaseType = findViewById(R.id.spDiseaseType)
         lvMedicalRecord = findViewById(R.id.lvMedicalRecord)
-        tvTotalCount = findViewById(R.id.tvTotalCount) // ID mới thêm trong XML
+        tvTotalCount = findViewById(R.id.tvTotalCount)
 
-        // Toolbar custom
+
         ct_tvTieuDe.text = "Thống kê Bệnh án - Trần Thiện Trí"
 
-        // Khởi tạo Adapter rỗng ban đầu
+
         adapter = Adapter_ThongKeBenhAn(this, emptyList())
         lvMedicalRecord.adapter = adapter
     }
 
     private fun setupSpinnerData() {
         lifecycleScope.launch {
-            // Lấy danh sách các loại bệnh (Diagnosis) duy nhất từ DB để làm bộ lọc
+
             val distinctTypes = withContext(Dispatchers.IO) {
-                // Gọi hàm DAO lấy danh sách bệnh duy nhất
-                // Nếu MedicalRecordDao chưa có hàm getAllDiseaseTypes, hãy thêm:
-                // @Query("SELECT DISTINCT diagnosis FROM medical_records")
+
                 db.medicalRecordDao().getAllDiseaseTypes()
             }
 
-            // Tạo list cho Spinner, thêm mục "Tất cả" vào đầu
+
             val spinnerItems = mutableListOf("Tất cả")
             spinnerItems.addAll(distinctTypes)
 
@@ -90,13 +87,13 @@ class screenThongKe_BenhAn : AppCompatActivity() {
     }
 
     private fun setEvent() {
-        // Nút Back
+
         ct_btnBack.setOnClickListener {
             intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
         }
 
-        // Sự kiện chọn Spinner
+
         spDiseaseType.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>?,
@@ -109,7 +106,6 @@ class screenThongKe_BenhAn : AppCompatActivity() {
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                // Không làm gì
             }
         }
     }
@@ -120,12 +116,10 @@ class screenThongKe_BenhAn : AppCompatActivity() {
                 if (type == "Tất cả") {
                     db.medicalRecordDao().getAll()
                 } else {
-                    // Tìm kiếm gần đúng hoặc chính xác theo loại bệnh
                     db.medicalRecordDao().getByDiseaseType(type)
                 }
             }
 
-            // Cập nhật UI trên Main Thread
             adapter.updateData(listRecord)
             tvTotalCount.text = "Tìm thấy: ${listRecord.size} hồ sơ"
         }

@@ -21,8 +21,6 @@ class screenBacSi_Edit : AppCompatActivity() {
 
     private var doctorId: Long = -1
     private var currentDoctor: Doctor? = null
-
-    // Mã đánh dấu hành động xóa để trả về cho DetailActivity biết
     companion object {
         const val RESULT_DELETE = 99
     }
@@ -47,7 +45,6 @@ class screenBacSi_Edit : AppCompatActivity() {
 
         btnBack.setOnClickListener { finish() }
 
-        // 1. Load dữ liệu cũ
         lifecycleScope.launch(Dispatchers.IO) {
             val db = MedicalRecordDatabase.getDatabase(this@screenBacSi_Edit)
             currentDoctor = db.doctorDao().getDoctorById(doctorId)
@@ -61,7 +58,6 @@ class screenBacSi_Edit : AppCompatActivity() {
             }
         }
 
-        // 2. Xử lý CẬP NHẬT
         btnUpdate.setOnClickListener {
             val name = etName.text.toString().trim()
             if (name.isEmpty()) return@setOnClickListener
@@ -86,7 +82,6 @@ class screenBacSi_Edit : AppCompatActivity() {
             }
         }
 
-        // 3. Xử lý XÓA
         btnDelete.setOnClickListener {
             showDeleteConfirmation()
         }
@@ -112,10 +107,7 @@ class screenBacSi_Edit : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val db = MedicalRecordDatabase.getDatabase(this@screenBacSi_Edit)
             currentDoctor?.let { doc ->
-                // Bước 1: Xóa Bác sĩ
                 db.doctorDao().Delete(doc)
-
-                // Bước 2: Xóa luôn Account tương ứng (để sạch Data)
                 val account = db.accountDao().getAccountById(doc.accountId)
                 if (account != null) {
                     db.accountDao().Delete(account)

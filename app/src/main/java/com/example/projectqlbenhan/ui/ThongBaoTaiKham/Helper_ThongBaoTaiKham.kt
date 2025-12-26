@@ -24,7 +24,6 @@ object Helper_ThongBaoTaiKham {
 
         ThongBaoTaiKham.createChannel(context)
 
-        // Check permission Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(
                     context,
@@ -35,7 +34,6 @@ object Helper_ThongBaoTaiKham {
             }
         }
 
-        // Duyệt qua danh sách và thông báo
         for (app in appointments) {
             showNotification(context, app)
         }

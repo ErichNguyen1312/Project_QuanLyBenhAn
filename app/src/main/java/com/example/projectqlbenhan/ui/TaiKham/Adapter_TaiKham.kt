@@ -30,24 +30,20 @@ class Adapter_TaiKham(
 
         val btnEdit = view.findViewById<Button>(R.id.btn_edit)
         val txtNgay = view.findViewById<TextView>(R.id.txt_LS_NgayTK)
-        val txtBacSi = view.findViewById<TextView>(R.id.txt_TenBacSi) // ID mới thêm trong XML
+        val txtBacSi = view.findViewById<TextView>(R.id.txt_TenBacSi)
 
-        // Format ngày giờ từ Long
         val sdf = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault())
         txtNgay.text = sdf.format(Date(appointment.appointmentDate))
 
-        // Hiển thị tên bác sĩ từ Map
         val doctorName = doctorMap[appointment.doctorId] ?: "Chưa chỉ định"
         txtBacSi.text = "BS. $doctorName"
 
-        // Logic ẩn/hiện nút sửa (Chỉ cho sửa lịch sắp tới)
         val hienTai = System.currentTimeMillis()
         val isUpcoming = appointment.appointmentDate > hienTai && appointment.status == "SCHEDULED"
 
         btnEdit.isEnabled = isUpcoming
         btnEdit.alpha = if (isUpcoming) 1f else 0.5f
 
-        // Đổi màu trạng thái nếu cần
         if (appointment.status == "MISSED" || appointment.status == "CANCELLED") {
             txtNgay.setTextColor(Color.RED)
         } else {

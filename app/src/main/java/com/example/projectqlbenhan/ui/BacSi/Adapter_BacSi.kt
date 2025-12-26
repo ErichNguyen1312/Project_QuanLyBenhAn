@@ -21,7 +21,6 @@ class Adapter_BacSi(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoctorViewHolder {
-        // Trỏ đúng vào file layout item_bac_si vừa tạo
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_bac_si, parent, false)
         return DoctorViewHolder(view)
@@ -30,10 +29,8 @@ class Adapter_BacSi(
     override fun onBindViewHolder(holder: DoctorViewHolder, position: Int) {
         val doctor = list[position]
 
-        // 1. Hiển thị Tên
         holder.tvName.text = "${doctor.fullName}"
 
-        // 2. Xử lý Avatar (Lấy chữ cái đầu tiên in hoa)
         if (doctor.fullName.isNotEmpty()) {
             val firstChar = doctor.fullName.trim().first().toString()
             holder.tvAvatar.text = firstChar.uppercase(Locale.getDefault())
@@ -41,11 +38,9 @@ class Adapter_BacSi(
             holder.tvAvatar.text = "?"
         }
 
-        // 3. Hiển thị thông tin phụ: "Chuyên khoa
         val infoText = "${doctor.specialization}"
         holder.tvInfo.text = infoText
 
-        // Click item
         holder.itemView.setOnClickListener {
             onClick(doctor)
         }
@@ -53,7 +48,6 @@ class Adapter_BacSi(
 
     override fun getItemCount(): Int = list.size
 
-    // Hàm cập nhật data cho tìm kiếm
     fun updateData(newList: List<Doctor>) {
         list = newList
         notifyDataSetChanged()

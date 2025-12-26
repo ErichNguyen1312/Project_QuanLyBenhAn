@@ -25,7 +25,7 @@ class screenTaiKham_Main : AppCompatActivity() {
 
     private lateinit var adapter: Adapter_TaiKham
     private var appointmentList = mutableListOf<Appointment>()
-    private var doctorMap = mapOf<Long, String>() // Map ID -> Tên Bác sĩ
+    private var doctorMap = mapOf<Long, String>()
 
     private var patientId: Long = -1
 
@@ -33,7 +33,6 @@ class screenTaiKham_Main : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_screen_tai_kham_main)
 
-        // Lấy PatientID
         patientId = intent.getLongExtra("patient_id", -1)
 
         initView()
@@ -54,7 +53,7 @@ class screenTaiKham_Main : AppCompatActivity() {
     private fun initView() {
         listTaiKham = findViewById(R.id.listTaiKham)
         btnDatLichTK = findViewById(R.id.btnDatLichTK)
-        ct_btnBack = findViewById(R.id.btnBack) // Check lại ID trong custom_toolbar
+        ct_btnBack = findViewById(R.id.btnBack)
     }
 
     private fun setEvent() {
@@ -79,36 +78,28 @@ class screenTaiKham_Main : AppCompatActivity() {
         lifecycleScope.launch {
             val db = MedicalRecordDatabase.getDatabase(this@screenTaiKham_Main)
 
-            // 1. Lấy danh sách lịch hẹn của Patient (Cần viết thêm query trong DAO nếu chưa có)
-            // Ví dụ: db.appointmentDao().getAppointmentsByPatient(patientId)
-            // Ở đây mình giả sử hàm getUpcomingAppointments lấy hết, bạn cần lọc theo patientId
             val appointments = withContext(Dispatchers.IO) {
                 db.appointmentDao().getAppointmentsByPatient(patientId)
             }
 
-            // 2. Lấy danh sách bác sĩ để Map tên
             val doctors = withContext(Dispatchers.IO) {
                 db.doctorDao().getAll()
             }
-            // Tạo Map: ID -> Name
             doctorMap = doctors.associate { it.doctorId to it.fullName }
 
             appointmentList.clear()
             appointmentList.addAll(appointments)
 
-            // 3. Setup Adapter
             if (!::adapter.isInitialized) {
                 adapter = Adapter_TaiKham(
                     this@screenTaiKham_Main,
                     appointmentList,
-                    doctorMap // Truyền map vào adapter
+                    doctorMap
                 ) { appointment ->
-                    // OnClick Edit
                     val intent = Intent(this@screenTaiKham_Main, screenTaiKham_Edit::class.java)
                     intent.putExtra("appointmentId", appointment.appointmentId)
                     intent.putExtra("appointmentDate", appointment.appointmentDate)
                     intent.putExtra("doctorId", appointment.doctorId)
-                    // intent.putExtra("ghiChu", appointment.reason) // Nếu có trường reason
                     editLauncher.launch(intent)
                 }
                 listTaiKham.adapter = adapter

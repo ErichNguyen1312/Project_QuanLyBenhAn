@@ -30,10 +30,10 @@ import java.util.Locale
 class screenBacSi_Main : AppCompatActivity() {
 
     // Khai báo view
-    private lateinit var btnBack: View // Dùng View cho tổng quát (có thể là ImageView)
+    private lateinit var btnBack: View
     private lateinit var etSearch: EditText
     private lateinit var rvBacSi: RecyclerView
-    private lateinit var btnAdd: TextView // Đã sửa thành TextView theo layout mới
+    private lateinit var btnAdd: TextView
 
     // Khai báo data
     private var originalList: List<Doctor> = listOf()
@@ -56,7 +56,6 @@ class screenBacSi_Main : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_screen_bac_si_main)
 
-        // Xử lý Edge-to-Edge
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -74,7 +73,6 @@ class screenBacSi_Main : AppCompatActivity() {
         etSearch = findViewById(R.id.etSearch)
         rvBacSi = findViewById(R.id.rvBacSi)
 
-        // Ánh xạ nút thêm (TextView)
         btnAdd = findViewById(R.id.btnAdd)
     }
 
@@ -95,7 +93,6 @@ class screenBacSi_Main : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // Sự kiện click nút "+ Thêm"
         btnAdd.setOnClickListener {
             val intent = Intent(this, screenBacSi_Add::class.java)
             launcher.launch(intent)

@@ -18,7 +18,6 @@ object AlarmScheduler {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         val intent = Intent(context, Receiver_ThongBaoTaiKham::class.java).apply {
-            // Truyền timestamp để Receiver tự format giờ hiển thị
             putExtra("appointmentId", appointmentId)
             putExtra("timestamp", triggerAtMillis)
         }
@@ -30,10 +29,8 @@ object AlarmScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Hủy alarm cũ nếu có (để tránh trùng lặp khi update lịch)
         alarmManager.cancel(pendingIntent)
 
-        // Đặt alarm mới
         if (triggerAtMillis > System.currentTimeMillis()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 alarmManager.setExactAndAllowWhileIdle(
@@ -51,7 +48,6 @@ object AlarmScheduler {
         }
     }
 
-    // Hàm hủy báo thức (dùng khi xóa lịch hẹn)
     fun cancel(context: Context, appointmentId: Long) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, Receiver_ThongBaoTaiKham::class.java)

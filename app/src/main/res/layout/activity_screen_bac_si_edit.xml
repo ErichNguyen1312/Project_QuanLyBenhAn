@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="Chỉnh sửa thông tin"
+            android:text="Chỉnh sửa thông tin - Trần Thiện Trí"
             android:textColor="#FFF"
             android:textSize="20sp"
             android:textStyle="bold" />

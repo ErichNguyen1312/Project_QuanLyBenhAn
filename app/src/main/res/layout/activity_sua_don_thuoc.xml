@@ -33,7 +33,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chỉnh sửa Đơn Thuốc"
+            android:text="Chỉnh sửa Đơn Thuốc\nBá Quang Tuyên"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"

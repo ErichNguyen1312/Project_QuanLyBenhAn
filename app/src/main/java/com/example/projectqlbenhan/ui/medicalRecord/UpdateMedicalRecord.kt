@@ -1,6 +1,7 @@
 package com.example.projectqlbenhan.ui.medicalRecord
 
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
+import com.example.projectqlbenhan.ui.DonThuocUI.ChiTietDonThuoc
 import com.example.projectqlbenhan.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -84,9 +86,9 @@ class UpdateMedicalRecord : AppCompatActivity() {
 
             // Tham số 2: onItemClick (Xử lý khi bấm vào dòng thuốc)
             onItemClick = { item ->
-                // Tạm thời hiện Toast hoặc để trống.
-                // Sau này bạn có thể gọi hàm showAddMedicineDialog() để sửa lại thuốc này nếu muốn.
-                Toast.makeText(this, "Chi tiết: ${item.medicineName} - ${item.dosage}", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, ChiTietDonThuoc::class.java)
+                intent.putExtra("ITEM_ID", item.itemId)
+                startActivity(intent)
             },
 
             // Tham số 3: onDeleteClick (Xử lý khi bấm nút thùng rác)

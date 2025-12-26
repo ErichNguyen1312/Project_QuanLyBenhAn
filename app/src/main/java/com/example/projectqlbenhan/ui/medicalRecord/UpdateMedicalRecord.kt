@@ -1,6 +1,7 @@
 package com.example.projectqlbenhan.ui.medicalRecord
 
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
+import com.example.projectqlbenhan.ui.DonThuocUI.ChiTietDonThuoc
 import com.example.projectqlbenhan.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -83,12 +85,17 @@ class UpdateMedicalRecord : AppCompatActivity() {
                     "Chi tiết: ${item.medicineName} - ${item.dosage}",
                     Toast.LENGTH_SHORT
                 ).show()
+                val intent = Intent(this, ChiTietDonThuoc::class.java)
+                intent.putExtra("ITEM_ID", item.itemId)
+                startActivity(intent)
             },
 
+            // Tham số 3: onDeleteClick (Xử lý khi bấm nút thùng rác)
             onDeleteClick = { position ->
                 if (position >= 0 && position < medicineList.size) {
                     medicineList.removeAt(position)
                     prescriptionAdapter.notifyItemRemoved(position)
+                    // Cập nhật lại vị trí các item bên dưới để tránh lỗi IndexOutOfBounds khi xóa tiếp
                     prescriptionAdapter.notifyItemRangeChanged(position, medicineList.size)
                 }
             }
@@ -112,6 +119,11 @@ class UpdateMedicalRecord : AppCompatActivity() {
         btnDelete.setOnClickListener {
             showDeleteConfirm()
         }
+    }
+
+    override fun onResume() {
+        loadData()
+        super.onResume()
     }
 
     private fun loadData() {
@@ -151,6 +163,7 @@ class UpdateMedicalRecord : AppCompatActivity() {
                     if (patientId == -1L) patientId = record.patientId
                 }
 
+                // Cập nhật list thuốc lên giao diện
                 medicineList.clear()
                 medicineList.addAll(items)
                 prescriptionAdapter.notifyDataSetChanged()

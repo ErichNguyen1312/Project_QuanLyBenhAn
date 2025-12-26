@@ -227,6 +227,7 @@
                             android:background="@drawable/circle_background_purple"
                             android:padding="8dp"
                             android:src="@drawable/ic_prescription"
+                            android:id="@+id/ic_prescription"
                             app:tint="#6F42C1" />
 
                         <TextView

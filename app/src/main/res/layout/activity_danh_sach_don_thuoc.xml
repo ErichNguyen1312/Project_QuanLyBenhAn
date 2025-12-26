@@ -33,7 +33,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Danh sách Đơn Thuốc"
+            android:text="Danh sách Đơn Thuốc\nBá Quang Tuyên"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -53,7 +53,7 @@
         android:paddingEnd="16dp"
         android:paddingTop="16dp">
 
-        <SearchView
+        <androidx.appcompat.widget.SearchView
             android:id="@+id/searchViewDonThuoc"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

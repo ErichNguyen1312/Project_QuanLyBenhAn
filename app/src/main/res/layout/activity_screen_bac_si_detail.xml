@@ -32,7 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="Thông tin Bác sĩ"
+            android:text="Thông tin Bác sĩ - Trần Thiện Trí"
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold" />

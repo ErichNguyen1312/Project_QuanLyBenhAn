@@ -33,7 +33,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chỉnh sửa Đơn Thuốc"
+            android:text="Chỉnh sửa Đơn Thuốc\nBá Quang Tuyên"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -65,36 +65,6 @@
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
                 android:layout_marginBottom="24dp" />
-
-            <EditText
-                android:id="@+id/edtMaBenhNhan"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:hint="Mã bệnh nhân (Hồ sơ ID)"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:inputType="number"
-                android:textColorHint="#A0A0A0"
-                android:enabled="false"
-                android:focusable="false"
-                android:background="#EEEEEE"
-                tools:text="12345"/>
-
-            <EditText
-                android:id="@+id/edtTenBenhNhan"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:hint="Tên bệnh nhân"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:inputType="textCapWords"
-                android:textColorHint="#A0A0A0"
-                android:enabled="false"
-                android:focusable="false"
-                android:background="#EEEEEE"
-                tools:text="Trần Văn A"/>
 
             <EditText
                 android:id="@+id/edtTenThuoc"

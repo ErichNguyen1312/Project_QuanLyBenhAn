@@ -131,38 +131,31 @@ class Booking : AppCompatActivity() {
         })
     }
 
-    // --- LOGIC SEARCH THÔNG MINH ---
     private fun filterDoctors(keyword: String) {
         if (originalDoctorList.isEmpty()) return
 
         val filteredList = originalDoctorList.filter {
-            // Tìm theo Tên HOẶC Chuyên khoa (Không phân biệt hoa thường)
             it.doctor.fullName.contains(keyword, ignoreCase = true)
         }
 
         setupDoctorList(filteredList)
 
-        // Nếu có kết quả lọc, tự chọn người đầu tiên để UX mượt hơn
         if (filteredList.isNotEmpty()) {
             selectedDoctor = filteredList[0].doctor
             loadAvailableTimeSlots() // Load lại giờ theo bác sĩ mới
         }
     }
 
-    // --- LOGIC ĐẶT LỊCH (VALIDATE KỸ) ---
     private fun handleBooking() {
-        // 1. Validate Bác sĩ
         if (selectedDoctor == null) {
             Toast.makeText(this, "Vui lòng chọn bác sĩ!", Toast.LENGTH_SHORT).show()
             return
         }
-        // 2. Validate Giờ
         if (selectedTimeSlot == null) {
             Toast.makeText(this, "Vui lòng chọn giờ khám!", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // 3. Validate Lý do (Quan trọng)
         val reason = edtReason.text.toString().trim()
         if (reason.isEmpty()) {
             edtReason.error = "Vui lòng nhập lý do khám"
@@ -175,7 +168,6 @@ class Booking : AppCompatActivity() {
             return
         }
 
-        // 4. Validate Session
         val patientId = SessionManager.getSpecificId(this)
         if (patientId == -1L || patientId == 0L) {
             Toast.makeText(this, "Phiên đăng nhập lỗi. Vui lòng đăng nhập lại", Toast.LENGTH_SHORT)

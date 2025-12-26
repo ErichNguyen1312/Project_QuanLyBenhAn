@@ -88,11 +88,7 @@ class DonThuoc : AppCompatActivity() {
         tvRecentTenBenhNhan = findViewById(R.id.tvRecentTenBenhNhan)
         tvRecentNgayKetThuc = findViewById(R.id.tvRecentNgayKetThuc)
 
-        // Ánh xạ các TextView số lượng trên Dashboard
-        // Lưu ý: Đảm bảo các ID này có trong file activity_don_thuoc.xml (GridLayout)
-        // Nếu file XML chưa có ID cho các số 1.560, 3.850... hãy thêm vào
-        // tvTotalPatients = findViewById(R.id.tvTotalPatientsInRx)
-        // tvTotalRx = findViewById(R.id.tvTotalRxCount)
+
     }
 
     private fun observeViewModel() {

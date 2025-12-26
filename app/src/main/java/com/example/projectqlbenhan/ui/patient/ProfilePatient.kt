@@ -59,11 +59,10 @@ class ProfilePatient : AppCompatActivity() {
         btnDelete.setOnClickListener { showDeleteConfirm() }
 
 
-        // Nút "Xem tất cả bệnh án"
         btnPatientMedicalRecordDetail.setOnClickListener {
             val intent = Intent(this, ProfilePatientMedicalRecord::class.java)
             intent.putExtra("patient_id", patientId)
-            intent.putExtra("patient_name", tvHeaderName.text.toString()) // Truyền tên qua cho đẹp
+            intent.putExtra("patient_name", tvHeaderName.text.toString())
             generalLauncher.launch(intent)
         }
 
@@ -89,9 +88,8 @@ class ProfilePatient : AppCompatActivity() {
         rcRecentRecords = findViewById(R.id.rcRecentRecords)
         layoutRecentEmpty = findViewById(R.id.layoutRecentEmpty)
 
-        // Setup RecyclerView với sự kiện Click
+        //onclick recyclerview
         recentAdapter = RecentMedicalRecordAdapter(recentRecordList) { record ->
-            // ⭐️ CLICK VÀO LỊCH SỬ -> Mở màn hình Khám (Mode Sửa)
             val intent = Intent(this, UpdateMedicalRecord::class.java)
             intent.putExtra("record_id", record.recordId)
             intent.putExtra("patient_id", patientId)
@@ -102,7 +100,6 @@ class ProfilePatient : AppCompatActivity() {
         rcRecentRecords.adapter = recentAdapter
     }
 
-    // --- DATA HANDLING ---
     private fun setData() {
         CoroutineScope(Dispatchers.IO).launch {
             patientId = intent.getLongExtra("patient_id", -1)
@@ -179,11 +176,11 @@ class ProfilePatient : AppCompatActivity() {
     private val updateLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                setData() // Reload thông tin cá nhân
+                setData() // thay đổi và reload thông tin cá nhân
             }
         }
 
-    // Launcher dùng chung (Reload list bệnh án khi quay lại)
+    // reload bệnh nhân trong danh sách bệnh án
     private val generalLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {

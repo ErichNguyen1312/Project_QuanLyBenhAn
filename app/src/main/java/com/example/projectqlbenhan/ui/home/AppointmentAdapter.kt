@@ -35,7 +35,6 @@ class AppointmentAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = data[position]
 
-        // ⭐️ FIX: Format timestamp Long -> String Giờ
         holder.tvTime.text = formatTimestampToTime(item.appointment.appointmentDate)
 
         holder.tvPatientName.text = item.patient.fullName

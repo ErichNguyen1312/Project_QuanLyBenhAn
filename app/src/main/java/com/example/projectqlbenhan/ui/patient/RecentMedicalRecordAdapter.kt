@@ -13,7 +13,7 @@ import java.util.Locale
 
 class RecentMedicalRecordAdapter(
     private val list: List<MedicalRecord>,
-    private val onClick: (MedicalRecord) -> Unit // ⭐️ Thêm callback click
+    private val onClick: (MedicalRecord) -> Unit
 ) : RecyclerView.Adapter<RecentMedicalRecordAdapter.ViewHolder>() {
 
     inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
@@ -24,7 +24,6 @@ class RecentMedicalRecordAdapter(
             tvDate.text = formatDate(item.examinationDate)
             tvDiagnosis.text = item.diagnosis
 
-            // ⭐️ Bắt sự kiện click
             itemView.setOnClickListener { onClick(item) }
         }
     }
@@ -38,7 +37,7 @@ class RecentMedicalRecordAdapter(
     override fun getItemCount() = list.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(list[position]) // Gọi hàm bind
+        holder.bind(list[position])
     }
 
     private fun formatDate(millis: Long): String {

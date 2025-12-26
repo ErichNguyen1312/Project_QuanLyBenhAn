@@ -61,11 +61,10 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
         layoutEmpty = findViewById(R.id.layoutEmpty)
         btnAddMedicalRecord = findViewById(R.id.btnAddMedicalRecord)
 
-        // Setup RecyclerView
-        // ⭐️ SỬA LẠI: Click item -> Mở UpdateMedicalRecord (Mode Xem/Sửa)
+
         adapter = MedicalRecordAdapter(medicalRecordList) { record ->
             val intent = Intent(this, UpdateMedicalRecord::class.java)
-            intent.putExtra("record_id", record.recordId) // Truyền ID để load dữ liệu
+            intent.putExtra("record_id", record.recordId)
             intent.putExtra("patient_id", patientId)
             launcher.launch(intent)
         }
@@ -77,19 +76,17 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
     private fun setEvent() {
         btnBack.setOnClickListener { finish() }
 
-        // ⭐️ SỬA LẠI: Click Thêm -> Mở UpdateMedicalRecord (Mode Tạo mới)
+
         btnAddMedicalRecord.setOnClickListener {
             val intent = Intent(this, UpdateMedicalRecord::class.java)
             intent.putExtra("patient_id", patientId)
-            intent.putExtra("appointment_id", -1L) // Không từ lịch hẹn
-            intent.putExtra("record_id", -1L)      // -1 để báo hiệu là Tạo mới
+            intent.putExtra("appointment_id", -1L)
+            intent.putExtra("record_id", -1L)
             launcher.launch(intent)
         }
     }
 
     private fun loadMedicalRecords() {
-        // Dùng lifecycleScope hoặc CoroutineScope đều được
-        // Ở đây giữ nguyên CoroutineScope như style của bro
         kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
             val list = dao.getRecordsByPatient(patientId)
 
@@ -98,7 +95,7 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
                 medicalRecordList.addAll(list)
                 adapter.notifyDataSetChanged()
 
-                // Ẩn hiện view Empty
+
                 if (medicalRecordList.isEmpty()) {
                     layoutEmpty.visibility = View.VISIBLE
                     rcRecyclerMedicalRecord.visibility = View.GONE
@@ -110,7 +107,7 @@ class ProfilePatientMedicalRecord : AppCompatActivity() {
         }
     }
 
-    // Dùng 1 launcher chung cho cả Thêm và Sửa để reload list khi quay lại
+
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             loadMedicalRecords()

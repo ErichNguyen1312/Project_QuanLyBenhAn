@@ -47,7 +47,6 @@ class PatientMedicalRecordDetail : AppCompatActivity() {
     private var doctorId: Long = -1
     private var patientName: String? = null
 
-    // --- Database Setup ---
     private val db by lazy { MedicalRecordDatabase.getDatabase(this) }
     private val recordDao by lazy { db.medicalRecordDao() }
     private val doctorDao by lazy { db.doctorDao() }

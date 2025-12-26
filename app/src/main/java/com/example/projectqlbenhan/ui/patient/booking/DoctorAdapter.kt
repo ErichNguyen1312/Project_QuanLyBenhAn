@@ -12,11 +12,11 @@ import com.example.projectqlbenhan.entity.doctor.DoctorWithRating // ✅ Nhớ i
 import com.google.android.material.card.MaterialCardView
 
 class DoctorAdapter(
-    private val doctors: List<DoctorWithRating>, // ✅ Sửa thành DoctorWithRating
+    private val doctors: List<DoctorWithRating>,
     private val onDoctorSelected: (Doctor) -> Unit
 ) : RecyclerView.Adapter<DoctorAdapter.DoctorViewHolder>() {
 
-    private var selectedPosition = 0 // ✅ Sửa thành 0 (Mặc định chọn người đầu tiên)
+    private var selectedPosition = 0
 
     inner class DoctorViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvName: TextView = itemView.findViewById(R.id.tvName)
@@ -28,9 +28,9 @@ class DoctorAdapter(
             val doctor = item.doctor
 
             tvName.text = doctor.fullName
-            tvSpecialty.text = doctor.specialization // Hoặc doctor.specialization tùy entity của bro
+            tvSpecialty.text = doctor.specialization
 
-            // ✅ HIỂN THỊ ĐIỂM THẬT
+
             val rating = item.averageRating ?: 0.0
             if (rating > 0) {
                 tvRating.text = String.format("★ %.1f", rating)
@@ -40,9 +40,9 @@ class DoctorAdapter(
                 tvRating.setTextColor(Color.GRAY)
             }
 
-            // LOGIC ĐỔI MÀU
+
             if (selectedPosition == position) {
-                cardDoctor.setCardBackgroundColor(Color.parseColor("#2563EB")) // Xanh
+                cardDoctor.setCardBackgroundColor(Color.parseColor("#2563EB"))
                 cardDoctor.strokeWidth = 0
                 tvName.setTextColor(Color.WHITE)
                 tvSpecialty.setTextColor(Color.parseColor("#E0E7FF"))

@@ -6,6 +6,18 @@
     android:background="#F0F9F8"
     android:orientation="vertical">
 
+    <TextView
+        android:id="@+id/tvHeaderBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFF9C4"
+        android:padding="12dp"
+        android:gravity="center"
+        android:text="Nguyễn Đăng Vinh"
+        android:textColor="#D32F2F"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

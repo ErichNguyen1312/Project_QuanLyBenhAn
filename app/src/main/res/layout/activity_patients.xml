@@ -6,7 +6,19 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".ui.patient.Patients">
-    <!-- CONTENT -->
+
+    <TextView
+        android:id="@+id/tvHeaderBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFF9C4"
+        android:padding="12dp"
+        android:gravity="center"
+        android:text="Nguyễn Đăng Vinh"
+        android:textColor="#D32F2F"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -55,7 +67,6 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
         </LinearLayout>
-        <!-- SEARCH -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -119,7 +130,6 @@
         </HorizontalScrollView>
 
 
-        <!--        patients list -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvPatients"
             android:layout_width="match_parent"
@@ -131,4 +141,3 @@
     </LinearLayout>
 
 </LinearLayout>
-

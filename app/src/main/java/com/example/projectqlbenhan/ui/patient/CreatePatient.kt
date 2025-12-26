@@ -23,7 +23,6 @@ import java.util.Calendar
 
 class CreatePatient : AppCompatActivity() {
 
-    // ... Khai báo view (Giữ nguyên) ...
     private lateinit var btnBack: ImageView
     private lateinit var etName: EditText
     private lateinit var etAge: EditText
@@ -35,7 +34,6 @@ class CreatePatient : AppCompatActivity() {
     private lateinit var rbFemale: RadioButton
     private lateinit var btnSave: Button
 
-    // Khởi tạo DB để dùng cho cả Patient và Account
     private val db by lazy { MedicalRecordDatabase.getDatabase(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,7 +62,6 @@ class CreatePatient : AppCompatActivity() {
         btnSave.setOnClickListener { savePatientWithAccount() } // Đổi tên hàm
     }
 
-    // --- LOGIC MỚI: TẠO ACCOUNT KÈM THEO ---
     private fun savePatientWithAccount() {
         val name = etName.text.toString().trim()
         val ageStr = etAge.text.toString().trim()
@@ -86,7 +83,6 @@ class CreatePatient : AppCompatActivity() {
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
-            // 1. Kiểm tra SĐT đã tồn tại chưa (Vì SĐT là Username)
             val isExist = db.accountDao().isUsernameExist(phone)
             if (isExist) {
                 withContext(Dispatchers.Main) {
@@ -96,8 +92,6 @@ class CreatePatient : AppCompatActivity() {
             }
 
             try {
-                // 2. Tạo Account Mặc Định
-                // Username = Phone, Pass = 123456
                 val defaultPass = hashPassword("123456")
                 val newAccount = Account(
                     username = phone,
@@ -106,10 +100,9 @@ class CreatePatient : AppCompatActivity() {
                 )
                 val newAccountId = db.accountDao().insertAccount(newAccount)
 
-                // 3. Tạo Patient liên kết với Account vừa tạo
                 val dob = convertAgeToDob(age)
                 val newPatient = Patient(
-                    accountId = newAccountId, // Liên kết ID
+                    accountId = newAccountId,
                     fullName = name,
                     dateOfBirth = dob,
                     gender = gender,
@@ -149,7 +142,6 @@ class CreatePatient : AppCompatActivity() {
         }
     }
 
-    // Hàm băm mật khẩu (Copy từ Seeder hoặc utils)
     private fun hashPassword(password: String): String {
         val bytes = MessageDigest.getInstance("SHA-256").digest(password.toByteArray())
         return bytes.joinToString("") { "%02x".format(it) }

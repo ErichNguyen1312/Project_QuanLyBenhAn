@@ -20,12 +20,13 @@ class MedicalRecordAdapter(
         val tvDiagnosis = itemView.findViewById<TextView>(R.id.tvDiagnosis)
         val tvDiseaseType = itemView.findViewById<TextView>(R.id.tvDiseaseType)
         val tvDate = itemView.findViewById<TextView>(R.id.tvDate)
+        val tvSymptoms = itemView.findViewById<TextView>(R.id.tvSymptoms)
 
         fun bind(item: MedicalRecord) {
             tvDiagnosis.text = item.diagnosis
             tvDiseaseType.text = "Loại bệnh: ${item.diseaseType}"
             tvDate.text = "Ngày khám: ${formatDate(item.examinationDate)}"
-
+            tvSymptoms.text = item.symptoms
             itemView.setOnClickListener { onClick(item) }
         }
     }

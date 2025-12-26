@@ -3,10 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-
-
-
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
         android:allowBackup="true"
@@ -17,6 +14,28 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectQLBenhAn">
+        <activity
+            android:name=".ui.DonThuocUI.ThemDonThuoc"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.DonThuocUI.SuaDonThuoc"
+            android:exported="false">
+
+        </activity>
+        <activity
+            android:name=".ui.DonThuocUI.DonThuoc"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.DonThuocUI.DanhSachDonThuoc"
+            android:exported="false">
+
+        </activity>
+        <activity
+            android:name=".ui.DonThuocUI.ChiTietDonThuoc"
+            android:exported="false">
+        </activity>
 
         <receiver
             android:name=".ui.ThongBaoTaiKham.Receiver_ThongBaoTaiKham"
@@ -51,21 +70,6 @@
             android:exported="true" />
         <activity
             android:name=".ui.medicalRecord.PatientMedicalRecordDetail"
-            android:exported="true" />
-        <activity
-            android:name=".ui.DonThuocUI.SuaDonThuoc"
-            android:exported="true" />
-        <activity
-            android:name=".ui.DonThuocUI.ThemDonThuoc"
-            android:exported="true" />
-        <activity
-            android:name=".ui.DonThuocUI.DonThuoc"
-            android:exported="true" />
-        <activity
-            android:name=".ui.DonThuocUI.DanhSachDonThuoc"
-            android:exported="true" />
-        <activity
-            android:name=".ui.DonThuocUI.ChiTietDonThuoc"
             android:exported="true" />
         <activity
             android:name=".ui.medicalRecord.UpdateMedicalRecord"

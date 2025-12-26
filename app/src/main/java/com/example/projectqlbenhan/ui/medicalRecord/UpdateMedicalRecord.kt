@@ -1,6 +1,7 @@
 package com.example.projectqlbenhan.ui.medicalRecord
 
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -10,10 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.database.MedicalRecordDatabase
 import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
+import com.example.projectqlbenhan.ui.DonThuocUI.ChiTietDonThuoc
 import com.example.projectqlbenhan.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,29 +23,22 @@ import kotlinx.coroutines.withContext
 
 class UpdateMedicalRecord : AppCompatActivity() {
 
-    // Views
-    private lateinit var tvHeader: TextView
-    private lateinit var tvCancel: TextView
     private lateinit var edtDiagnosis: EditText
     private lateinit var edtSymptoms: EditText
     private lateinit var edtType: EditText
     private lateinit var edtNotes: EditText
-
-    private lateinit var btnSave: Button // Nút "LƯU BỆNH ÁN"
+    private lateinit var btnSave: Button
     private lateinit var btnDelete: TextView
     private lateinit var btnAddMedicine: Button
     private lateinit var rcPrescription: RecyclerView
+    private lateinit var tvHeader: TextView
 
-    // Data & Logic
     private var appointmentId: Long = -1
     private var patientId: Long = -1
-    private var recordId: Long = -1 // -1: Tạo mới, >0: Cập nhật
-
-    // Quản lý thuốc
+    private var recordId: Long = -1
     private val medicineList = mutableListOf<PrescriptionItem>()
     private lateinit var prescriptionAdapter: PrescriptionItemAdapter
 
-    // Database & DAOs
     private val db by lazy { MedicalRecordDatabase.getDatabase(this) }
     private val medicalRecordDao by lazy { db.medicalRecordDao() }
     private val appointmentDao by lazy { db.appointmentDao() }
@@ -57,14 +52,18 @@ class UpdateMedicalRecord : AppCompatActivity() {
         initViews()
         setupRecyclerView()
 
-        // Phân biệt chế độ: Tạo mới hay Cập nhật
-        if (recordId != -1L) {
-            setupForUpdateMode()
-        } else {
-            setupForCreateMode()
-        }
-
+        if (recordId != -1L) setupForUpdateMode() else setupForCreateMode()
         setEvents()
+    }
+
+    /**
+     * ⭐ FIX QUAN TRỌNG: Làm mới dữ liệu thuốc khi quay lại từ màn hình chỉnh sửa chi tiết
+     */
+    override fun onResume() {
+        super.onResume()
+        if (recordId != -1L) {
+            loadPrescriptionOnly()
+        }
     }
 
     private fun getIntentData() {
@@ -75,12 +74,10 @@ class UpdateMedicalRecord : AppCompatActivity() {
 
     private fun initViews() {
         tvHeader = findViewById(R.id.tvHeader)
-        tvCancel = findViewById(R.id.tvCancel)
         edtDiagnosis = findViewById(R.id.edtDiagnosis)
         edtSymptoms = findViewById(R.id.edtSymptoms)
         edtType = findViewById(R.id.edtDiseaseType)
         edtNotes = findViewById(R.id.edtNotes)
-
         btnSave = findViewById(R.id.btnUpdate)
         btnDelete = findViewById(R.id.btnDelete)
         btnAddMedicine = findViewById(R.id.btnAddMedicine)
@@ -88,45 +85,146 @@ class UpdateMedicalRecord : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        // Adapter thuốc với sự kiện xóa
-        prescriptionAdapter = PrescriptionItemAdapter(medicineList) { position ->
-            medicineList.removeAt(position)
-            prescriptionAdapter.notifyItemRemoved(position)
-        }
+        prescriptionAdapter = PrescriptionItemAdapter(
+            medicineList,
+            onItemClick = { item ->
+                if (item.itemId != 0L) {
+                    val intent = Intent(this, ChiTietDonThuoc::class.java).apply {
+                        putExtra("ITEM_ID", item.itemId)
+                    }
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "Hãy 'Lưu bệnh án' trước khi xem chi tiết!", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onDeleteClick = { position ->
+                medicineList.removeAt(position)
+                prescriptionAdapter.notifyItemRemoved(position)
+                prescriptionAdapter.notifyItemRangeChanged(position, medicineList.size)
+            }
+        )
         rcPrescription.layoutManager = LinearLayoutManager(this)
         rcPrescription.adapter = prescriptionAdapter
     }
 
-    private fun setupForCreateMode() {
-        tvHeader.text = "Khám bệnh & Kê đơn"
-        btnSave.text = "LƯU BỆNH ÁN"
-        btnDelete.visibility = View.GONE
+    /**
+     * Hàm chỉ load lại danh sách thuốc để cập nhật UI nhanh
+     */
+    private fun loadPrescriptionOnly() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val items = prescriptionItemDao.getItemsByRecordId(recordId)
+            withContext(Dispatchers.Main) {
+                medicineList.clear()
+                medicineList.addAll(items)
+                prescriptionAdapter.notifyDataSetChanged()
+            }
+        }
     }
 
-    private fun setupForUpdateMode() {
-        tvHeader.text = "Cập nhật bệnh án"
-        btnSave.text = "CẬP NHẬT"
-        btnDelete.visibility = View.VISIBLE
+    private fun showAddMedicineDialog() {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_add_medicine)
+        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 
-        loadExistingData()
+        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmAdd)
+        btnConfirm.setOnClickListener {
+            val name = dialog.findViewById<EditText>(R.id.edtMedName).text.toString()
+            val qty = dialog.findViewById<EditText>(R.id.edtMedQty).text.toString().toIntOrNull() ?: 0
+            val unit = dialog.findViewById<EditText>(R.id.edtMedUnit).text.toString()
+            val dose = dialog.findViewById<EditText>(R.id.edtMedDosage).text.toString()
+            val instruct = dialog.findViewById<EditText>(R.id.edtMedInstruction).text.toString()
+
+            if (name.isNotEmpty() && qty > 0) {
+                val item = PrescriptionItem(
+                    recordId = if (recordId == -1L) 0 else recordId,
+                    medicineName = name,
+                    quantity = qty,
+                    unit = unit,
+                    dosage = dose,
+                    instruction = instruct
+                )
+                medicineList.add(item)
+                prescriptionAdapter.notifyItemInserted(medicineList.size - 1)
+                dialog.dismiss()
+            }
+        }
+        dialog.show()
+    }
+
+    private fun saveNewRecord() {
+        val diag = edtDiagnosis.text.toString().trim()
+        if (diag.isEmpty()) {
+            Toast.makeText(this, "Vui lòng nhập chẩn đoán", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val newRecord = MedicalRecord(
+                patientId = patientId,
+                doctorId = SessionManager.getSpecificId(this@UpdateMedicalRecord),
+                appointmentId = if (appointmentId != -1L) appointmentId else null,
+                diagnosis = diag,
+                symptoms = edtSymptoms.text.toString(),
+                diseaseType = edtType.text.toString(),
+                doctorNotes = edtNotes.text.toString(),
+                doctorAdvice = "",
+                examinationDate = System.currentTimeMillis()
+            )
+            val newId = medicalRecordDao.insert(newRecord)
+
+            val medicinesWithId = medicineList.map { it.copy(recordId = newId) }
+            if (medicinesWithId.isNotEmpty()) {
+                prescriptionItemDao.insertPrescriptionItems(medicinesWithId)
+            }
+
+            if (appointmentId != -1L) {
+                appointmentDao.updateStatus(appointmentId, "COMPLETED")
+            }
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@UpdateMedicalRecord, "Lưu thành công", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
+    }
+
+    private fun updateRecord() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val record = medicalRecordDao.getRecordById(recordId) ?: return@launch
+            val updated = record.copy(
+                diagnosis = edtDiagnosis.text.toString(),
+                symptoms = edtSymptoms.text.toString(),
+                diseaseType = edtType.text.toString(),
+                doctorNotes = edtNotes.text.toString()
+            )
+            medicalRecordDao.update(updated)
+
+            // Lưu ý: Đoạn này sẽ ghi đè lại thuốc. 
+            // Nếu bạn muốn giữ lại itemId để không bị mất hiệu ứng, hãy cân nhắc logic update lẻ.
+            prescriptionItemDao.deleteItemsByRecordId(recordId)
+            val newMedicines = medicineList.map { it.copy(recordId = recordId, itemId = 0L) }
+            if (newMedicines.isNotEmpty()) {
+                prescriptionItemDao.insertPrescriptionItems(newMedicines)
+            }
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@UpdateMedicalRecord, "Cập nhật thành công", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
     }
 
     private fun loadExistingData() {
         lifecycleScope.launch(Dispatchers.IO) {
             val record = medicalRecordDao.getRecordById(recordId)
-            val items = prescriptionItemDao.getItemsByRecordId(recordId) // Load thuốc cũ
-
+            val items = prescriptionItemDao.getItemsByRecordId(recordId)
             withContext(Dispatchers.Main) {
-                if (record != null) {
-                    edtDiagnosis.setText(record.diagnosis)
-                    edtSymptoms.setText(record.symptoms)
-                    edtType.setText(record.diseaseType)
-                    edtNotes.setText(record.doctorNotes) // Sửa lại field cho khớp entity
-
-                    // Nếu vào từ List hồ sơ thì patientId có thể chưa set, lấy từ record
-                    if (patientId == -1L) patientId = record.patientId
+                record?.let {
+                    edtDiagnosis.setText(it.diagnosis)
+                    edtSymptoms.setText(it.symptoms)
+                    edtType.setText(it.diseaseType)
+                    edtNotes.setText(it.doctorNotes)
                 }
-
                 medicineList.clear()
                 medicineList.addAll(items)
                 prescriptionAdapter.notifyDataSetChanged()
@@ -135,156 +233,31 @@ class UpdateMedicalRecord : AppCompatActivity() {
     }
 
     private fun setEvents() {
-        tvCancel.setOnClickListener { finish() }
-
+        findViewById<TextView>(R.id.tvCancel).setOnClickListener { finish() }
         btnAddMedicine.setOnClickListener { showAddMedicineDialog() }
-
-        btnSave.setOnClickListener {
-            if (recordId == -1L) saveNewRecord() else updateRecord()
-        }
-
+        btnSave.setOnClickListener { if (recordId == -1L) saveNewRecord() else updateRecord() }
         btnDelete.setOnClickListener { showDeleteConfirm() }
     }
 
-    // --- Dialog Thêm Thuốc ---
-    private fun showAddMedicineDialog() {
-        val dialog = Dialog(this)
-        dialog.setContentView(R.layout.dialog_add_medicine)
-        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-
-        val edtName = dialog.findViewById<EditText>(R.id.edtMedName)
-        val edtQty = dialog.findViewById<EditText>(R.id.edtMedQty)
-        val edtUnit = dialog.findViewById<EditText>(R.id.edtMedUnit)
-        val edtDosage = dialog.findViewById<EditText>(R.id.edtMedDosage)
-        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirmAdd)
-
-        btnConfirm.setOnClickListener {
-            val name = edtName.text.toString()
-            val qty = edtQty.text.toString().toIntOrNull() ?: 0
-            val unit = edtUnit.text.toString()
-            val dosage = edtDosage.text.toString()
-
-            if (name.isNotEmpty() && qty > 0) {
-                // Tạo item thuốc tạm
-                val item = PrescriptionItem(
-                    itemId = 0,
-                    recordId = if(recordId == -1L) 0 else recordId,
-                    medicineName = name,
-                    quantity = qty,
-                    unit = unit,
-                    dosage = dosage
-                )
-                medicineList.add(item)
-                prescriptionAdapter.notifyItemInserted(medicineList.size - 1)
-                dialog.dismiss()
-            } else {
-                Toast.makeText(this, "Vui lòng nhập tên và số lượng > 0", Toast.LENGTH_SHORT).show()
-            }
-        }
-        dialog.show()
-    }
-
-    // --- CASE 1: TẠO MỚI ---
-    private fun saveNewRecord() {
-        val diagnosis = edtDiagnosis.text.toString().trim()
-        val symptoms = edtSymptoms.text.toString().trim()
-        val type = edtType.text.toString().trim()
-        val notes = edtNotes.text.toString().trim()
-        val doctorId = SessionManager.getSpecificId(this) // Lấy ID bác sĩ từ session
-
-        if (diagnosis.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập chẩn đoán", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            // 1. Insert Medical Record
-            val newRecord = MedicalRecord(
-                patientId = patientId,
-                doctorId = doctorId,
-                appointmentId = if (appointmentId != -1L) appointmentId else null,
-                diagnosis = diagnosis,
-                symptoms = symptoms,
-                diseaseType = type,
-                doctorNotes = notes,
-                doctorAdvice = "",
-                examinationDate = System.currentTimeMillis()
-            )
-            val newRecordId = medicalRecordDao.insert(newRecord)
-
-            // 2. Insert Prescriptions (Update recordId cho list thuốc)
-            val prescriptions = medicineList.map { it.copy(recordId = newRecordId) }
-            if (prescriptions.isNotEmpty()) {
-                prescriptionItemDao.insertPrescriptionItems(prescriptions)
-            }
-
-            // 3. Update Appointment Status (Nếu khám từ lịch hẹn)
-            if (appointmentId != -1L) {
-                appointmentDao.updateStatus(appointmentId, "COMPLETED")
-            }
-
-            withContext(Dispatchers.Main) {
-                Toast.makeText(this@UpdateMedicalRecord, "Lưu bệnh án thành công!", Toast.LENGTH_SHORT).show()
-                setResult(RESULT_OK)
-                finish()
-            }
-        }
-    }
-
-    // --- CASE 2: CẬP NHẬT ---
-    private fun updateRecord() {
-        val diagnosis = edtDiagnosis.text.toString().trim()
-        val symptoms = edtSymptoms.text.toString().trim()
-        val type = edtType.text.toString().trim()
-        val notes = edtNotes.text.toString().trim()
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            val oldRecord = medicalRecordDao.getRecordById(recordId)
-            if (oldRecord != null) {
-                // Giữ nguyên các trường không sửa (ngày tạo, patientId, doctorId...)
-                val updatedRecord = oldRecord.copy(
-                    diagnosis = diagnosis,
-                    symptoms = symptoms,
-                    diseaseType = type,
-                    doctorNotes = notes
-                )
-                medicalRecordDao.update(updatedRecord)
-
-                // Cập nhật thuốc: Cách đơn giản nhất là Xóa hết cũ -> Insert lại mới
-                prescriptionItemDao.deleteItemsByRecordId(recordId)
-                val newMedicines = medicineList.map { it.copy(itemId = 0, recordId = recordId) }
-                if (newMedicines.isNotEmpty()) {
-                    prescriptionItemDao.insertPrescriptionItems(newMedicines)
-                }
-
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@UpdateMedicalRecord, "Đã cập nhật!", Toast.LENGTH_SHORT).show()
-                    setResult(RESULT_OK)
-                    finish()
-                }
-            }
-        }
-    }
-
-    // --- CASE 3: XÓA ---
     private fun showDeleteConfirm() {
-        AlertDialog.Builder(this)
-            .setTitle("Xác nhận xóa")
-            .setMessage("Bạn có chắc chắn muốn xóa bệnh án này không? Dữ liệu thuốc cũng sẽ bị xóa.")
+        AlertDialog.Builder(this).setTitle("Xác nhận").setMessage("Xóa bệnh án này?")
             .setPositiveButton("Xóa") { _, _ ->
                 lifecycleScope.launch(Dispatchers.IO) {
                     medicalRecordDao.deleteRecord(recordId)
-                    // Thuốc sẽ tự xóa nếu database thiết lập Cascade, hoặc xóa thủ công:
                     prescriptionItemDao.deleteItemsByRecordId(recordId)
-
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@UpdateMedicalRecord, "Đã xóa bệnh án", Toast.LENGTH_SHORT).show()
-                        setResult(RESULT_OK)
-                        finish()
-                    }
+                    withContext(Dispatchers.Main) { finish() }
                 }
-            }
-            .setNegativeButton("Hủy", null)
-            .show()
+            }.setNegativeButton("Hủy", null).show()
+    }
+
+    private fun setupForCreateMode() {
+        tvHeader.text = "Khám bệnh & Kê đơn"
+        btnDelete.visibility = View.GONE
+    }
+
+    private fun setupForUpdateMode() {
+        tvHeader.text = "Cập nhật bệnh án"
+        btnDelete.visibility = View.VISIBLE
+        loadExistingData()
     }
 }

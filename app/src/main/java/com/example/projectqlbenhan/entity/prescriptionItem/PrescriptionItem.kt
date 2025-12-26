@@ -1,40 +1,28 @@
 package com.example.projectqlbenhan.entity.prescriptionItem
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 
-@Entity(
-    tableName = "prescription_items",
-    foreignKeys = [
-        ForeignKey(
-            entity = MedicalRecord::class,
-            parentColumns = ["recordId"],
-            childColumns = ["record_id"],
-            onDelete = ForeignKey.CASCADE // Xóa bệnh án thì xóa luôn thuốc
-        )
-    ],
-    indices = [Index(value = ["record_id"])]
-)
+/**
+ * Entity đại diện cho một mục thuốc trong đơn thuốc của bệnh án.
+ * Việc sử dụng data class giúp DiffUtil trong Adapter so sánh dữ liệu chính xác để cập nhật UI.
+ */
+@Entity(tableName = "prescription_items")
 data class PrescriptionItem(
     @PrimaryKey(autoGenerate = true)
     val itemId: Long = 0,
 
-    @ColumnInfo(name = "record_id")
-    val recordId: Long, // Link tới lần khám nào
+    val recordId: Long, // Liên kết với bảng MedicalRecord
 
-    @ColumnInfo(name = "medicine_name")
-    val medicineName: String, // VD: "Paracetamol 500mg" (Nhập tay)
+    val medicineName: String,
 
-    @ColumnInfo(name = "quantity")
-    val quantity: Int,     // VD: 10
+    val dosage: String, // Ví dụ: "Sáng 1 viên, chiều 1 viên sau ăn"
 
-    @ColumnInfo(name = "unit")
-    val unit: String,      // VD: "Viên", "Vỉ", "Chai"
+    val unit: String = "Viên", // Đơn vị tính mặc định
 
-    @ColumnInfo(name = "dosage")
-    val dosage: String     // VD: "Sáng 1, Chiều 1 sau ăn")
+    val quantity: Int = 0, // Số lượng (mặc định là 0 để tránh lỗi nhập liệu trống)
+
+    val instruction: String = "", // Hướng dẫn thêm hoặc ghi chú từ bác sĩ
+
+    val createdAt: Long = System.currentTimeMillis() // Thời điểm kê đơn để sắp xếp
 )

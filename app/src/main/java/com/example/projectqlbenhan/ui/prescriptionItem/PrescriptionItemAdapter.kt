@@ -11,26 +11,39 @@ import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 
 class PrescriptionItemAdapter(
     private val list: MutableList<PrescriptionItem>,
-    private val onDelete: (Int) -> Unit
+    private val onItemClick: (PrescriptionItem) -> Unit, // Callback để xem chi tiết/toa thuốc
+    private val onDeleteClick: (Int) -> Unit             // Callback để xóa thuốc theo vị trí
 ) : RecyclerView.Adapter<PrescriptionItemAdapter.ViewHolder>() {
 
+    /**
+     * ViewHolder ánh xạ các View từ file item_prescription_item.xml
+     */
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvName: TextView = itemView.findViewById(R.id.tvMedicineName)
-        val tvInfo: TextView = itemView.findViewById(R.id.tvMedicineInfo) // SL + Đơn vị
+        val tvInfo: TextView = itemView.findViewById(R.id.tvMedicineInfo)
         val tvDosage: TextView = itemView.findViewById(R.id.tvDosage)
         val btnDelete: ImageButton = itemView.findViewById(R.id.btnDeleteMedicine)
 
         fun bind(item: PrescriptionItem, position: Int) {
+            // Gán dữ liệu lên giao diện
             tvName.text = item.medicineName
             tvInfo.text = "${item.quantity} ${item.unit}"
             tvDosage.text = item.dosage
 
-            btnDelete.setOnClickListener { onDelete(position) }
+            // ⭐ Xử lý click vào TOÀN BỘ dòng thuốc để xem toa thuốc chi tiết
+            itemView.setOnClickListener {
+                onItemClick(item)
+            }
+
+            // ⭐ Xử lý click vào nút XÓA
+            btnDelete.setOnClickListener {
+                onDeleteClick(position)
+            }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-
+        // Nạp layout item_prescription_item.xml mà bạn đã tạo
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_prescription_item, parent, false)
         return ViewHolder(view)
@@ -42,17 +55,12 @@ class PrescriptionItemAdapter(
 
     override fun getItemCount(): Int = list.size
 
-    fun addItem(item: PrescriptionItem) {
-        list.add(item)
-        notifyItemInserted(list.size - 1)
+    /**
+     * Cập nhật toàn bộ danh sách khi dữ liệu thay đổi
+     */
+    fun updateData(newList: List<PrescriptionItem>) {
+        list.clear()
+        list.addAll(newList)
+        notifyDataSetChanged()
     }
-
-    fun removeItem(position: Int) {
-        if (position in list.indices) {
-            list.removeAt(position)
-            notifyItemRemoved(position)
-        }
-    }
-
-    fun getData(): List<PrescriptionItem> = list
 }

@@ -158,7 +158,6 @@
                     android:textColor="#2196F3"
                     android:textSize="16sp"
                     android:textStyle="bold" />
-
                 <Button
                     android:id="@+id/btnAddMedicine"
                     android:layout_width="wrap_content"

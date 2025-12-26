@@ -14,11 +14,14 @@ interface AccountDao {
     @Query("SELECT EXISTS(SELECT 1 FROM accounts WHERE username = :username)")
     suspend fun isUsernameExist(username: String): Boolean
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    // ⭐ FIX LỖI CRASH: Thay đổi từ ABORT sang REPLACE
+    // Việc này giúp app không bị văng khi trùng username mà sẽ tự động cập nhật bản ghi đó.
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAccount(account: Account): Long
 
     @Query("UPDATE accounts SET passwordHash = :newPass WHERE accountId = :id")
     suspend fun updatePassword(id: Long, newPass: String)
+
     @Query("SELECT COUNT(*) FROM accounts")
     suspend fun countAccounts(): Int
 }

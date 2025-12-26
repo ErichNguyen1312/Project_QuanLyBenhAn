@@ -1,118 +1,64 @@
 package com.example.projectqlbenhan.ui.medicalRecord
 
-import android.content.Intent
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.ui.BaseActivity
 
-import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+class ProfilePatientMedicalRecord : BaseActivity() {
 
-class ProfilePatientMedicalRecord : AppCompatActivity() {
+    // Quy định Layout cho BaseActivity
+    override fun getLayoutResId() = R.layout.activity_profile_patient_medical_record
 
-    private lateinit var btnBack: ImageView
+    // Khai báo các Views
     private lateinit var tvHeader: TextView
-    private lateinit var rcRecyclerMedicalRecord: RecyclerView
-    private lateinit var layoutEmpty: View
-    private lateinit var btnAddMedicalRecord: Button
-
-    private var patientId: Long = -1
-    private var patientName: String = ""
-
-    private val medicalRecordList = mutableListOf<MedicalRecord>()
-    private lateinit var adapter: MedicalRecordAdapter
-
-    private val dao by lazy {
-        MedicalRecordDatabase.getDatabase(this).medicalRecordDao()
-    }
+    private lateinit var btnBack: ImageView
+    private lateinit var tvPatientName: TextView
+    private lateinit var tvPatientId: TextView
+    // Thêm các view khác nếu layout của bạn có (VD: tvDob, tvGender...)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_profile_patient_medical_record)
+        // Lưu ý: BaseActivity của bạn thường đã gọi setContentView trong onCreate của nó
 
-        getIntentData()
+        // ⭐ BƯỚC 1: Ánh xạ View từ XML vào Kotlin trước
         setControl()
+
+        // ⭐ BƯỚC 2: Sau khi các biến lateinit đã có giá trị, mới xử lý dữ liệu
+        getIntentData()
+
+        // ⭐ BƯỚC 3: Thiết lập các sự kiện nút bấm
         setEvent()
-        loadMedicalRecords()
-    }
-
-    private fun getIntentData() {
-        patientId = intent.getLongExtra("patient_id", -1)
-        patientName = intent.getStringExtra("patient_name") ?: "Bệnh nhân"
-
-        tvHeader.text = "Bệnh án của $patientName"
     }
 
     private fun setControl() {
+        // Ánh xạ ID chính xác từ file activity_profile_patient_medical_record.xml
+        tvHeader = findViewById(R.id.tvHeader)
         btnBack = findViewById(R.id.btnBack)
-        rcRecyclerMedicalRecord = findViewById(R.id.rcRecyclerMedicalRecord)
-        layoutEmpty = findViewById(R.id.layoutEmpty)
-        btnAddMedicalRecord = findViewById(R.id.btnAddMedicalRecord)
 
-        // Setup RecyclerView
-        adapter = MedicalRecordAdapter(medicalRecordList) { record ->
-            // ⭐️ CLICK ITEM: Mở màn hình UpdateMedicalRecord để XEM/SỬA
-            // (Thay vì mở PatientMedicalRecordDetail như cũ)
-            val intent = Intent(this, UpdateMedicalRecord::class.java)
-            intent.putExtra("record_id", record.recordId) // Truyền ID để load dữ liệu cũ
-            intent.putExtra("patient_id", patientId)
-            launcher.launch(intent)
-        }
+        // Giả định các ID này có trong layout của bạn, nếu chưa có hãy bổ sung vào XML
+        // tvPatientName = findViewById(R.id.tvPatientName)
+        // tvPatientId = findViewById(R.id.tvPatientId)
+    }
 
-        rcRecyclerMedicalRecord.layoutManager = LinearLayoutManager(this)
-        rcRecyclerMedicalRecord.adapter = adapter
+    private fun getIntentData() {
+        // Lấy dữ liệu từ Intent truyền sang
+        val patientName = intent.getStringExtra("patient_name") ?: "Thông tin bệnh nhân"
+        val patientId = intent.getLongExtra("patient_id", -1L)
+
+        // Gán dữ liệu vào View (Lúc này tvHeader đã được khởi tạo nên KHÔNG bị crash)
+        tvHeader.text = patientName
+
+        // Nếu có các view profile khác:
+        // tvPatientName.text = "Tên: $patientName"
+        // if (patientId != -1L) tvPatientId.text = "Mã BN: $patientId"
     }
 
     private fun setEvent() {
-        btnBack.setOnClickListener { finish() }
-
-        btnAddMedicalRecord.setOnClickListener {
-            // ⭐️ CLICK THÊM: Mở màn hình UpdateMedicalRecord để TẠO MỚI
-            // (Truyền record_id = -1)
-            val intent = Intent(this, UpdateMedicalRecord::class.java)
-            intent.putExtra("patient_id", patientId)
-            intent.putExtra("appointment_id", -1L) // Không từ lịch hẹn
-            intent.putExtra("record_id", -1L)      // Tạo mới
-            launcher.launch(intent)
-        }
-    }
-
-    private fun loadMedicalRecords() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val list = dao.getRecordsByPatient(patientId)
-
-            withContext(Dispatchers.Main) {
-                medicalRecordList.clear()
-                medicalRecordList.addAll(list)
-                adapter.notifyDataSetChanged()
-
-                // Ẩn hiện view Empty
-                if (medicalRecordList.isEmpty()) {
-                    layoutEmpty.visibility = View.VISIBLE
-                    rcRecyclerMedicalRecord.visibility = View.GONE
-                } else {
-                    layoutEmpty.visibility = View.GONE
-                    rcRecyclerMedicalRecord.visibility = View.VISIBLE
-                }
-            }
-        }
-    }
-
-    // Dùng 1 launcher chung cho cả Thêm và Sửa để reload list khi quay lại
-    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            loadMedicalRecords()
+        // Sự kiện quay lại
+        btnBack.setOnClickListener {
+            finish()
         }
     }
 }

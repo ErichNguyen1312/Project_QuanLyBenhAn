@@ -10,7 +10,7 @@ import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope // Dùng cái này an toàn hơn CoroutineScope tự tạo
-import com.example.projectqlbenhan.MedicalRecordDatabase
+import com.example.projectqlbenhan.database.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.patient.Patient
 import com.example.projectqlbenhan.utils.MrnGenerator

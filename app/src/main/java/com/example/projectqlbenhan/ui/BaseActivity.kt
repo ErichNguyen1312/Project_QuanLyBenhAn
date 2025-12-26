@@ -7,19 +7,19 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import com.example.projectqlbenhan.MedicalRecordDatabase
+import com.example.projectqlbenhan.database.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
-
 import com.example.projectqlbenhan.ui.authService.Login
 import com.example.projectqlbenhan.ui.patient.Patients
+import com.example.projectqlbenhan.ui.DonThuocUI.DonThuoc
+// ⭐ ĐẢM BẢO IMPORT ĐÚNG ACTIVITY THỐNG KÊ CỦA BẠN
+// import com.example.projectqlbenhan.ui.medicalRecord.screenThongKe_BenhAn
 import com.example.projectqlbenhan.utils.SessionManager
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-
 
 abstract class BaseActivity : AppCompatActivity() {
 
@@ -44,15 +44,16 @@ abstract class BaseActivity : AppCompatActivity() {
     }
 
     private fun setEvent() {
-        // inflate layout con
         val frame = findViewById<FrameLayout>(R.id.contentFrame)
         layoutInflater.inflate(getLayoutResId(), frame, true)
         setupDrawer()
         setupHeader()
     }
 
-    protected fun openDrawer() {
-        drawerLayout.openDrawer(GravityCompat.START)
+    open fun openDrawer() {
+        if (::drawerLayout.isInitialized) {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
     }
 
     private fun setupDrawer() {
@@ -61,15 +62,21 @@ abstract class BaseActivity : AppCompatActivity() {
                 R.id.menu_listPatient ->
                     startActivity(Intent(this, Patients::class.java))
 
+                R.id.menu_quanLyDonThuoc -> {
+                    startActivity(Intent(this, DonThuoc::class.java))
+                }
+
+                // ⭐ FIX TẠI ĐÂY: Thêm logic chuyển sang trang Thống kê bệnh án
+                R.id.menu_ThongKeBenhAn -> {
+                    // Thay 'screenThongKe_BenhAn' bằng tên class thật của bạn nếu khác
+                    // val intent = Intent(this, screenThongKe_BenhAn::class.java)
+                    // startActivity(intent)
+                }
+
                 R.id.menu_logout -> {
                     SessionManager.logout(this)
                     startActivity(Intent(this, Login::class.java))
                     finishAffinity()
-                }
-                R.id.menu_ThongKeBenhAn ->{
-//                    SessionManager.clear(this)
-//                    startActivity(Intent(this, screenThongKe_BenhAn::class.java))
-//                    finishAffinity()
                 }
             }
             drawerLayout.closeDrawers()
@@ -80,22 +87,16 @@ abstract class BaseActivity : AppCompatActivity() {
     private fun setupHeader() {
         val header = navigationView.getHeaderView(0)
         CoroutineScope(Dispatchers.IO).launch {
-            // Kiểm tra null để tránh crash nếu chưa đăng nhập
             val doctorId = SessionManager.getSpecificId(this@BaseActivity)
             if (doctorId != -1L) {
                 val doctorInfo = doc.getDoctorById(doctorId)
                 withContext(Dispatchers.Main) {
                     if (doctorInfo != null) {
                         header.findViewById<TextView>(R.id.tvDoctorName).text = doctorInfo.fullName
-                        header.findViewById<TextView>(R.id.tvDoctorDept).text =
-                            doctorInfo.specialization
+                        header.findViewById<TextView>(R.id.tvDoctorDept).text = doctorInfo.specialization
                     }
                 }
             }
         }
     }
-
-
-
-
 }

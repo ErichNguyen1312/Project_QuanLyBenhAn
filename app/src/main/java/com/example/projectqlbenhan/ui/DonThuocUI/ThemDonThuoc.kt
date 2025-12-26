@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 import com.example.projectqlbenhan.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
@@ -65,8 +65,8 @@ class ThemDonThuoc : AppCompatActivity() {
         currentRecordId = intent.getLongExtra("RECORD_ID", -1L)
 
         // Lấy thông tin bệnh nhân từ Session để hiển thị (không cho sửa)
-        val patientId = SessionManager.getCurrentPatientId(this)
-        val patientName = SessionManager.getCurrentPatientName(this)
+        val patientId = SessionManager.getSpecificId(this)
+        val patientName = SessionManager.getFullName(this)
 
         if (patientId != -1L) {
             edtMaBenhNhan.setText(patientId.toString())

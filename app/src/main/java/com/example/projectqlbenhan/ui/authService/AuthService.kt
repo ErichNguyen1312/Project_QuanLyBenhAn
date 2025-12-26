@@ -1,7 +1,7 @@
 package com.example.projectqlbenhan.ui.authService
 
 import android.content.Context
-import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.MedicalRecordDatabase
 
 import com.example.projectqlbenhan.entity.account.Account
 import com.example.projectqlbenhan.entity.doctor.Doctor

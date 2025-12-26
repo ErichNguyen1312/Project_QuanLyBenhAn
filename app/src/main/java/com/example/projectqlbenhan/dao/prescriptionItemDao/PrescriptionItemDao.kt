@@ -53,4 +53,7 @@ interface PrescriptionItemDao {
     // ⭐ Xóa toàn bộ thuốc theo mã bệnh án
     @Query("DELETE FROM prescription_items WHERE record_id = :recordId")
     suspend fun deleteItemsByRecordId(recordId: Long)
+
+    @Query("SELECT COUNT(*) FROM prescription_items")
+    suspend fun countTotalPrescriptions() : Int
 }

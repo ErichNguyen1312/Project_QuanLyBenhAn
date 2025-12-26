@@ -1,6 +1,6 @@
 package com.example.projectqlbenhan.utils
 
-import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.entity.account.Account
 import com.example.projectqlbenhan.entity.appointment.Appointment
 import com.example.projectqlbenhan.entity.doctor.Doctor

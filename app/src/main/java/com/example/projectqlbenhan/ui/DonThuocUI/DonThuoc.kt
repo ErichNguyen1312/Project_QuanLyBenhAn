@@ -14,8 +14,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.projectqlbenhan.R
-import com.example.projectqlbenhan.database.MedicalRecordDatabase
+import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
+import com.example.projectqlbenhan.ui.home.HomeActivity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -62,6 +63,12 @@ class DonThuoc : AppCompatActivity() {
 
         // Tải dữ liệu ban đầu
         donThuocViewModel.loadAll()
+    }
+
+    override fun onStop() {
+        intent = Intent(this, HomeActivity::class.java)
+        startActivity(intent)
+        super.onStop()
     }
 
     private fun khoiTaoMVVM() {

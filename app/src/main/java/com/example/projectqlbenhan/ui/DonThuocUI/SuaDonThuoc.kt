@@ -87,8 +87,7 @@ class SuaDonThuoc : AppCompatActivity() {
             val name = edtTenThuoc.text.toString().trim()
             val unit = edtDangThuoc.text.toString().trim()
             val dosage = edtLieuDung.text.toString().trim()
-            val qtyString = edtSoLanDung.text.toString().trim()
-            val qty = qtyString.toIntOrNull() ?: 0
+            val qty = edtSoLanDung.text.toString().toIntOrNull() ?: 0
             val note = edtGhiChu.text.toString().trim()
 
             if (name.isEmpty()) {
@@ -96,7 +95,7 @@ class SuaDonThuoc : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // ⭐ Tạo bản sao cập nhật: Phải giữ nguyên itemId và recordId cũ
+            // ⭐ Copy dữ liệu mới vào Object cũ để giữ ID
             val updated = current.copy(
                 medicineName = name,
                 unit = unit,
@@ -106,12 +105,9 @@ class SuaDonThuoc : AppCompatActivity() {
             )
 
             lifecycleScope.launch(Dispatchers.IO) {
-                // 1. Lưu thay đổi vào Database
                 donThuocViewModel.capNhatThuoc(updated)
-
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@SuaDonThuoc, "Đã lưu thay đổi thành công", Toast.LENGTH_SHORT).show()
-                    // 2. Kết thúc Activity này để quay lại màn hình UpdateMedicalRecord
+                    Toast.makeText(this@SuaDonThuoc, "Đã lưu thay đổi", Toast.LENGTH_SHORT).show()
                     finish()
                 }
             }
@@ -120,13 +116,12 @@ class SuaDonThuoc : AppCompatActivity() {
         btnXoa.setOnClickListener {
             MaterialAlertDialogBuilder(this)
                 .setTitle("Xác nhận xóa")
-                .setMessage("Bạn có chắc chắn muốn xóa thuốc '${editingItem?.medicineName}' không?")
+                .setMessage("Xóa thuốc '${editingItem?.medicineName}'?")
                 .setPositiveButton("Xóa") { _, _ ->
                     editingItem?.let { item ->
                         lifecycleScope.launch(Dispatchers.IO) {
                             donThuocViewModel.xoaThuoc(item)
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@SuaDonThuoc, "Đã xóa thành công", Toast.LENGTH_SHORT).show()
                                 finish()
                             }
                         }

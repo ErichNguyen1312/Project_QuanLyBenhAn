@@ -11,15 +11,15 @@ interface PrescriptionItemDao {
      */
 
     // Lấy toàn bộ thuốc (Dùng cho thống kê Dashboard HomeActivity)
-    @Query("SELECT * FROM prescription_items ORDER BY createdAt DESC")
+    @Query("SELECT * FROM prescription_items ORDER BY created_at DESC")
     suspend fun getAllItems(): List<PrescriptionItem>
 
     // Lấy toàn bộ thuốc (Dùng cho ViewModel trong màn hình Danh sách)
-    @Query("SELECT * FROM prescription_items ORDER BY createdAt DESC")
+    @Query("SELECT * FROM prescription_items ORDER BY created_at DESC")
     suspend fun getAllPrescriptionItems(): List<PrescriptionItem>
 
     // Lấy danh sách thuốc theo mã bệnh án (Sắp xếp thuốc mới kê lên đầu)
-    @Query("SELECT * FROM prescription_items WHERE recordId = :recordId ORDER BY itemId DESC")
+    @Query("SELECT * FROM prescription_items WHERE record_id = :recordId ORDER BY itemId DESC")
     suspend fun getItemsByRecordId(recordId: Long): List<PrescriptionItem>
 
     // Lấy chi tiết một loại thuốc theo ID (Dùng để load dữ liệu vào màn hình Sửa)
@@ -51,6 +51,6 @@ interface PrescriptionItemDao {
     suspend fun delete(item: PrescriptionItem): Int
 
     // ⭐ Xóa toàn bộ thuốc theo mã bệnh án
-    @Query("DELETE FROM prescription_items WHERE recordId = :recordId")
+    @Query("DELETE FROM prescription_items WHERE record_id = :recordId")
     suspend fun deleteItemsByRecordId(recordId: Long)
 }

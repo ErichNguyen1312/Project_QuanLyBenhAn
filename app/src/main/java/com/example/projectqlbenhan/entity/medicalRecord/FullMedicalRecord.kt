@@ -16,8 +16,8 @@ data class FullMedicalRecord(
     val doctor: Doctor? = null,
 
     @Relation(
-        parentColumn = "recordId", // Biến recordId trong class MedicalRecord
-        entityColumn = "recordId"  // ⭐ FIX TẠI ĐÂY: Sửa record_id thành recordId cho khớp với PrescriptionItem
+        parentColumn = "recordId",
+        entityColumn = "record_id"
     )
-    val prescriptionItems: List<PrescriptionItem> = emptyList() // ⭐ Thêm giá trị mặc định để fix lỗi Constructor
+    val prescriptionItems: List<PrescriptionItem>
 )

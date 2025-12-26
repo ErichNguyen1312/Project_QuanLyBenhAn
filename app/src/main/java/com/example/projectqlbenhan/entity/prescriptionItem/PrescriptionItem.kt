@@ -1,28 +1,46 @@
 package com.example.projectqlbenhan.entity.prescriptionItem
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.projectqlbenhan.entity.medicalRecord.MedicalRecord
 
-/**
- * Entity đại diện cho một mục thuốc trong đơn thuốc của bệnh án.
- * Việc sử dụng data class giúp DiffUtil trong Adapter so sánh dữ liệu chính xác để cập nhật UI.
- */
-@Entity(tableName = "prescription_items")
+@Entity(
+    tableName = "prescription_items",
+    foreignKeys = [
+        ForeignKey(
+            entity = MedicalRecord::class,
+            parentColumns = ["recordId"],
+            childColumns = ["record_id"],
+            onDelete = ForeignKey.CASCADE // Xóa bệnh án thì xóa luôn thuốc
+        )
+    ],
+    indices = [Index(value = ["record_id"])]
+)
 data class PrescriptionItem(
     @PrimaryKey(autoGenerate = true)
     val itemId: Long = 0,
 
-    val recordId: Long, // Liên kết với bảng MedicalRecord
+    @ColumnInfo(name = "record_id")
+    val recordId: Long, // Link tới lần khám nào
 
-    val medicineName: String,
+    @ColumnInfo(name = "medicine_name")
+    val medicineName: String, // Tên thuốc
 
-    val dosage: String, // Ví dụ: "Sáng 1 viên, chiều 1 viên sau ăn"
+    @ColumnInfo(name = "quantity")
+    val quantity: Int, // Số lượng
 
-    val unit: String = "Viên", // Đơn vị tính mặc định
+    @ColumnInfo(name = "unit")
+    val unit: String, // Đơn vị tính (Viên, vỉ...)
 
-    val quantity: Int = 0, // Số lượng (mặc định là 0 để tránh lỗi nhập liệu trống)
+    @ColumnInfo(name = "dosage")
+    val dosage: String, // Liều dùng
 
-    val instruction: String = "", // Hướng dẫn thêm hoặc ghi chú từ bác sĩ
+    @ColumnInfo(name = "instruction")
+    val instruction: String = "", // Hướng dẫn sử dụng
 
-    val createdAt: Long = System.currentTimeMillis() // Thời điểm kê đơn để sắp xếp
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long = System.currentTimeMillis() // Thời gian kê đơn
 )

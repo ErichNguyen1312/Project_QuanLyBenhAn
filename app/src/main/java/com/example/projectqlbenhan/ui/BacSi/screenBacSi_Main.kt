@@ -20,6 +20,7 @@ import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.doctor.Doctor
 import com.example.projectqlbenhan.ui.BacSi.Adapter_BacSi
 import com.example.projectqlbenhan.ui.BacSi.screenBacSi_Detail
+import com.example.projectqlbenhan.ui.admin.MainScreen_Admin
 import com.example.projectqlbenhan.ui.home.HomeActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,7 +91,7 @@ class screenBacSi_Main : AppCompatActivity() {
 
     private fun setEvent() {
         btnBack.setOnClickListener {
-            intent = Intent(this, HomeActivity::class.java)
+            intent = Intent(this, MainScreen_Admin::class.java)
             startActivity(intent)
         }
 

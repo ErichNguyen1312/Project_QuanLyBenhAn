@@ -16,6 +16,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectQLBenhAn">
         <activity
+            android:name=".ui.DanhGia.ScreenDanhGia_Detail"
+            android:exported="false" />
+        <activity
+            android:name=".ui.DanhGia.ScreenDanhGia_Main"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.MainScreen_Admin"
+            android:exported="false" />
+        <activity
             android:name=".ui.BacSi.screenBacSi_Edit"
             android:exported="false" />
         <activity

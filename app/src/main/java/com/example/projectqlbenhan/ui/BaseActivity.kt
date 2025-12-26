@@ -72,10 +72,6 @@ abstract class BaseActivity : AppCompatActivity() {
                     startActivity(Intent(this, screenThongKe_BenhAn::class.java))
                     finishAffinity()
                 }
-                R.id.menu_BacSi ->{
-                    startActivity(Intent(this, screenBacSi_Main::class.java))
-                    finishAffinity()
-                }
             }
             drawerLayout.closeDrawers()
             true

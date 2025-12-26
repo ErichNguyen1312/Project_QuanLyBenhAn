@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.projectqlbenhan.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
+import com.example.projectqlbenhan.ui.admin.MainScreen_Admin
 import com.example.projectqlbenhan.ui.home.HomeActivity
 import com.example.projectqlbenhan.ui.patient_home.PatientHomeActivity
 import com.example.projectqlbenhan.utils.DatabaseSeeder
@@ -64,6 +65,10 @@ class Login : AppCompatActivity() {
                     startActivity(Intent(this, PatientHomeActivity::class.java))
                     finish()
                 }
+                "ADMIN" -> {
+                    startActivity(Intent(this, MainScreen_Admin::class.java))
+                    finish()
+                }
             }
         }
     }
@@ -97,8 +102,7 @@ class Login : AppCompatActivity() {
                             checkPatientAndRedirect(account.accountId)
                         }
                         "ADMIN" -> {
-//                            checkAdminAndRedirect(account.accountId)
-                            Toast.makeText(this@Login, "Admin chưa hỗ trợ", Toast.LENGTH_SHORT).show()
+                            checkAdminAndRedirect(account.accountId)
                         }
                         else -> {
                             Toast.makeText(this@Login, "Role không hợp lệ: ${account.role}", Toast.LENGTH_SHORT).show()
@@ -149,14 +153,17 @@ class Login : AppCompatActivity() {
         }
     }
     private fun checkAdminAndRedirect(accountId: Long) {
-        lifecycleScope.launch(Dispatchers.Main) {
-            SessionManager.saveSpecificId(this@Login, accountId)
-
-
-            SessionManager.saveFullName(this@Login, "Administrator")
-
-            startActivity(Intent(this@Login, HomeActivity::class.java))
-            finish()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val admin = db.accountDao().getAccountById(accountId)
+            withContext(Dispatchers.Main) {
+                if (admin != null) {
+                    SessionManager.saveSpecificId(this@Login, -1)
+                    startActivity(Intent(this@Login, MainScreen_Admin::class.java))
+                    finish()
+                } else {
+                    Toast.makeText(this@Login, "Không tìm tấy tài khoản", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
     private fun hashPassword(password: String): String {

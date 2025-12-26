@@ -14,8 +14,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.projectqlbenhan.R
-// Import đúng Database và Entity đã thống nhất
-import com.example.projectqlbenhan.MedicalRecordDatabase
+import com.example.projectqlbenhan.database.MedicalRecordDatabase
 import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -23,24 +22,20 @@ import java.util.Locale
 
 class DonThuoc : AppCompatActivity() {
 
-    // Khai báo Views
     private lateinit var iconSearch: ImageView
     private lateinit var iconAdd: ImageView
     private lateinit var recentPrescriptionCard: CardView
     private lateinit var iconPerson: ImageView
     private lateinit var iconPill: ImageView
 
-    private lateinit var cardTotalRx: CardView
-    private lateinit var cardTotalPatients: CardView
-    private lateinit var cardExpiring: CardView
-    private lateinit var cardCompleted: CardView
-
-    // Khai báo TextViews hiển thị đơn thuốc
     private lateinit var tvRecentMaBenhNhan: TextView
     private lateinit var tvRecentTenBenhNhan: TextView
     private lateinit var tvRecentNgayKetThuc: TextView
 
-    // Khai báo ViewModel quản lý dữ liệu
+    // Thêm các TextView thống kê
+    private lateinit var tvTotalPatients: TextView
+    private lateinit var tvTotalRx: TextView
+
     private lateinit var donThuocViewModel: DonThuocViewModel
     private var latestItemId: Long = -1L
 
@@ -49,28 +44,30 @@ class DonThuoc : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_don_thuoc)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById<View>(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        // Xử lý System Bar (Padding cho màn hình tràn viền)
+        val mainView = findViewById<View>(R.id.main)
+        mainView?.let {
+            ViewCompat.setOnApplyWindowInsetsListener(it) { v, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                insets
+            }
         }
 
         khoiTaoMVVM()
         setControl()
         setEvent()
         applyColorFixes()
+        observeViewModel()
 
-        // Quan sát dữ liệu thuốc gần nhất
-        observeRecentPrescription()
+        // Tải dữ liệu ban đầu
+        donThuocViewModel.loadAll()
     }
 
     private fun khoiTaoMVVM() {
-        // Sử dụng lớp Database trung tâm thay cho PhongKhamDatabase cũ
         val database = MedicalRecordDatabase.getDatabase(this)
-
-        // Factory khởi tạo trực tiếp từ DAO quản lý đơn thuốc
         val factory = DonThuocViewModelFactory(database.prescriptionItemDao())
-        donThuocViewModel = ViewModelProvider(this, factory).get(DonThuocViewModel::class.java)
+        donThuocViewModel = ViewModelProvider(this, factory)[DonThuocViewModel::class.java]
     }
 
     private fun setControl() {
@@ -78,67 +75,68 @@ class DonThuoc : AppCompatActivity() {
         iconAdd = findViewById(R.id.icon_add)
         iconPerson = findViewById(R.id.icon_person)
         iconPill = findViewById(R.id.icon_pill)
-
-        cardTotalPatients = findViewById(R.id.card_total_patients)
-        cardTotalRx = findViewById(R.id.card_total_rx)
-        cardExpiring = findViewById(R.id.card_expiring)
-        cardCompleted = findViewById(R.id.card_completed)
-
         recentPrescriptionCard = findViewById(R.id.card_recent_rx)
 
         tvRecentMaBenhNhan = findViewById(R.id.tvRecentMaBenhNhan)
         tvRecentTenBenhNhan = findViewById(R.id.tvRecentTenBenhNhan)
         tvRecentNgayKetThuc = findViewById(R.id.tvRecentNgayKetThuc)
+
+        // Ánh xạ các TextView số lượng trên Dashboard
+        // Lưu ý: Đảm bảo các ID này có trong file activity_don_thuoc.xml (GridLayout)
+        // Nếu file XML chưa có ID cho các số 1.560, 3.850... hãy thêm vào
+        // tvTotalPatients = findViewById(R.id.tvTotalPatientsInRx)
+        // tvTotalRx = findViewById(R.id.tvTotalRxCount)
     }
 
-    private fun observeRecentPrescription() {
-        // Quan sát LiveData chứa danh sách thuốc đã lọc
-        donThuocViewModel.filteredPrescriptionItems.observe(this) { itemList ->
-            val recentItem = itemList?.firstOrNull()
-
-            if (recentItem != null) {
-                latestItemId = recentItem.itemId // Lưu ID thuốc để xem chi tiết
-                updateRecentCardUI(recentItem)
+    private fun observeViewModel() {
+        // Quan sát danh sách đơn thuốc để cập nhật "Đơn thuốc gần đây" và số lượng
+        donThuocViewModel.filteredPrescriptionItems.observe(this) { donThuocList ->
+            if (!donThuocList.isNullOrEmpty()) {
+                val recentDonThuoc = donThuocList.first() // Lấy đơn thuốc mới nhất
+                latestItemId = recentDonThuoc.itemId
+                updateRecentCardUI(recentDonThuoc)
                 recentPrescriptionCard.visibility = View.VISIBLE
+
+                // Cập nhật con số tổng quát (nếu có TextView)
+                // tvTotalRx.text = donThuocList.size.toString()
             } else {
                 latestItemId = -1L
-                tvRecentMaBenhNhan.text = "N/A"
-                tvRecentTenBenhNhan.text = "Chưa có thuốc kê"
-                tvRecentNgayKetThuc.text = "--/--/----"
-                recentPrescriptionCard.visibility = View.VISIBLE
+                recentPrescriptionCard.visibility = View.GONE
             }
         }
     }
 
     private fun updateRecentCardUI(item: PrescriptionItem) {
-        // Hiển thị mã thuốc và tên thuốc vừa kê
-        tvRecentMaBenhNhan.text = "ID: ${item.itemId}"
+        // Hiển thị thông tin đơn thuốc mới nhất lên Card "Đơn thuốc gần đây"
+        tvRecentMaBenhNhan.text = "Bệnh án: #${item.recordId}"
         tvRecentTenBenhNhan.text = item.medicineName
 
-        // Hiển thị ngày hệ thống hiện tại (vì bảng thuốc không lưu ngày)
         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        tvRecentNgayKetThuc.text = dateFormat.format(Date())
+        tvRecentNgayKetThuc.text = dateFormat.format(Date(item.createdAt))
     }
 
     private fun setEvent() {
+        // ⭐ QUAN TRỌNG: Click kính lúp chuyển sang màn hình tìm kiếm danh sách
         iconSearch.setOnClickListener {
-            openActivity(DanhSachDonThuoc::class.java, "Danh sách Thuốc")
-        }
-        iconAdd.setOnClickListener {
-            openActivity(ThemDonThuoc::class.java, "Kê đơn thuốc")
+            val intent = Intent(this, DanhSachDonThuoc::class.java)
+            startActivity(intent)
         }
 
+        iconAdd.setOnClickListener {
+            // Chuyển sang màn hình thêm đơn thuốc (Nếu bạn đã code activity này)
+            // startActivity(Intent(this, ThemDonThuoc::class.java))
+            Toast.makeText(this, "Tính năng đang cập nhật", Toast.LENGTH_SHORT).show()
+        }
+
+        // Click vào đơn thuốc gần đây để xem chi tiết
         recentPrescriptionCard.setOnClickListener {
             if (latestItemId != -1L) {
-                openChiTietDonThuoc(latestItemId)
-            } else {
-                Toast.makeText(this, "Không có dữ liệu thuốc để xem.", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, ChiTietDonThuoc::class.java).apply {
+                    putExtra("ITEM_ID", latestItemId)
+                }
+                startActivity(intent)
             }
         }
-
-        // Các sự kiện điều hướng khác
-        cardTotalPatients.setOnClickListener { openActivity(DanhSachDonThuoc::class.java, "Bệnh nhân") }
-        cardTotalRx.setOnClickListener { openActivity(DanhSachDonThuoc::class.java, "Tổng đơn thuốc") }
     }
 
     private fun applyColorFixes() {
@@ -146,28 +144,6 @@ class DonThuoc : AppCompatActivity() {
             val blueColor = Color.parseColor("#316DF0")
             iconPerson.setColorFilter(blueColor)
             iconPill.setColorFilter(blueColor)
-        } catch (e: Exception) { /* ignored */ }
-    }
-
-    private fun openActivity(cls: Class<out AppCompatActivity>, message: String) {
-        try {
-            val intent = Intent(this, cls)
-            startActivity(intent)
-            Toast.makeText(this, "Mở: $message", Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) {
-            Toast.makeText(this, "Lỗi Manifest: ${cls.simpleName}", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    private fun openChiTietDonThuoc(id: Long) {
-        try {
-            // Chuyển tới màn hình Chỉnh sửa đơn thuốc
-            val intent = Intent(this, SuaDonThuoc::class.java).apply {
-                putExtra("ITEM_ID", id)
-            }
-            startActivity(intent)
-        } catch (e: Exception) {
-            Toast.makeText(this, "Lỗi: Không tìm thấy màn hình SuaDonThuoc", Toast.LENGTH_LONG).show()
-        }
+        } catch (e: Exception) {}
     }
 }

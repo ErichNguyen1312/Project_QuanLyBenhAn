@@ -6,79 +6,74 @@ import com.example.projectqlbenhan.entity.prescriptionItem.PrescriptionItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Locale
 
-// ViewModel quản lý nghiệp vụ đơn thuốc sử dụng trực tiếp DAO
 class DonThuocViewModel(private val dao: PrescriptionItemDao) : ViewModel() {
 
-    // LiveData chứa Query tìm kiếm từ giao diện
-    private val searchQuery = MutableLiveData<String>("")
+    private var allItems: List<PrescriptionItem> = listOf()
+    private val _filteredPrescriptionItems = MutableLiveData<List<PrescriptionItem>>()
+    val filteredPrescriptionItems: LiveData<List<PrescriptionItem>> = _filteredPrescriptionItems
 
-    // LiveData chứa danh sách thuốc theo Record ID (Bệnh án)
-    private val _danhSachThuoc = MutableLiveData<List<PrescriptionItem>>()
+    private var currentRecordId: Long = -1L
 
-    // LiveData công khai chứa kết quả đã lọc để UI quan sát
-    val filteredPrescriptionItems = MediatorLiveData<List<PrescriptionItem>>()
-
-    init {
-        // Tích hợp logic tìm kiếm khi danh sách thuốc hoặc query thay đổi
-        filteredPrescriptionItems.addSource(_danhSachThuoc) { items ->
-            filterList(items, searchQuery.value)
-        }
-        filteredPrescriptionItems.addSource(searchQuery) { query ->
-            filterList(_danhSachThuoc.value, query)
-        }
-    }
-
-
-    fun loadPrescriptionByRecord(recordId: Long) = viewModelScope.launch(Dispatchers.IO) {
-        val items = dao.getItemsByRecordId(recordId)
-        _danhSachThuoc.postValue(items)
-    }
-
-    private fun filterList(list: List<PrescriptionItem>?, query: String?) {
-        if (list == null) return
-
-        if (query.isNullOrEmpty()) {
-            filteredPrescriptionItems.value = list
-        } else {
-            val lowerCaseQuery = query.lowercase(Locale.getDefault())
-            filteredPrescriptionItems.value = list.filter {
-                it.medicineName.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
-                        it.unit.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
-                        it.dosage.lowercase(Locale.getDefault()).contains(lowerCaseQuery)
+    fun loadAll() {
+        currentRecordId = -1L
+        viewModelScope.launch(Dispatchers.IO) {
+            val list = dao.getAllPrescriptionItems()
+            withContext(Dispatchers.Main) {
+                allItems = list
+                _filteredPrescriptionItems.value = list
             }
         }
     }
 
-    // Cập nhật query tìm kiếm từ SearchBar
+    fun loadPrescriptionByRecord(recordId: Long) {
+        currentRecordId = recordId
+        viewModelScope.launch(Dispatchers.IO) {
+            val list = dao.getItemsByRecordId(recordId)
+            withContext(Dispatchers.Main) {
+                allItems = list
+                _filteredPrescriptionItems.value = list
+            }
+        }
+    }
+
+    fun themDonThuoc(item: PrescriptionItem) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.insert(item)
+            withContext(Dispatchers.Main) { refreshData() }
+        }
+    }
+
     fun search(query: String) {
-        searchQuery.value = query.trim()
+        val result = if (query.isEmpty()) allItems
+        else allItems.filter { it.medicineName.contains(query, ignoreCase = true) }
+        _filteredPrescriptionItems.value = result
     }
 
-
-    fun themDonThuoc(items: List<PrescriptionItem>) = viewModelScope.launch(Dispatchers.IO) {
-        dao.insertPrescriptionItems(items)
+    suspend fun getById(id: Long): PrescriptionItem? {
+        return withContext(Dispatchers.IO) { dao.getItemById(id) }
     }
 
-    /**
-     * Cập nhật thông tin thuốc (Liều dùng, số lượng)
-     */
-    fun capNhatDonThuoc(item: PrescriptionItem) = viewModelScope.launch(Dispatchers.IO) {
-        dao.updateItem(item)
+    fun xoaThuoc(item: PrescriptionItem) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.delete(item)
+            withContext(Dispatchers.Main) { refreshData() }
+        }
     }
 
-    /**
-     * Xóa một loại thuốc khỏi đơn
-     */
-    fun xoaThuoc(item: PrescriptionItem) = viewModelScope.launch(Dispatchers.IO) {
-        dao.deleteSingleItem(item)
+    fun capNhatThuoc(item: PrescriptionItem) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.update(item)
+            withContext(Dispatchers.Main) { refreshData() }
+        }
     }
 
-    /**
-     * Lấy thông tin chi tiết một loại thuốc theo ID
-     */
-    suspend fun getById(id: Long): PrescriptionItem? = withContext(Dispatchers.IO) {
-        return@withContext dao.getItemById(id)
+    // ⭐ Đảm bảo hàm này nằm TRONG class DonThuocViewModel
+    private fun refreshData() {
+        if (currentRecordId != -1L) {
+            loadPrescriptionByRecord(currentRecordId)
+        } else {
+            loadAll()
+        }
     }
-}
+} // Dấu ngoặc kết thúc class phải nằm SAU refreshData

@@ -16,6 +16,31 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectQLBenhAn">
         <activity
+            android:name=".ui.DonThuocUI.ThemDonThuoc"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.DonThuocUI.SuaDonThuoc"
+            android:exported="false">
+
+        </activity>
+        <activity
+            android:name=".ui.DonThuocUI.DonThuoc"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".ui.DonThuocUI.DanhSachDonThuoc"
+            android:exported="false">
+
+        </activity>
+        <activity
+            android:name=".ui.DonThuocUI.ChiTietDonThuoc"
+            android:exported="false">
+        </activity>
+
+        <receiver
+            android:name=".ui.ThongBaoTaiKham.Receiver_ThongBaoTaiKham"/>
+        <activity
             android:name=".ui.DanhGia.ScreenDanhGia_Detail"
             android:exported="false" />
         <activity

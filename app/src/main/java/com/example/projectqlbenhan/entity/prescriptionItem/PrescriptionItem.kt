@@ -27,14 +27,20 @@ data class PrescriptionItem(
     val recordId: Long, // Link tới lần khám nào
 
     @ColumnInfo(name = "medicine_name")
-    val medicineName: String, // VD: "Paracetamol 500mg" (Nhập tay)
+    val medicineName: String, // Tên thuốc
 
     @ColumnInfo(name = "quantity")
-    val quantity: Int,     // VD: 10
+    val quantity: Int, // Số lượng
 
     @ColumnInfo(name = "unit")
-    val unit: String,      // VD: "Viên", "Vỉ", "Chai"
+    val unit: String, // Đơn vị tính (Viên, vỉ...)
 
     @ColumnInfo(name = "dosage")
-    val dosage: String     // VD: "Sáng 1, Chiều 1 sau ăn")
+    val dosage: String, // Liều dùng
+
+    @ColumnInfo(name = "instruction")
+    val instruction: String = "", // Hướng dẫn sử dụng
+
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long = System.currentTimeMillis() // Thời gian kê đơn
 )

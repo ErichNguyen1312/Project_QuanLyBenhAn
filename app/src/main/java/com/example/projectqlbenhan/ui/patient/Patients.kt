@@ -10,7 +10,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.projectqlbenhan.MedicalRecordDatabase
+import com.example.projectqlbenhan.database.MedicalRecordDatabase
 import com.example.projectqlbenhan.R
 import com.example.projectqlbenhan.entity.patient.Patient
 import com.example.projectqlbenhan.ui.home.HomeActivity
